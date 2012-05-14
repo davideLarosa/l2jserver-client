@@ -1,0 +1,69 @@
+place the jmonkeyengine here you can grab it from here:
+http://jmonkeyengine.googlecode.com/svn/trunk/engine
+
+place the lwjgl_util.jar in the lib directory, you can get it from 
+http://lwjgl.org
+
+apply the patch from the FCClient directory on the jmonkeyengine
+
+add the source directories and libraries to the classpath, something like this:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/terrain"/>
+	<classpathentry kind="src" path="src/bullet-native"/>
+	<classpathentry kind="src" path="src/bullet"/>
+	<classpathentry kind="src" path="src/bullet-common"/>
+	<classpathentry kind="src" path="src/android"/>
+	<classpathentry kind="src" path="src/core-effects"/>
+	<classpathentry kind="src" path="src/core-data"/>
+	<classpathentry kind="src" path="src/networking"/>
+	<classpathentry kind="src" path="src/desktop"/>
+	<classpathentry kind="src" path="src/ogre"/>
+	<classpathentry kind="src" path="src/core-plugins"/>
+	<classpathentry kind="src" path="test-data"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="src/blender"/>
+	<classpathentry kind="src" path="src/tools"/>
+	<classpathentry kind="src" path="src/core"/>
+	<classpathentry kind="src" path="src/lwjgl"/>
+	<classpathentry kind="src" path="src/jogg"/>
+	<classpathentry kind="src" path="src/niftygui"/>
+	<classpathentry kind="src" path="src/xml"/>
+	<classpathentry kind="src" path="src/test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/swing-layout/swing-layout-1.0.4-doc.zip"/>
+	<classpathentry kind="lib" path="lib/swing-layout/swing-layout-1.0.4-src.zip"/>
+	<classpathentry kind="lib" path="lib/swing-layout/swing-layout-1.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl/jinput.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl/jME3-lwjgl-natives.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl/lwjgl-debug.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/eventbus.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-default-controls-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-default-controls.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-examples-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-examples.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty-style-black.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/nifty.jar"/>
+	<classpathentry kind="lib" path="lib/niftygui/xmlpull-xpp3.jar"/>
+	<classpathentry kind="lib" path="lib/jbullet/asm-all-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/jbullet/stack-alloc.jar"/>
+	<classpathentry kind="lib" path="lib/jbullet/vecmath.jar"/>
+	<classpathentry kind="lib" path="lib/jogg/j-ogg-oggd.jar"/>
+	<classpathentry kind="lib" path="lib/jogg/j-ogg-vorbisd.jar"/>
+	<classpathentry kind="lib" path="lib/noise/noise-0.0.1-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/swingext/swing-layout-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/bullet/jME3-bullet-natives-android.jar"/>
+	<classpathentry kind="lib" path="lib/bullet/jME3-bullet-natives.jar"/>
+	<classpathentry kind="lib" path="lib/jbullet/jbullet.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.7.0_02"/>
+	<classpathentry kind="lib" path="lib/android/android.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl/lwjgl_util.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
+
+
+
+
