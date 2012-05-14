@@ -1,0 +1,24 @@
+Navmesh for WClient
+
+ 128er size for block = 256 blocks for a region 
+ 256er size for block = 128 blocks for a region
+
+center: 128 ring 1: 256 ring 2: 384 ring 3:512 (ring 4:640 ?)
+
+if 8 units ~ 1 meter this would mean 128 would be just 16m, a region would be 4096m
+
+all 2m a node -> 128 nodes will form a 256m patch
+
+center: 256 ring 1: 512 ring2: 768 ring 3: 1024
+
+
+actually:
+all 4m a node -> 128 nodes will form a 512m patch
+
+center: 512 ring 1: 1024 ring 2: 1536 ring 3: 2048
+1		9	25		36
+
+Break potential, display mesh can be scaled, navmesh not
+for a navmesh only the final extent is important.
+on asset creation the same mesh can be used for navmesh and display mesh. After export the display mesh can be scaled, breaking the similarities between navmesh and display mesh
+

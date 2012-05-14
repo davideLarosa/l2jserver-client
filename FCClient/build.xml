@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<project name="FCClient" default="compile">
+	<description>
+    Ant Build File for the fightingchaos client.
+    $Id: build.xml 4607 2009-08-20 18:00:09Z skye.book $
+  </description>
+	<!-- Since we have developers who use different tab-stop settings in their
+       editors and IDE's, please use spaces, not tabs, for indentation.
+       (Your editor or IDE has a setting to automatically change your tab
+       keystrokes into spaces). -->
+
+	<property name="src" location="src" />
+	<property name="class" location="bin" />
+	<property name="dist" location="dist" />
+	<property name="lib" location="lib" />
+	<property name="db" location="derby" />
+	<property name="version" value="0.0.2" />
+	<property name="startclass" value="com.l2client.test.TestNetLoginGui" />
+
+	<path id="lib.path.ref">
+		<fileset dir="lib" includes="*.jar"/>
+	</path>
+
+	<!-- You may prefer to set javac.debug to false to reduce size. -->
+	<property name="javac.debug" value="false" />
+	<property name="javac.maxmem" value="256m" />
+	<property name="javac.source" value="1.6" />
+	<property name="javac.target" value="1.6" />
+	<property name="build.compiler" value="javac1.6" />
+
+	<!-- N.b. the .source and .target setting are NOT for source and target
+         directories, but for source and target JVM versions. -->
+	<!--  <property name="javac.debuglevel" value="lines,source" />  -->
+	<!-- Having line numbers in debug output is useful for the 99.9%
+         of non-public builds, esp. for custom-builders who have
+         runtime problems.   - blaine  -->
+	<!--    end of defaults -->
+
+	<!-- Compiles all the classes -->
+	<target name="compile" description="generate client classes">
+
+		<echo>compiling ${src}/*.java to ${class}</echo>
+		<javac source="${javac.source}" target="${javac.target}"
+           debuglevel="${javac.debuglevel}" classpathref="lib.path.ref"
+      srcdir="${src}" destdir="${class}" includes="com/**/*.java" excludes="**/junit/**/*"
+      listfiles="no" fork="true"
+      memoryMaximumSize="${javac.maxmem}" debug="${javac.debug}"/>
+	</target>
+
+	<!-- pack the data files sounds, music, textures, models, etc. -->
+	<target name="data">
+		<jar destfile="data.jar" basedir="data/media" />
+		<jar destfile="models.jar" basedir="data/models" />
+	</target>
+
+	<!-- compile distribution -->
+	<target name="dist" depends="compile,data" description="generate distribution">
+		<copy file="cServer.properties" toDir="${dist}" />
+		<copy file="logging.properties" toDir="${dist}" />
+		<copy todir="${dist}">
+			<fileset dir="." includes="*.properties"/>
+		</copy>
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}" includes="*.jar, *.txt"/>
+			<fileset dir="." includes="*.jar"/>
+		</copy>
+		<copy todir="${dist}/derby/l2jclient">
+			<fileset dir="${db}/l2jclient" excludes="*.sql"/>
+		</copy>
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}" excludes="*.jar, *.txt, *.zip"/>
+		</copy>
+
+		<pathconvert property="jarclasspathlibs" pathsep=" " dirsep="/">
+			<path>
+				<fileset dir="${lib}">
+					<include name="*.jar" />
+				</fileset>
+			</path>
+			<mapper type="regexp" from=".*(lib.*)" to="\1" />
+		</pathconvert>
+		<echo>path: ${jarclasspathlibs}</echo>
+
+		<jar destfile="${dist}/fcclient.jar" basedir="${class}"
+         duplicate="fail" index="yes" excludes="**/junit/**/*">
+			<manifest>
+				<attribute name="Implementation-Title" value="${ant.project.name}" />
+				<attribute name="Version" value="${version}" />
+				<attribute name="Class-Path" value="${jarclasspathlibs}" />
+				<attribute name="Main-Class" value="${startclass}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- create zip packages of distribution and source -->
+	<target name="pack-dist" depends="dist">
+		<delete>
+			<fileset file="dist.zip" />
+			<fileset file="dist_src.zip" />
+		</delete>
+		<zip zipfile="dist.zip">
+			<zipfileset dir="${dist}" />
+		</zip>
+		<zip zipfile="dist_src.zip">
+			<zipfileset dir="${src}" />
+		</zip>
+	</target>
+
+	<!-- Removes all compiled files and documentation, but leaves any created jars -->
+	<target name="clean" description="clean up">
+		<delete includeemptydirs="true">
+			<fileset dir="${class}" includes="**/*" defaultexcludes="false" />
+			<fileset dir="${dist}" includes="*.jar" />
+			<fileset dir="${dist}/lib" includes="**/*" defaultexcludes="false"/>
+			<fileset dir="${dist}/derby" includes="**/*" defaultexcludes="false"/>
+		</delete>
+		<delete>
+			<fileset file="dist.zip" />
+			<fileset file="dist_src.zip" />
+		</delete>
+	</target>
+
+	<!-- clean and just compile -->
+	<target name="rebuild" depends="clean, compile"
+          description="build from clean"/>
+
+	<target name="rebuild-dist" depends="clean, dist"
+	          description="build clean dist"/>
+
+	<target name="run-gui-test" depends="dist" description="Runs the Testapp">
+		<condition property="jogl.arch.suffix" value="amd64">
+			<os arch="amd64"/>
+		</condition>
+		<property name="jogl.arch.suffix" value="i586"/>
+		<pathconvert property="native.libpath" setonempty="false">
+			<filelist dir="${dist}/lib">
+				<file name="windows"/>
+				<file name="linux"/>
+				<file name="mac"/>
+				<file name="."/>
+			</filelist>
+		</pathconvert>
+		<echo>native: ${native.libpath}</echo>
+		<path id="test.path">
+			<fileset dir="dist">
+				<include name="**/*.jar"/>
+			</fileset>
+		</path>
+		<echo>test: ${toString:test.path}</echo>
+		<java dir="${dist}" fork="true" classpathref="test.path" classname="${startclass}">
+			<jvmarg value="-Djava.library.path=${native.libpath}"/>
+			<jvmarg value="-Djava.util.logging.config.file=logging.properties "/>
+			<jvmarg value="-Xms128m"/>
+			<jvmarg value="-Xmx786m"/>
+		</java>
+	</target>
+
+</project>

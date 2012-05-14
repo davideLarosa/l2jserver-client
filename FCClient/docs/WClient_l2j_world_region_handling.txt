@@ -1,0 +1,50 @@
+
+Sizes:
+
+world = 32 * 32 regions numbering 0..31
+top left of playable world is region 16_10 ?!
+so playable world is in x 16..31 in z 10..31  ?!
+
+1 region = 256 * 256 blocks
+1 block = 8 * 8 cells
+1 cell = 16 * 16 units in world coords
+
+
+cell size:	16  units
+block size:	128 units
+region size:	32768 units
+world size:	1048576 units
+
+
+some observations:
+in l2 two models stood nearly on the same spot, but the coordinates were quite different.
+
+46243,41220,-3508
+46251,41223,-3510 
+
+they stood 8 units in x apart and it seemed like half a meter. could it be that a cell defines a meter or two, i.e. 16 or 8 units ~ 1 meters ?
+that would mean the world would only be 64k or 131k meters wide and high. compare this to the speed of a char, how fast are they, how many units do they travel in a sec? what would this mean compared to the size?
+
+256(blocks of a region)*(16 units) would be 4096 (the divisor for one region in units)
+
+
+cell size:	1m
+block size:	*8m
+region size:	*256 = 2048m
+world size:	*32 = 65536m
+
+a regions dimension is 2048m * 2048m
+a region consists of 8 * 8 tiles  (one tile 129x129 verts and 256x256m)
+top left is 0/0 
+top right is 15/0
+bottom left is 0/15
+bottom right is 15/15
+
+a tile has terrain, navmesh, static low, static high, vegetation
+tiles in 3x3 surrounding are fully loaded and at ful detail
+tiles between 4x4 and 5x5 are at least low loaded and full is currently loading or loaded
+tiles at 6x& could be prerendered graytones of static low + terrain (6 images of the terrain in each 6 directions)
+
+8 tiles are one region 
+32*8 tiles is the world tiles count in x (and in y)
+so in 16/16 we have the tile 0/0,1/0,

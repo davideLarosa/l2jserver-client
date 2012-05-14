@@ -1,0 +1,87 @@
+navmesh
+  load/save						done
+  optimize						open
+  ispointonmesh					done
+  heap rewrite to generics			done
+  mesh crossing (tiles) 			done
+  client & server use navmesh
+  new: direct paths & no more crossing on middlepoint
+
+terrain 
+  texturing						done
+  shader in jme integrated		-> use existing shader or integrate own
+  ogre pagedgeometry for trees and grass -> use androlos forester
+
+asset tool
+  terrain material import
+  navmesh import					
+  terrain mesh import				done
+  asset import					done
+
+compiler
+  textures must be copied to target	done
+  material save after copy of textures	done
+  create megaset					done
+  create data.jar					done
+  split data.jar 
+  primhand							done
+  offhand							done
+  attachments
+
+assembler
+  load partset configuration			done
+  gui for creation of custom partsets	
+
+
+
+group 
+  flocking algorithm				done
+  group navigation				done
+  group orders
+  group planing
+
+distribution
+  repackaging of jars for local client
+  webstart version
+  static database as a jar file		started
+  local database for game settings
+  
+BUGS:
+Investigate missing materials though material is peresent in data.jar
+Feb 14, 2012 4:24:42 PM com.l2client.asset.AssetManager$1 call
+Schwerwiegend: requested mats/pdwarfmwarrior/dwarfwarriorattachment.j3m was not found
+
+Investigate missing ent positioningcomponen, is it a concurrency situation? creation and move in very short milis?!?!
+Feb 14, 2012 4:25:05 PM com.l2client.network.game.ServerPackets.MoveToLocation handlePacket
+Schwerwiegend: No SimplePositioningComonent found with entity id 268465869, perhaps just create one?
+
+Troll model is different:
+ERROR no JMEAnimationController on Model
+
+A strange packet sequence with a 0 sized packet ?!?!?
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffffe
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffff9
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffffe
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:75
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:ffffffc7
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffffe
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffffe
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Unknown optcode:fffffffe
+Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
+Warnung: Packet with no data ?? size:2:0
+
+
+GUI BUG: pressing L inGame causes the list of abilities to flicker must press several times until visible or invisible.
+GUI BUG: drop down boxes do not work properly, sometimes they loose focus when used with mouse.
+
+name tags are not centered above the models
+
+pelfmwarrior has also wood elf stuff on it (so a bow is additionally displayed)

@@ -1,0 +1,58 @@
+MaterialDef Terrain Lighting Parallax {
+
+    MaterialParameters {
+
+        // Texture map #0
+        Texture2D DiffuseMap_0
+        Float DiffuseMap_0_scale
+        Texture2D NormalMap_0
+
+        // Texture map #1
+        Texture2D DiffuseMap_1
+        Float DiffuseMap_1_scale
+        Texture2D NormalMap_1
+
+        // Texture map #2
+        Texture2D DiffuseMap_2
+        Float DiffuseMap_2_scale
+        Texture2D NormalMap_2
+
+        // Texture map #3
+        Texture2D DiffuseMap_3
+        Float DiffuseMap_3_scale
+        Texture2D NormalMap_3
+
+        // Texture that specifies alpha values
+        Texture2D AlphaMap
+    }
+
+    Technique {
+
+        LightMode MultiPass
+
+        VertexShader GLSL100:   com/l2client/materials/TLP2.vert
+        FragmentShader GLSL100: com/l2client/materials/TLP2.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+        }
+
+        Defines {
+            DIFFUSEMAP_0 : DiffuseMap_0
+            DIFFUSEMAP_1 : DiffuseMap_1
+            DIFFUSEMAP_2 : DiffuseMap_2
+            DIFFUSEMAP_3 : DiffuseMap_3
+            NORMALMAP_0 : NormalMap_0
+            NORMALMAP_1 : NormalMap_1
+            NORMALMAP_2 : NormalMap_2
+            NORMALMAP_3 : NormalMap_3
+            ALPHAMAP : AlphaMap
+            DIFFUSEMAP_0_SCALE : DiffuseMap_0_scale
+            DIFFUSEMAP_1_SCALE : DiffuseMap_1_scale
+            DIFFUSEMAP_2_SCALE : DiffuseMap_2_scale
+            DIFFUSEMAP_3_SCALE : DiffuseMap_3_scale
+        }
+    }
+
+}
