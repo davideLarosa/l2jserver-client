@@ -1,0 +1,104 @@
+material TrollMat2/BN0_troltooth_head
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.179083 0.0653588 0.0653588
+            diffuse 0.47451 0.705882 0.615686
+            specular 0.9 0.9 0.9 1100.0
+            emissive 0.0 0.0 0.0
+            texture_unit
+            {
+                texture troltooth_head_diffuse_5.JPG 
+            }
+        }
+    }
+}
+
+material TrollMat2/Material_#3
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.088888 0.0640517 0.181698
+            diffuse 0.278431 0.603922 0.262745
+            specular 0.9 0.9 0.9 0.0
+            emissive 0.0 0.0 0.0
+        }
+    }
+}
+
+material TrollMat2/BN0_Trolltooth_Arms
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.066666 0.184312 0.0588229
+            diffuse 0.454902 0.615686 0.596078
+            specular 0.9 0.9 0.9 1000.0
+            emissive 0.0 0.0 0.0
+            texture_unit
+            {
+                texture Troltooth_arms_Diffuse_3.JPG 
+            }
+        }
+    }
+}
+
+material TrollMat2/BN0_Trolltooth_Club
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.0640517 0.103267 0.181698
+            diffuse 0.654902 0.623529 0.568627
+            specular 0.9 0.9 0.9 1000.0
+            emissive 0.0 0.0 0.0
+            texture_unit
+            {
+                texture Troltooth_Club_diffuse_1.JPG 
+            }
+        }
+    }
+}
+
+material TrollMat2/BN0_Trolltooth_Legs
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.066666 0.184312 0.0588229
+            diffuse 0.341176 0.533333 0.501961
+            specular 0.9 0.9 0.9 1000.0
+            emissive 0.0 0.0 0.0
+            texture_unit
+            {
+                texture Troltooth_Legs_diffuse_2.JPG 
+            }
+        }
+    }
+}
+
+material TrollMat2/TrollMat1
+{
+    technique
+    {
+        pass
+        {
+            ambient 0.066666 0.184312 0.0588229
+            diffuse 0.498039 0.654902 0.658824
+            specular 0.9 0.9 0.9 1000.0
+            emissive 0.0 0.0 0.0
+            texture_unit
+            {
+                texture troltooth_torso_diffuse_1.jpg 
+            }
+        }
+    }
+}
+
