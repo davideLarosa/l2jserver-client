@@ -41,6 +41,12 @@ public class PositioningSystem extends ComponentSystem {
 		}
 	}
 	
+	/**
+	 * Movement based on straight line interpolation between two points
+	 * @param com
+	 * @param dt
+	 * @return
+	 */
 	private boolean move(SimplePositionComponent com, float dt) {
 		if(!com.currentPos.equals(com.goalPos)){
 				float cSpeed = com.running?com.runSpeed:com.walkSpeed;
@@ -95,6 +101,12 @@ public class PositioningSystem extends ComponentSystem {
 	}
 	
 
+	/**
+	 * Movement of a PositioningComponent, e.g. movement based on a navmesh
+	 * @param com
+	 * @param dt
+	 * @return
+	 */
 	private boolean move(PositioningComponent com, float dt) {
 		//are we moving??
 		if(com.nextWayPoint != null){

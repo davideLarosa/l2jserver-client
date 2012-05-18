@@ -3,6 +3,7 @@ package com.l2client.component;
 import com.jme3.math.Vector3f;
 import com.l2client.controller.entity.ISpatialPointing;
 import com.l2client.navigation.Cell;
+import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavigationMesh;
 import com.l2client.navigation.Path;
 import com.l2client.navigation.Path.WAYPOINT;
@@ -45,8 +46,12 @@ public class PositioningComponent implements Component, ISpatialPointing{
 		mesh = (NavigationMesh) start.mesh;
 		cell = start.Cell;
 		position = start.Position;
-		if(p.m_WaypointList.size()>1)
-			nextWayPoint = p.m_WaypointList.get(1);
+		if(p.m_WaypointList.size()>1){
+			if(EntityNavigationManager.USE_OPTIMZED_PATH)
+				nextWayPoint = p.m_OptimalWaypointList.get(1);
+			else
+				nextWayPoint = p.m_WaypointList.get(1);
+		}
 		
 	}
 

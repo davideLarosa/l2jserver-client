@@ -56,7 +56,9 @@ public class AssetManager {
 
 				try {
 					n = jmeAssetMan.loadAsset(a.getLocation());
-				} catch (Exception e) {
+				} catch(IllegalStateException ex){
+					ex.printStackTrace();
+				}catch (Exception e) {
 				}
 				if (n != null) {
 					a.setBaseAsset(n);

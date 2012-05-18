@@ -301,6 +301,12 @@ System.out.println("-- looking for path from"+StartPos+" to "+EndPos);
 					}
 				}
 			} else if (Result.result == Cell.PATH_RESULT.NO_RELATIONSHIP) {
+//System.out.println("NO RELATION");
+				//FIXME this could also be the case of optimized meshes
+				Cell c =EntityNavigationManager.get().FindClosestCell(EndPos, true);
+				if(c!= null && c != TestCell){
+						TestCell =c;
+				} else {
 				// Although theoretically we should never encounter this case,
 				// we do sometimes find ourselves standing directly on a vertex
 				// of the cell.
@@ -314,6 +320,7 @@ System.out.println("-- looking for path from"+StartPos+" to "+EndPos);
 //				MotionPath.SetEndPointA(NewOrigin);
 				//we do not want to iterate we just want them to stop at the wall and not cet out
 				MotionPath.SetEndPointB(NewOrigin);
+				}
 			}
 //		}//
 		// Keep testing until we find our ending cell or stop moving due to

@@ -1,5 +1,7 @@
 package com.l2client.navigation;
 
+import java.util.ArrayList;
+
 import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -184,21 +186,29 @@ public class NavTestHelper {
 
 	public static void debugShowPath(AssetManager assetMan, com.jme3.scene.Node root, Path p) {
 		float width = 0.05f;
-		NavTestHelper.debugShowBox(assetMan, root, p.m_WaypointList.get(0).Position, ColorRGBA.Green, width, .8f, width);
-		NavTestHelper.debugShowCell(assetMan, root, p.m_WaypointList.get(0).Cell, ColorRGBA.Blue, true);
-		for(int i = 1; i< p.m_WaypointList.size()-1;i++){
-			ColorRGBA color = ColorRGBA.White.mult(((float)i/p.m_WaypointList.size()));
-			NavTestHelper.debugShowBox(assetMan, root, p.m_WaypointList.get(i).Position, color, width, .8f, width);
-			debugShowLine(assetMan, root, p.m_WaypointList.get(i-1).Position, p.m_WaypointList.get(i).Position, color);
-			NavTestHelper.debugShowCell(assetMan, root, p.m_WaypointList.get(i).Cell, ColorRGBA.Blue, true);
+		ArrayList<WAYPOINT> list; 
+		if(EntityNavigationManager.USE_OPTIMZED_PATH)
+			list = p.m_OptimalWaypointList;
+		else
+			list = p.m_WaypointList;
+		
+		NavTestHelper.debugShowBox(assetMan, root,list.get(0).Position, ColorRGBA.Green, width, .8f, width);
+		NavTestHelper.debugShowCell(assetMan, root, list.get(0).Cell, ColorRGBA.Blue, true);
+		for(int i = 1; i< list.size()-1;i++){
+			ColorRGBA color = ColorRGBA.White.mult(((float)i/list.size()));
+			NavTestHelper.debugShowBox(assetMan, root, list.get(i).Position, color, width, .8f, width);
+			debugShowLine(assetMan, root, list.get(i-1).Position, list.get(i).Position, color);
         }
+		for(int i=1; i<p.m_WaypointList.size()-1;i++){
+			NavTestHelper.debugShowCell(assetMan, root, p.m_WaypointList.get(i).Cell, ColorRGBA.Blue, true);
+		}
 		NavTestHelper.debugShowBox(assetMan, root, p.EndPoint().Position, ColorRGBA.Red, width, .8f, width);
 //		debugShowLine(p.m_WaypointList.get(p.m_WaypointList.size()-1).Position, p.EndPoint().Position, ColorRGBA.White);
 	}
 	
 	private static void debugShowLine(AssetManager assetMan, com.jme3.scene.Node root, Vector3f start, Vector3f end,
 			ColorRGBA color) {
-		Line b = new Line(start, end);//, 0.1f, 0.4f, 0.1f);
+		Line b = new Line(start.add(0f, 1f, 0f), end.add(0f,1f,0f));//, 0.1f, 0.4f, 0.1f);
 		b.setLineWidth(2f);
 		Geometry geom = new Geometry("Box", b);
 		Material mat = new Material(assetMan, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -277,6 +287,11 @@ public class NavTestHelper {
 			for (WAYPOINT w : pa.m_WaypointList)
 				System.out.println("  -" + w.Position + " cost:"
 						+ w.Cell.m_ArrivalCost + " cell:" + w.Cell);
+			if(EntityNavigationManager.USE_OPTIMZED_PATH){
+				System.out.println("Optimized paths are used :");
+				for (WAYPOINT w : pa.m_OptimalWaypointList)
+					System.out.println("  -" + w.Position + " cell:" + w.Cell);
+			}
 		}
 	}
 }

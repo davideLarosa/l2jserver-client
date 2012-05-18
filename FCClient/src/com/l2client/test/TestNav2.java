@@ -122,8 +122,10 @@ public class TestNav2 extends SimpleApplication {
 				public Object call() throws Exception {
 					debugNodes.detachAllChildren();
 		    		Path p = new Path();
-					p = NavTestHelper.findPath(em, new Vector3f(1.1f,0,1f), new Vector3f(3.1f,0,3f));
+//					p = NavTestHelper.findPath(em, new Vector3f(1.1f,0,1f), new Vector3f(3.1f,0,3f));
+					p = NavTestHelper.findPath(em, new Vector3f(260f,0,-20f), new Vector3f(270f,0,10f));
 					if(p != null){
+//						p.optimize();
 					NavTestHelper.debugShowCost(assetManager, debugNodes, p, ColorRGBA.Cyan);
 					NavTestHelper.debugShowPath(assetManager, debugNodes, p);
 					NavTestHelper.areCellsConnected(p);

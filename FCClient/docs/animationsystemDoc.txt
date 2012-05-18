@@ -32,9 +32,9 @@ a taunt, or walk could be 1, an attack could try to lock on even higher, a hurt 
 -Decide on the transitions you would need for your system. Give it a try by specifying them by using current animation name, final animation name, transition animation. Should be sufficient for most configurations. 
 -Implement a position in your engine where update calls can be received on each frame, the input hooks are routed to the mediator and the animationprovider information is filled out. Have a look at the JMEAnimationController for inspiration.
 
-Building an animation system for JMonkeyengine 2
+Building an animation system for JMonkeyengine 3
 
-To give you some hints on how to integrate the animation system into your engine an example is provided based on the JMonkeyengine 2, the code can be found in the library folder src/../animsystem/example/.
+To give you some hints on how to integrate the animation system into your engine an example is provided based on the JMonkeyengine 3, the code can be found in the library folder src/../animsystem/example/.
 
 As a starting point we will look at the ninja ogre model comming with jmonkey. The model comes with the following animations:
 Attack1, Attack2, Attack3, Backflip, Block, Climb, Crouch, Death1, Death2, HighJump, Idle1, Idle2, Idle3, Jump, JumpNoHeight, Kick, SideKick, Spin, Stealth, Walk.

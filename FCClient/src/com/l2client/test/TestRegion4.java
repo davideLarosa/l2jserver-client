@@ -152,7 +152,7 @@ public class TestRegion4 extends SimpleApplication {
 
     	
     	t+=tpf;
-    	if(t>=10f){
+    	if(t>=4f){
 
     		t=0f;
 System.out.println("Cam@"+cam.getLocation());    
@@ -164,7 +164,7 @@ if(pc != null){
 		if(pc.nextWayPoint != null)
 			System.out.println(" heading:"+pc.nextWayPoint.Position);
 		else
-			System.out.println();
+			System.out.println(" heading: not moving");
 		
 		if(pc.path != null && debugNodes.getQuantity()<=0)
 			NavTestHelper.debugShowPath(assetManager, debugNodes, pc.path);

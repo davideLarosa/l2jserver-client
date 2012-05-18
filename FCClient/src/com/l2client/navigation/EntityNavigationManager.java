@@ -17,6 +17,11 @@ import com.l2client.navigation.Path.WAYPOINT;
  *
  */
 public class EntityNavigationManager {
+	
+	/**
+	 * Optimized paths try to get as straight as possible paths, otherwise cell wall midpoints are used for paths
+	 */
+	public static boolean USE_OPTIMZED_PATH = false;//true;
 
 	private static EntityNavigationManager singleton = null;
 	
@@ -111,19 +116,34 @@ public class EntityNavigationManager {
 		if(comp.mesh.isBorderCell(comp.cell)) {
 			if(comp.position.distanceSquared(endPos) < 0.00000001f){
 				WAYPOINT c = null;
-				for(WAYPOINT p : comp.path.m_WaypointList){
-					//one after current
-					if(c != null){
-						comp.cell = p.Cell;
-						comp.mesh = (NavigationMesh) p.mesh;
-						comp.nextWayPoint = p;
-						endPos.set(c.Position);
-						return;
+				if(USE_OPTIMZED_PATH)
+					for(WAYPOINT p : comp.path.m_OptimalWaypointList){
+						//one after current
+						if(c != null){
+							comp.cell = p.Cell;
+							comp.mesh = (NavigationMesh) p.mesh;
+							comp.nextWayPoint = p;
+							endPos.set(c.Position);
+							return;
+						}
+						//find current
+						if(p == comp.nextWayPoint)
+							c = p;
 					}
-					//find current
-					if(p == comp.nextWayPoint)
-						c = p;
-				}
+				else
+					for(WAYPOINT p : comp.path.m_WaypointList){
+						//one after current
+						if(c != null){
+							comp.cell = p.Cell;
+							comp.mesh = (NavigationMesh) p.mesh;
+							comp.nextWayPoint = p;
+							endPos.set(c.Position);
+							return;
+						}
+						//find current
+						if(p == comp.nextWayPoint)
+							c = p;
+					}
 				//nothing here baaaaad
 				return;
 			}
@@ -154,6 +174,8 @@ public class EntityNavigationManager {
 						navPath.WaypointList().clear();
 						if(startMesh.buildNavigationPathToBorder(navPath, null, startPos, endPos)){
 							Path endPath = new Path();
+							if(USE_OPTIMZED_PATH)
+								navPath.optimize();
 							System.out.println(" - path part 1 to border found :"+startPos+" to:"+endPos+" with crossing at:"+navPath.EndPoint().Position);
 							//FIXME this one is direction dependant, so we have to invert search direction
 							if(endMesh.buildNavigationPathToBorder(endPath, null, endPos, navPath.EndPoint().Position)){
@@ -164,11 +186,19 @@ public class EntityNavigationManager {
 									navPath.WaypointList().clear();
 									return false;
 								}
+								
+								if(USE_OPTIMZED_PATH)
+									endPath.optimize();
 									
 								//reverse addition needed because of direction dependency
 								//add all, because the waypoint crossing will be in twice, but with different cells
 								for(int i=endPath.m_WaypointList.size()-1;i>=0;i--)
 									navPath.m_WaypointList.add(endPath.m_WaypointList.get(i));
+								
+								//same for optimized
+								if(USE_OPTIMZED_PATH)
+									for(int i=endPath.m_OptimalWaypointList.size()-1;i>=0;i--)
+										navPath.m_OptimalWaypointList.add(endPath.m_OptimalWaypointList.get(i));
 								
 								navPath.EndPoint().Cell.MapVectorHeightToCell(navPath.EndPoint().Position);
 								return true;
@@ -180,6 +210,9 @@ public class EntityNavigationManager {
 					} else System.out.println("NO PATH - Path for non neighbors requested:"+startMesh+" to:"+endMesh);
 				} else {
 					if(startMesh.buildNavigationPath(navPath, startPos, endPos)){
+						if(USE_OPTIMZED_PATH)
+							navPath.optimize();
+						
 						navPath.EndPoint().Cell.MapVectorHeightToCell(navPath.EndPoint().Position);
 						return true;
 					}else 

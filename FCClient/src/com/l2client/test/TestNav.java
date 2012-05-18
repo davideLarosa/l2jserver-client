@@ -82,7 +82,7 @@ public class TestNav extends SimpleApplication {
     	rootNode.attachChild(debugNodes);
     	cam.setLocation(cam.getLocation().add(0, 50, 50));
     	
-    	addNavWithMesh(em,"grid.0_0.j3o",0, 0, 0);
+    	addNavWithMesh(em,"navtest/grid.0_0.j3o",0, 0, 0);
 
 
         rootNode.attachChild(NavTestHelper.getText(assetManager, "0/0", 0, 5f, 0, 2f));
