@@ -24,7 +24,6 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.l2client.asset.AssetManager;
 import com.l2client.controller.SceneManager;
-import com.l2client.controller.SoundController;
 import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.gui.dialogs.GameServerJPanel;
@@ -398,15 +397,35 @@ public final class GameController {
 //			return;
 //		
 //		//TODO test settings for fast dev test
-//		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'});
+//		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "localhost:2106");
 //		if(true)return;
+		
+		
+		
+		//FIXME move this out to config item
+		//############################################################
+		//load server properties
+		Properties servers = new Properties();
+
+        FileInputStream in;
+		try {
+			in = new FileInputStream("cServer.properties");
+			servers.load(in);
+		} catch(Exception e) {//Ignore
+		} 
+
+		//get startup server
+		final String host = servers.getProperty("client.server.host");
+		final String port = servers.getProperty("client.server.port");
+
+		//#############################################################
 
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
 				final TransparentLoginPanel pan = GuiController.getInstance()
 						.displayUserPasswordJPanel();
-
+				pan.setServer(host+":"+port);
 				// action that gets executed in the update thread:
 				pan.addLoginActionListener(new ActionListener(){
 					@Override
@@ -414,8 +433,20 @@ public final class GameController {
 								// this gets executed in jme thread
 								// do 3d system calls in jme thread only!
 //								SoundController.getInstance().playOnetime("sound/click.ogg", false, Vector3f.ZERO);
-								if (!initNetwork(pan.getUsername(), pan
-										.getPassword())) {
+
+						String[] split = pan.getServer().split(":");
+
+						if(split.length<2) {
+							GuiController.getInstance().showErrorDialog("Check your server:port entry");
+							return;
+						}
+						try {
+							Integer port = Integer.parseInt(split[1]);
+						} catch (NumberFormatException ex) {
+							GuiController.getInstance().showErrorDialog("Your port is not a number entry");
+							return;
+						}
+								if ( !initNetwork(pan.getUsername(), pan.getPassword(), pan.getServer()) ) {
 
 									doLogin();
 									GuiController
@@ -443,38 +474,18 @@ public final class GameController {
 		});
 	}
 	
-	public boolean initNetwork(String user, char [] pwd){
-		//FIXME move this out to config item
-		//############################################################
-		//load server properties
-		Properties servers = new Properties();
+	public boolean initNetwork(String user, char [] pwd, String hostport){
 
-        FileInputStream in;
-		try {
-			in = new FileInputStream("cServer.properties");
-			servers.load(in);
-		} catch(Exception e) {
-			//FIXME elaborate
-			e.printStackTrace();
-			return false;
-		} 
-
-		//get startup server
-		String host = servers.getProperty("client.server.host");
-		Integer port = Integer.parseInt(servers.getProperty("client.server.port"));
-//		String id = servers.getProperty("client.server.id");
-		//if none present the open dialog to enter server info
-		if(host == null || port == null){
-			//TODO open window and let the user enter settings
-			logger.severe("missing login server configuration in testcase");
-			return false;
-		}
-		//#############################################################
+		String[] split = hostport.split(":");
+		//verified by GUI already
+		Integer port = Integer.parseInt(split[1]);
 		
 		this.clientInfo = ClientFacade.get();
+		
 		clientInfo.init(user);
+		
 		//try connection to login server
-        this.loginHandler = new LoginHandler(port,host){
+        this.loginHandler = new LoginHandler(port, split[0]){
             @Override
             public void onDisconnect(boolean todoOk,String host, int port){
                 if(todoOk){

@@ -14,10 +14,25 @@ import com.l2client.gui.transparent.TransparentLabel;
 import com.l2client.gui.transparent.TransparentPasswordField;
 import com.l2client.gui.transparent.TransparentTextField;
 
+
+/**
+* This code was edited or generated using CloudGarden's Jigloo
+* SWT/Swing GUI Builder, which is free for non-commercial
+* use. If Jigloo is being used commercially (ie, by a corporation,
+* company or business for any purpose whatever) then you
+* should purchase a license for each developer using Jigloo.
+* Please visit www.cloudgarden.com for details.
+* Use of Jigloo implies acceptance of these licensing terms.
+* A COMMERCIAL LICENSE HAS NOT BEEN PURCHASED FOR
+* THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
+* LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
+*/
 public class TransparentLoginPanel extends JPanel {
 
 	private static final long serialVersionUID = -1L;
-	private float transparency = 0.5f;
+	private float transparency = 0.7f;
+	private TransparentTextField transparentServerField;
+	private TransparentLabel transparentLabel1;
 	private TransparentLabel nameLabel;
 	private TransparentTextField nameField;
 	private TransparentPasswordField passwordField;
@@ -34,9 +49,9 @@ public class TransparentLoginPanel extends JPanel {
 		frame.getContentPane().add(new UserPasswordJPanel());
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.pack();
-		frame.setSize(200, 180);
+		frame.setSize(310, 204);
 		frame.setVisible(true);
-		frame.setPreferredSize(new java.awt.Dimension(200, 180));
+		frame.setPreferredSize(new java.awt.Dimension(310, 204));
 	}
 	
 	public TransparentLoginPanel() {
@@ -47,43 +62,60 @@ public class TransparentLoginPanel extends JPanel {
 	
 	private void initGUI() {
 		try {
-			this.setPreferredSize(new java.awt.Dimension(200, 140));
+			this.setPreferredSize(new java.awt.Dimension(310, 204));
 			this.setLayout(null);
 			this.setOpaque(false);
-			this.setSize(200, 140);
+			this.setSize(310, 204);
 			{
 				nameLabel = new TransparentLabel();
 				this.add(nameLabel);
 				nameLabel.setText("Username:");
-				nameLabel.setBounds(12, 12, 72, 14);
+				nameLabel.setBounds(12, 12, 89, 23);
 			}
 			{
 				nameField = new TransparentTextField();
 				this.add(nameField);
-				nameField.setBounds(96, 9, 96, 21);
+				nameField.setBounds(119, 9, 168, 26);
 			}
 			{
 				jLabel1 = new TransparentLabel();
 				this.add(jLabel1);
 				jLabel1.setText("Password:");
-				jLabel1.setBounds(12, 45, 72, 14);
+				jLabel1.setBounds(12, 45, 89, 23);
 			}
 			{
 				passwordField = new TransparentPasswordField();
 				this.add(passwordField);
-				passwordField.setBounds(96, 42, 96, 21);
+				passwordField.setBounds(119, 42, 168, 26);
 			}
 			{
 				loginButton = new TransparentButton();
 				this.add(loginButton);
 				loginButton.setText("Login");
-				loginButton.setBounds(12, 85, 82, 22);
+				loginButton.setBounds(12, 150, 121, 31);
 			}
 			{
 				cancelButton = new TransparentButton();
 				this.add(cancelButton);
 				cancelButton.setText("Cancel");
-				cancelButton.setBounds(115, 85, 82, 22);
+				cancelButton.setBounds(166, 150, 121, 31);
+			}
+			{
+				transparentLabel1 = new TransparentLabel();
+				this.add(transparentLabel1);
+				transparentLabel1.setTransparency(transparency);
+				transparentLabel1.setText("Server:");
+				transparentLabel1.setBounds(12, 106, 89, 23);
+			}
+			{
+				transparentServerField = new TransparentTextField();
+				this.add(transparentServerField);
+				transparentServerField.setTransparency(transparency);
+				transparentServerField.setBounds(119, 103, 168, 26);
+				transparentServerField.setToolTipText("<Server>:<Port> e.g localhost:2106");
+				transparentServerField.setVerifyInputWhenFocusTarget(true);
+//				//Not working with swing gui, focus is passed anyway
+//				transparentServerField.setInputVerifier(new ServerStringVerifier());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -125,5 +157,13 @@ public class TransparentLoginPanel extends JPanel {
 	
 	public String getUsername(){
 		return nameField.getText();
+	}
+	
+	public String getServer(){
+		return transparentServerField.getText();
+	}
+	
+	public void setServer(String server){
+		transparentServerField.setText(server);
 	}
 }

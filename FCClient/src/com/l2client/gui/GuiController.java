@@ -215,29 +215,28 @@ public final class GuiController {
 //		desktopPane.add(internalFrame);
 		
 		//interresting feature too, no borders, just the panel, works too and looks ok without borders
-		pan.setLocation(500, 200);
-		
-		
-//		wireInputSwitch(input, pan);
-		
-		//these are the actions for the gui, thy do not define what should be executed on login/cancel
-		 // standard swing action:
-		pan.addCancelActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// this gets executed in swing thread
-				// alter swing components only in swing thread!
-				pan.setVisible(false);
-				desktopPane.remove(pan);
-			}
-		});
-		pan.addLoginActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// this gets executed in swing thread
-				// alter swing components ony in swing thread!
-				pan.setVisible(false);
-				desktopPane.remove(pan);
-			}
-		});
+		pan.setLocation(jmeDesktop.getJDesktop().getWidth()/2+50, jmeDesktop.getJDesktop().getHeight()/2-100);
+
+		//commented out, as we have now a check going on if the input is valid
+//		//these are the actions for the gui, thy do not define what should be executed on login/cancel
+//		 // standard swing action:
+//		pan.addCancelActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				// this gets executed in swing thread
+//				// alter swing components only in swing thread!
+//				pan.setVisible(false);
+//				desktopPane.remove(pan);
+//			}
+//		});
+//		pan.addLoginActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				// this gets executed in swing thread
+//				// alter swing components ony in swing thread!
+//				
+//				pan.setVisible(false);
+//				desktopPane.remove(pan);
+//			}
+//		});
 
 		pan.setVisible(true);
 		desktopPane.add(pan);
