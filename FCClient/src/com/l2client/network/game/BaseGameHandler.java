@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.l2client.gui.GuiController;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.util.ByteUtils;
 
@@ -49,23 +50,25 @@ public abstract class BaseGameHandler implements Runnable{
 		try {
 			//added this block due to java 7/windows 7 connection problems with dual stack
 			InetAddress i = null;
-			if("localhost".equals(host)|| "127.0.0.1".equals(host)) {
-				i = InetAddress.getLocalHost();
-			}
-			else {
+//			if("localhost".equals(host)|| "127.0.0.1".equals(host)) {
+//				i = InetAddress.getLocalHost();
+//			}
+//			else {
 				i = InetAddress.getByName(host);
-			}
+//			}
 			log.fine("Using client address of "+i+" for connecting to server "+host+" on port "+port);
 			socket = new Socket(i,port);
 			//end of added 
 			outStream = new DataOutputStream(socket.getOutputStream());
 			inStream = new DataInputStream(socket.getInputStream());
 		} catch (EOFException excepcionEOF) {
-			log.severe("Connection terminated");
+			log.severe("Connection terminated:"+excepcionEOF);
+			GuiController.getInstance().showErrorDialog(excepcionEOF.toString());
 			connected = false;
 			return;
 		} catch (IOException excepcionES) {
 			log.severe("Connection error:"+excepcionES);
+			GuiController.getInstance().showErrorDialog(excepcionES.toString());
 			connected = false;
 			return;
 		}
