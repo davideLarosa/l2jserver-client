@@ -422,16 +422,19 @@ setMesh(new Quad());
 
         AssetManager assetManager = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-mat.setTransparent(true);
-mat.getAdditionalRenderState().setBlendMode(com.jme3.material.RenderState.BlendMode.Alpha);
+        mat.setTransparent(true);
+        mat.getAdditionalRenderState().setBlendMode(com.jme3.material.RenderState.BlendMode.Alpha);
         mat.selectTechnique("Default",renderer);
         mat.getActiveTechnique().getDef().setLightMode(LightMode.Disable);
-        mat.setTexture("m_ColorMap", texture);
+        mat.setTexture("ColorMap", texture);
         setMaterial(mat);
-setQueueBucket(com.jme3.renderer.queue.RenderQueue.Bucket.Gui);
+        setQueueBucket(com.jme3.renderer.queue.RenderQueue.Bucket.Gui);
 //setQueueBucket(com.jme3.renderer.queue.RenderQueue.Bucket.Transparent);
 //getLocalScale().set(new Vector3f(0.5f,0.5f,0.5f)); //Nur zum Testen
 
+//        mat = new Material(assetManager, "Common/MatDefs/Misc/ColoredTextured.j3md");
+//        mat.getActiveTechnique().getDef().setLightMode(LightMode.Disable);
+//        mat.setTexture("ColorMap", texture);
 
 /*
         BlendState alpha = DisplaySystem.getDisplaySystem().getRenderer().createBlendState();
