@@ -215,43 +215,44 @@ log.finer("callAction:"+action);
 		return updateResults;
 	}
 	
-	private void setAnimation(Animation anim){
-		//TODO check for transition
-		//TODO assign ev. transition or other action
-		
+	private void setAnimation(Animation anim) {
 		Channel c = anim.getChannel();
-		if(c != null){
-log.finest("Anim switch from "+c.getCurrentAnimation()+" to "+anim.getName());
-		String tAnimation = transitions.getTransition(c.getCurrentAnimation(), anim.getName());
-		Animation tAnim = null;
-		if(tAnimation != null){
-log.finer("Transition first :"+tAnimation);
-			tAnim = getAnimation();
-			tAnim.setName(tAnimation);
-			tAnim.setBlendTime(anim.getBlendTime());
-			anim.setBlendTime(0.1f);
-			tAnim.setChannel(anim.getChannel());
-			tAnim.setLevel(anim.getLevel());
-			tAnim.setLooping(false);
-		}
-		c.setAnimation(anim, tAnim);
+		if (c != null) {
+//			log.finest(c.hashCode()+" ev. Anim switch from " + c.getCurrentAnimation() + " to "
+//					+ anim.getName());
+//System.out.println( System.nanoTime()*(1f/1000000000L)+" "+this.hashCode()+" "+c.hashCode()+" ev. Anim switch from " + c.getCurrentAnimation() + " to "
+//					+ anim.getName());
+			String tAnimation = transitions.getTransition(
+					c.getCurrentAnimation(), anim.getName());
+			Animation tAnim = null;
+			if (tAnimation != null) {
+				log.finest("Transition first :" + tAnimation);
+				tAnim = getAnimation();
+				tAnim.setName(tAnimation);
+				tAnim.setBlendTime(anim.getBlendTime());
+				anim.setBlendTime(0.1f);
+				tAnim.setChannel(anim.getChannel());
+				tAnim.setLevel(anim.getLevel());
+				tAnim.setLooping(false);
+			}
+			c.setAnimation(anim, tAnim);
 		} else
-			log.severe("Channel not set on animation "+anim.getName());
+			log.severe("Channel is null on animation " + anim.getName());
 	}
 	
 //CHANNEL CALLS
-	public boolean setLock(Channels chan, int lockLevel) {
+	public boolean setLockCheck(Channels chan, int lockLevel) {
 		Channel c = channelMap.get(chan);
 		if(c != null){
-			return c.setLock(lockLevel);
+			return c.setLockCheck(lockLevel);
 		} else
 			return false;
 	}
 	
-	public boolean forceLock(Channels chan, int lockLevel) {
+	public boolean forceLockCheck(Channels chan, int lockLevel) {
 		Channel c = channelMap.get(chan);
 		if(c != null){
-			return c.forceLock(lockLevel);
+			return c.forceLockCheck(lockLevel);
 		} else
 			return false;
 	}
