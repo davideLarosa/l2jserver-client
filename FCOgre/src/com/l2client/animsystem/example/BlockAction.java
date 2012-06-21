@@ -9,7 +9,7 @@ public class BlockAction extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 		Animation ret = null;
-		if(med.setLock(Channels.AllChannels,2)){
+		if(med.setLockCheck(Channels.AllChannels,2)){
 			ret = med.getAnimation();
 			ret.setLevel(2);
 			ret.setChannel(med.getChannel(Channels.AllChannels));

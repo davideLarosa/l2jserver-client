@@ -13,7 +13,7 @@ public class AttackAction extends Action {
 		Animation ret = null;
 		InputProvider in = med.getInput();
 		if (AttackType.None.equals(in.getInput(AttackType.class))) {
-			if (med.setLock(Channels.AllChannels, 2)) {
+			if (med.setLockCheck(Channels.AllChannels, 2)) {
 				ret = med.getAnimation();
 				ret.setLevel(2);
 				ret.setChannel(med.getChannel(Channels.AllChannels));
@@ -29,7 +29,7 @@ public class AttackAction extends Action {
 				ret.setBlendTime(0.5f);
 			}
 		} else {
-			if (med.setLock(Channels.AllChannels, 2)) {
+			if (med.setLockCheck(Channels.AllChannels, 2)) {
 				ret = med.getAnimation();
 				ret.setLevel(2);
 				ret.setChannel(med.getChannel(Channels.AllChannels));

@@ -37,7 +37,7 @@ public final class Channel {
 	// if time >0 count down binding time if time reaches 0 set binding level to
 	// 0
 	public void update(float dTime /* delta time */) {
-		if (bindingTime >= 0.0f) {
+		if (bindingTime > 0.0f) {
 			bindingTime -= dTime;
 		} else {
 			if (bindingTime != 0.0f && boundAnimation != null) {
@@ -45,19 +45,24 @@ public final class Channel {
 				if (nextAnimation != null) {
 					log.fine("found next animation:" + nextAnimation.getName());
 					setAnimation(nextAnimation, null);
-				} else
+				} else {
+//					log.fine("Bind time elapsed setting bindingLevel to 0");
 					bindingLevel = 0;
+				}
+			} else {
+				if(bindingLevel != 0)
+					log.fine("Bind time is 0.0f level now at "+bindingLevel);
 			}
 		}
 	}
 
 	// only works if new binding level > current, returns true/false , uses
 	// assign if really done
-	public boolean setLock(int level) {
+	public boolean setLockCheck(int level) {
 		if (level > bindingLevel) {
 			bindingLevel = level;
-			bindingTime = 0.0f;
-			log.fine("SetLock to:" + level);
+			bindingTime = 0.1f;
+//			log.finest("SetLock to:" + level);
 			return true;
 		} else {
 			return false;
@@ -66,13 +71,14 @@ public final class Channel {
 
 	// only works if new binding level >= current, returns true/false , uses
 	// assign if really done
-	public boolean forceLock(int level) {
+	public boolean forceLockCheck(int level) {
 		if (level >= bindingLevel) {
 			bindingLevel = level;
-			bindingTime = 0.0f;
-			log.fine("ForceLock to:" + level);
+			bindingTime = 0.1f;
+			log.finest("ForceLock to:" + level);
 			return true;
 		} else {
+			log.finest("ForceLock to:" + level +" failed");
 			return false;
 		}
 	}
@@ -80,6 +86,10 @@ public final class Channel {
 	// should be used when set/force was successful
 	public void setAnimation(Animation anim, Animation transition) {
 		if (anim != null) {
+			
+			if(boundAnimation != null && anim.getName().equals(boundAnimation.getName())) 
+				return;
+			
 			if (transition != null) {
 				this.boundAnimation = transition;
 				this.nextAnimation = anim;
@@ -88,11 +98,14 @@ public final class Channel {
 				this.nextAnimation = null;
 			}
 			this.boundAnimation.setInternalAnimation();
-//			log.fine("setAnimation to:" + boundAnimation.getName() + " length:"
-//					+ boundAnimation.getAnimationLength() + " blend:"
-//					+ boundAnimation.getBlendTime());
 			this.bindingLevel = boundAnimation.getLevel();
 			this.bindingTime = boundAnimation.getAnimationLength();
+			if(bindingTime <= 0f)
+				bindingTime = 0.01f;
+			
+			log.fine(hashCode()+" setAnimation to:" + boundAnimation.getName() + " length:"
+					+ boundAnimation.getAnimationLength() + " blend:"
+					+ boundAnimation.getBlendTime() + " bindingTime:"+bindingTime);
 
 		}
 	}

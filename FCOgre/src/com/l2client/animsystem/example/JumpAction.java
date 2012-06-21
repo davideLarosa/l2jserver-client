@@ -14,7 +14,7 @@ public class JumpAction extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 		Animation ret = null;
-		if(med.forceLock(Channels.AllChannels,1)){
+		if(med.forceLockCheck(Channels.AllChannels,1)){
 			ret = med.getAnimation();
 			ret.setLevel(1);
 			ret.setChannel(med.getChannel(Channels.AllChannels));

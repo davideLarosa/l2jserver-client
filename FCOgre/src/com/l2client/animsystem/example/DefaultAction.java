@@ -16,7 +16,7 @@ public class DefaultAction extends Action {
 		Animation ret = null;
 		InputProvider in = med.getInput();
 		if(Movement.None.equals(in.getInput(Movement.class))){
-			if(med.setLock(Channels.AllChannels,1)){
+			if(med.setLockCheck(Channels.AllChannels,1)){
 				ret = med.getAnimation();
 				if(rand.nextInt(9) > 5 ){
 					ret.setName("Idle1");
@@ -30,7 +30,7 @@ public class DefaultAction extends Action {
 				ret.setBlendTime(0.5f);
 			}
 		} else {
-			if(med.setLock(Channels.AllChannels,1)){
+			if(med.setLockCheck(Channels.AllChannels,1)){
 				ret = med.getAnimation();
 				if(Acting.Hidden.equals(in.getInput(Acting.class))){
 					ret.setName("Stealth");

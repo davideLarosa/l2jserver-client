@@ -13,7 +13,7 @@ public class DieAction extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 		Animation ret = null;
-		if(med.setLock(Channels.AllChannels,3)){
+		if(med.setLockCheck(Channels.AllChannels,3)){
 			ret = med.getAnimation();
 			ret.setLevel(3);
 			ret.setChannel(med.getChannel(Channels.AllChannels));
