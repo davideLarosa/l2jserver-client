@@ -84,6 +84,7 @@ public class L2JClient extends ExtendedApplication {
 	 */
 	public static void main(String[] args) {
 		L2JClient app = new L2JClient();
+		app.showSettings = true;
 		//no startup settings screen
 //		app.showSettings = false;
         app.start();
@@ -131,21 +132,22 @@ public class L2JClient extends ExtendedApplication {
 				if(name.equals("print_scenegraph") && !isPressed){
 					printHierarchy(rootNode, "");
 					System.out.println("Camera loc:"+cam.getLocation()+", dir:"+cam.getDirection());
-				}else if (name.equals("toggle_flycam")&& !isPressed){
-					toggelFlyCam();
 				}
+//				else if (name.equals("toggle_flycam")&& !isPressed){
+//					toggelFlyCam();
+//				}
 			}
 		},  "print_scenegraph", "toggle_flycam");
         inputManager.addMapping("print_scenegraph", new KeyTrigger(KeyInput.KEY_F6));
-        inputManager.addMapping("toggle_flycam", new KeyTrigger(KeyInput.KEY_F7));
+//        inputManager.addMapping("toggle_flycam", new KeyTrigger(KeyInput.KEY_F7));
 
 	}
 	
-
-	protected void toggelFlyCam() {
-		flyCam.setEnabled(!flyCam.isEnabled());
-		System.out.println("Toggled Flycam");
-	}
+//
+//	protected void toggelFlyCam() {
+//		flyCam.setEnabled(!flyCam.isEnabled());
+//		System.out.println("Toggled Flycam");
+//	}
 
 	@Override
 	public void simpleUpdate(float tpf) {
