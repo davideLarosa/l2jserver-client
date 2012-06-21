@@ -2,7 +2,6 @@ package com.l2client.controller.handlers;
 
 import java.util.logging.Logger;
 
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.l2client.component.AnimationSystem;
@@ -18,7 +17,6 @@ import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
 import com.l2client.dao.DatastoreDAO;
 import com.l2client.model.jme.NPCModel;
-import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.NewCharSummary;
 import com.l2client.model.network.NpcData;
 
@@ -104,6 +102,9 @@ System.out.println("FIXME update of NPC received, but so far not fully implement
 		//FIXME why has visual and ent its own location ?!?!? 
 //		v.setLocalTranslation(pos.currentPos);
 		vis.vis = v;
+		
+		l2j.isPlayer  = false;
+		l2j.l2jEntity = e;
 		
 		//do nothing?
 //		pos.startPos.set(pos.startPos);

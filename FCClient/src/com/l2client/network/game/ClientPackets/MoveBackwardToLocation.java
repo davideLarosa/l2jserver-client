@@ -9,7 +9,7 @@ import com.l2client.model.l2j.ServerValues;
 public class MoveBackwardToLocation extends GameClientPacket
 {
 	/**
-	 * Constructor of the move package
+	 * Constructor of the move package, paramters are in ClientCoordinates and will be converted to ServerCoordinates
 	 * @param tx	Target x
 	 * @param ty	Target y
 	 * @param tz	Target z

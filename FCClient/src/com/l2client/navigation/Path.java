@@ -223,7 +223,7 @@ public class Path {
 			Line2D wallLine = check.Cell.m_Side[wall];
 			LINE_CLASSIFICATION result = wallLine.Intersection(wayLine, null);
 			if(Line2D.LINE_CLASSIFICATION.SEGMENTS_INTERSECT != result && LINE_CLASSIFICATION.B_BISECTS_A != result){
-System.out.println("Optimization between "+from+" and "+ i+" result:"+result);
+//System.out.println("Optimization between "+from+" and "+ i+" result:"+result);
 				return false;
 			}
 		}

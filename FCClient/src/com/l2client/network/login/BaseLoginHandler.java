@@ -34,12 +34,12 @@ public abstract class BaseLoginHandler implements Runnable {
 		try {
 			//added this block due to java 7/windows 7 connection problems with dual stack
 			InetAddress i = null;
-			if("localhost".equals(host)|| "127.0.0.1".equals(host)) {
-				i = InetAddress.getLocalHost();
-			}
-			else {
+//			if("localhost".equals(host)|| "127.0.0.1".equals(host)) {
+//				i = InetAddress.getLocalHost();
+//			}
+//			else {
 				i = InetAddress.getByName(host);
-			}
+//			}
 			log.fine("Using client address of "+i+" for connecting to server "+host+" on port "+port);
 			socket = new Socket(i,port);
 			//end of added 

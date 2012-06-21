@@ -15,7 +15,6 @@ public class EntityData  {
 
 	private String _name;
     private int _objectId = 0;
-    //FIXME
 	private int _charId = 0;// 0x00030b7a;
 	private long _exp =0;
 	private int _sp =0;

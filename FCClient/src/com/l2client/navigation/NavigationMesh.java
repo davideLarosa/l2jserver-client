@@ -5,6 +5,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -28,6 +29,7 @@ import com.l2client.navigation.Line2D.LINE_CLASSIFICATION;
  */
 public class NavigationMesh extends Mesh {
 
+	private static Logger log = Logger.getLogger(NavigationMesh.class.getName());
 	private static final long serialVersionUID = 1L;
 	//BOUNDS hit flag for bitwise flagging on more than one bounds hit
 	private static final int BOUNDS_LEFT = 1;
@@ -160,7 +162,7 @@ public class NavigationMesh extends Mesh {
             Plane p = new Plane();
             p.setPlanePoints(vertA, vertB, vertC);
             if (up.pseudoDistance(p.getNormal()) <= 0.0f) {
-                System.out.println("Warning, normal of the plane faces downward!!!");
+                log.warning("Warning, normal of the plane faces downward!!!");
                 continue;
             }
             
@@ -216,7 +218,7 @@ public class NavigationMesh extends Mesh {
             Plane p = new Plane();
             p.setPlanePoints(a, b, c);
             if (up.pseudoDistance(p.getNormal()) <= 0.0f) {
-                System.out.println("Warning, normal of the plane faces downward!!!");
+            	log.warning("Warning, normal of the plane faces downward!!!");
                 continue;
             }
 
@@ -280,10 +282,10 @@ public class NavigationMesh extends Mesh {
 				new Vector2f(worldTranslation.x-IArea.TERRAIN_SIZE_HALF, worldTranslation.z+IArea.TERRAIN_SIZE_HALF) 
 		);
 		left = new Line2D(bottom.EndPointB(),top.EndPointA());
-		System.out.println(this+" top:"+top);
-		System.out.println(this+" right:"+right);
-		System.out.println(this+" bottom:"+bottom);
-		System.out.println(this+" left:"+left);
+		log.finest(this+" top:"+top);
+		log.finest(this+" right:"+right);
+		log.finest(this+" bottom:"+bottom);
+		log.finest(this+" left:"+left);
 	}
 
 	private HashSet<Cell> getBorderCells(int where) {

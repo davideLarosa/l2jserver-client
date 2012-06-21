@@ -2,6 +2,7 @@ package com.l2client.navigation;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import com.jme3.math.Vector3f;
 import com.l2client.component.PositioningComponent;
@@ -17,6 +18,8 @@ import com.l2client.navigation.Path.WAYPOINT;
  *
  */
 public class EntityNavigationManager {
+	
+	private static Logger log = Logger.getLogger(EntityNavigationManager.class.getName());
 	
 	/**
 	 * Optimized paths try to get as straight as possible paths, otherwise cell wall midpoints are used for paths
@@ -66,7 +69,7 @@ public class EntityNavigationManager {
 			meshes.add(m);
 
 		if(meshes.size()>25)
-			System.out.println("NavigationManager attachMesh has more meshes than expected (> 25) , is a remove leak present?");
+			log.warning("NavigationManager attachMesh has more meshes than expected (> 25) , is a remove leak present?");
 
 		ISpatialPointing [] ents = PositioningSystem.get().getEntitiesAt(m.getPosition().x, m.getPosition().z, IArea.TERRAIN_SIZE_HALF);
 		if(ents != null && ents.length>0)
@@ -91,15 +94,15 @@ public class EntityNavigationManager {
 			if(c != null){
 				if(mustBeBorderCell && !na.isBorderCell(c)){
 					c = null;
-					System.out.println("NavigationManager FindClosestCell has no border cell for coordinates "+Point);
+					log.info("NavigationManager FindClosestCell has no border cell for coordinates "+Point);
 				} else {
-					System.out.println("NavigationManager FindClosestCell found borderCell:"+c);
+					log.info("NavigationManager FindClosestCell found borderCell:"+c);
 					return c;
 				}
 			}
 		} else
-			System.out.println("NavigationManager FindClosestCell has no NavigationMesh for coordinates "+Point);
-		System.out.println("NavigationManager FindClosestCell has no mesh for coordinates "+Point);
+			log.warning("NavigationManager FindClosestCell has no NavigationMesh for coordinates "+Point);
+		log.warning("NavigationManager FindClosestCell has no mesh for coordinates "+Point);
 		return c;
 	}
 
@@ -154,7 +157,7 @@ public class EntityNavigationManager {
 	public boolean buildNavigationPath(Path navPath, Vector3f startPos, Vector3f endPos) {
 
 		if(endPos.distanceSquared(startPos)>(IArea.TERRAIN_SIZE*IArea.TERRAIN_SIZE)){
-			System.out.println("NO PATH - start and end points are further away than "+IArea.TERRAIN_SIZE);
+			log.warning("NO PATH - start and end points are further away than "+IArea.TERRAIN_SIZE);
 			return false;
 		}
 		return buildNavigationPath(navPath, getNavMesh(startPos), startPos, getNavMesh(endPos), endPos);
@@ -166,23 +169,23 @@ public class EntityNavigationManager {
 		if(navPath != null){
 			if(startMesh!= null && endMesh != null){
 				if(startMesh != endMesh){
-					System.out.println(" Building - path between borders ? "+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+					log.fine(" Building - path between borders ? "+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 					//check for neighboring path
 					if(startMesh.isNeighbourOf(endMesh))
 					{
-						System.out.println(" - path for neighbors :"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+						log.fine(" - path for neighbors :"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 						navPath.WaypointList().clear();
 						if(startMesh.buildNavigationPathToBorder(navPath, null, startPos, endPos)){
 							Path endPath = new Path();
 							if(USE_OPTIMZED_PATH)
 								navPath.optimize();
-							System.out.println(" - path part 1 to border found :"+startPos+" to:"+endPos+" with crossing at:"+navPath.EndPoint().Position);
+							log.fine(" - path part 1 to border found :"+startPos+" to:"+endPos+" with crossing at:"+navPath.EndPoint().Position);
 							//FIXME this one is direction dependant, so we have to invert search direction
 							if(endMesh.buildNavigationPathToBorder(endPath, null, endPos, navPath.EndPoint().Position)){
-								System.out.println(" - path part 2 to border found :"+navPath.EndPoint().Position+" to:"+endPos);
+								log.fine(" - path part 2 to border found :"+navPath.EndPoint().Position+" to:"+endPos);
 								//do the crossing points match ?
 								if(!(navPath.EndPoint().Position.distanceSquared(endPath.EndPoint().Position)< 0.0000001f)){
-									System.out.println("NO PATH - no path between border crosses:"+startMesh+"-"+navPath.EndPoint().Position+" to:"+endMesh+"-"+endPath.EndPoint().Position);
+									log.fine("NO PATH - no path between border crosses:"+startMesh+"-"+navPath.EndPoint().Position+" to:"+endMesh+"-"+endPath.EndPoint().Position);
 									navPath.WaypointList().clear();
 									return false;
 								}
@@ -204,10 +207,10 @@ public class EntityNavigationManager {
 								return true;
 							} else {
 								navPath.WaypointList().clear();
-								System.out.println("NO PATH - no path between borders:"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+								log.fine("NO PATH - no path between borders:"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 							}
-						}System.out.println("NO PATH - no path to border:"+startMesh+"-"+endPos);
-					} else System.out.println("NO PATH - Path for non neighbors requested:"+startMesh+" to:"+endMesh);
+						}log.fine("NO PATH - no path to border:"+startMesh+"-"+endPos);
+					} else log.fine("NO PATH - Path for non neighbors requested:"+startMesh+" to:"+endMesh);
 				} else {
 					if(startMesh.buildNavigationPath(navPath, startPos, endPos)){
 						if(USE_OPTIMZED_PATH)
@@ -218,8 +221,8 @@ public class EntityNavigationManager {
 					}else 
 						return false;
 				}
-			} else System.out.println("NO PATH - start or end param missing:"+startMesh+" to:"+endMesh);
-		} else System.out.println("NO PATH - Path param missing");
+			} else log.severe("NO PATH - start or end param missing:"+startMesh+" to:"+endMesh);
+		} else log.severe("NO PATH - Path param missing");
 		return false;
 	}
 	

@@ -167,7 +167,7 @@ public class Mesh implements Savable{
 	public boolean BuildNavigationPath(Path NavPath, Cell StartCell,
 			Vector3f StartPos, Cell EndCell, Vector3f EndPos) {
 		boolean FoundPath = false;
-System.out.println("-- looking for path from"+StartPos+" to "+EndPos);
+//System.out.println("-- looking for path from"+StartPos+" to "+EndPos);
 		// Increment our path finding session ID
 		// This Identifies each pathfinding session
 		// so we do not need to clear out old data

@@ -84,6 +84,7 @@ public final class MoveToLocation extends GameServerPacket
 					//FIXME simplify this calc of the degrees to rotate to
 					float angle = pos.goalPos.subtract(pos.startPos).normalizeLocal().angleBetween(Vector3f.UNIT_Z);
 					pos.targetHeading = angle;
+					log.info("New Heading "+angle+" received for Ent "+objId);
 					//It seems this is not needed, as the receiving packets will only be for players
 //					float rot = PositioningSystem.angleBetween(angle, pos.heading*FastMath.RAD_TO_DEG);
 //					log.severe("Sending rotation request for "+objId+" angle "+ServerValues.getServerHeading(rot));

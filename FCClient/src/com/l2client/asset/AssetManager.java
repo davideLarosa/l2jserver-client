@@ -65,7 +65,7 @@ public class AssetManager {
 					logger.fine("requested " + a.getLocation() + " was loaded");
 					a.afterLoad();
 				} else
-					logger.severe("requested " + a.getLocation()
+					logger.warning("requested " + a.getLocation()
 							+ " was not found");
 
 				return n;

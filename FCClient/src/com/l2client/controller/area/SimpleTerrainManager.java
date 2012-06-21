@@ -25,6 +25,12 @@ import com.l2client.controller.SceneManager;
  * Used as a singleton by calling SimpleTerrainManager.get()
  */
 public final class SimpleTerrainManager {
+	
+	/**
+	 * This is used to find nav/ground tiles in the simple example
+	 * @see GotoClickedInputAction.onAnalog()
+	 */
+	public static String TILE_PREFIX = "tile_";
 
 	// private static int count = 99;
 	// TerrainPatch load[] = new TerrainPatch[24];//7x7 -5x5 third ring low
@@ -125,6 +131,8 @@ public final class SimpleTerrainManager {
 
 		if (center != null && center.x == x && center.y == y)
 			return;
+		
+		System.out.println("Setting player center to new tile region x="+x+" y="+y);
 
 		unloadPatches.putAll(loadedPatches);
 
@@ -218,7 +226,8 @@ public final class SimpleTerrainManager {
 
 		try {
 			Quad q = new Quad(1f * IArea.TERRAIN_SIZE, 1f * IArea.TERRAIN_SIZE);
-			Geometry n = new Geometry(x + " " + y,q);
+			//TODO this is the same as in GotoClickedInputAction
+			Geometry n = new Geometry(TILE_PREFIX + x + " " + y,q);
 			n.setMaterial(material);
 			n.setLocalTranslation(x * IArea.TERRAIN_SIZE, 0f,y * IArea.TERRAIN_SIZE);
 			ret.patch = n;

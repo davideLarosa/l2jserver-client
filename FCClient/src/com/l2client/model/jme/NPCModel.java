@@ -13,8 +13,7 @@ public class NPCModel extends VisibleModel {
 
 	public NPCModel(NewCharSummary sel) {
 		super(sel);
-		// TODO Auto-generated constructor stub
-System.out.println("NPC with name "+sel.name+" and template "+sel.templateId);
+		logger.info("Creating NPC with name "+sel.name+" and template "+sel.templateId);
 	}
 
 	protected Node createVisuals() {
@@ -45,8 +44,9 @@ System.out.println("NPC with name "+sel.name+" and template "+sel.templateId);
 							.getControl(JMEAnimationController.class);
 				if(animControl != null)
 					animControl.setInput(InputProvider.NOINPUT);
-				else
-					System.out.println("ERROR no JMEAnimationController on Model");
+				//FIXME this is the case with the troll model
+//				else
+//					logger.severe("ERROR no JMEAnimationController on Model");
 			}
 		}
 
