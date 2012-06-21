@@ -8,15 +8,18 @@ import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.jme.input.Hurt;
 import com.l2client.animsystem.jme.input.HurtVector;
 
-
+/**
+ * wounded at level 4, should be highest prio
+ *
+ */
 public class Wounded extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 		Animation ret = null;
-		if(med.forceLock(Channels.AllChannels,3)){
+		if(med.forceLockCheck(Channels.AllChannels,3)){
 			ret = med.getAnimation();
 			ret.setChannel(med.getChannel(Channels.AllChannels));
-			ret.setLevel(3);	
+			ret.setLevel(4);	
 			ret.setLooping(false);
 			ret.setKeep(1.0f);
 			InputProvider i = med.getInput();

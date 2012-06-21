@@ -7,15 +7,19 @@ import com.l2client.animsystem.Mediator;
 import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.jme.input.AttackVector;
 
+/**
+ * defend at level 3
+ *
+ */
 public class Defend extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 
 		Animation ret = null;
-		if(med.forceLock(Channels.AllChannels,2)){
+		if(med.forceLockCheck(Channels.AllChannels,2)){
 			ret = med.getAnimation();
 			ret.setChannel(med.getChannel(Channels.AllChannels));
-			ret.setLevel(2);
+			ret.setLevel(3);
 			ret.setBlendTime(0.2f);
 			ret.setLooping(false);
 			ret.setKeep(1.0f);

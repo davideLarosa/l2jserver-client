@@ -9,19 +9,21 @@ import com.l2client.animsystem.jme.input.AttackResult;
 import com.l2client.animsystem.jme.input.AttackVector;
 import com.l2client.animsystem.jme.input.Weapon;
 
-
+/**
+ * Attack at level 3
+ */
 public class DefaultAttack extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 
 		Animation ret = null;
-		if(med.forceLock(Channels.AllChannels,2)){
+		if(med.forceLockCheck(Channels.AllChannels,2)){
 			ret = med.getAnimation();
 			ret.setChannel(med.getChannel(Channels.AllChannels));
 			ret.setBlendTime(0.2f);
 			ret.setLooping(false);
 			ret.setKeep(1.0f);
-			ret.setLevel(2);
+			ret.setLevel(3);
 			InputProvider i = med.getInput();
 			String ending = "_fail";
 			if(AttackResult.Success.equals(i.getInput(AttackResult.class)))
