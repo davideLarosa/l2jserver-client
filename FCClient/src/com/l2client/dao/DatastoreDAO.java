@@ -35,6 +35,18 @@ public final class DatastoreDAO {
 			return instance;
 		
 		instance = new DatastoreDAO();
+		//early init of database
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				String name = instance.getNpcName(18342);
+				logger.finest("Initialized DatastoreDAO by query for 18342 returned "+name);
+			}
+		}){
+			
+		}.start();
+		
 		return instance;
 	}
 
