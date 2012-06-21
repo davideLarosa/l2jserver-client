@@ -4,8 +4,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 
 /**
- * Could also be called Internal Vars, Perception, Mind, etc.
- *
+ * A Component for internal Vars, Perception, Mind, etc.
  */
 public class EnvironmentComponent implements Component {
 	
@@ -19,7 +18,13 @@ public class EnvironmentComponent implements Component {
 	public double woundedTime;
 	public Vector3f woundedFrom = null;
 	public int teamHealthPercent = -1;
+	/**
+	 * flag if something changed at all, should be reset by the environment system
+	 */
 	public boolean changed = false;
-	public int movement = -1; //-1 no, 0 walk, 1 run
+	/**
+	 * -1 not moving, 0 walk, 1 run
+	 */
+	public int movement = -1; 
 	
 }

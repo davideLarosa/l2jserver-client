@@ -8,6 +8,10 @@ import com.l2client.navigation.NavigationMesh;
 import com.l2client.navigation.Path;
 import com.l2client.navigation.Path.WAYPOINT;
 
+/**
+ * Full blown positioning component based on nav mesh and waypoints
+ *
+ */
 public class PositioningComponent implements Component, ISpatialPointing{
 	//max acceleration per second
 	public float maxAcc;

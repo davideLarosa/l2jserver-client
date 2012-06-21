@@ -52,10 +52,12 @@ public class AnimationSystem extends ComponentSystem {
 									JMEAnimationController.class);
 					if (con != null) {
 						con.setInput(getInputFrom(en, ent));
-					} else
-						System.out
-								.println("No JMEAnimationController below entity"
-										+ ent.getId());
+					} 
+//					else
+						//TODO No JMEAnimationController this is the case on the troll model
+//						System.out
+//								.println("No JMEAnimationController below entity"
+//										+ ent.getId());
 				}
 				en.changed = false;
 			}

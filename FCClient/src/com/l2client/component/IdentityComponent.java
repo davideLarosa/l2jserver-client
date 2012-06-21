@@ -2,6 +2,10 @@ package com.l2client.component;
 
 import com.l2client.controller.entity.Entity;
 
+/**
+ * Just an ID, nothing more. The single component being a must have for Entities
+ *
+ */
 public class IdentityComponent implements Component {
 
 	private int id;

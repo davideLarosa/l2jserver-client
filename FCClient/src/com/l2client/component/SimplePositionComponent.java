@@ -2,6 +2,10 @@ package com.l2client.component;
 
 import com.jme3.math.Vector3f;
 
+/**
+ * Simple position component, just the target and current positions and heading nothing fancy
+ *
+ */
 public class SimplePositionComponent implements Component {
 	
 	public Vector3f startPos = new Vector3f();

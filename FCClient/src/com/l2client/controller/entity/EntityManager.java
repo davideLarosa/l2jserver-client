@@ -8,7 +8,8 @@ import com.l2client.component.Component;
 import com.l2client.component.IdentityComponent;
 
 /**
- * manages entites and queries around them
+ * Singleton which manages entites, components and queries around them.
+ * @see ComponentSystem
  */
 // FIXME JUnit test
 // FIXME entity crwation should be done here 
@@ -148,6 +149,8 @@ public class EntityManager {
 			addComponent(i, idc);		
 			entities.put(idc, idc);
 			ret = idc.getEntity();
+		} else {
+			System.out.println("Create called but ID "+i+"already used ?!?");
 		}
 		return ret;
 	}
