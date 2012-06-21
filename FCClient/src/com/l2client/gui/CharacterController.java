@@ -11,20 +11,14 @@ import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.control.AbstractControl;
-import com.jme3.scene.control.Control;
 import com.l2client.controller.SceneManager;
-import com.l2client.controller.area.IArea;
-import com.l2client.controller.area.SimpleTerrainManager;
+import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.GotoClickedInputAction;
 import com.l2client.model.jme.NewCharacterModel;
-import com.l2client.model.jme.VisibleModel;
 import com.l2client.model.network.EntityData;
 
 //TODO refactor with charselecthandler, ev. remove coupling
@@ -37,7 +31,7 @@ public final class CharacterController {
 	private ChaseCamera chaser;
 	private PointLight pl;
 	private EntityData data = null;
-	private VisibleModel visible = null;
+	private Entity visible = null;
 	private Camera cam;
 	private Spatial target;
 
@@ -56,60 +50,28 @@ public final class CharacterController {
 	}
 
 	//FIXME move input creation out to a seperate task so it can be performed early, and thus enable the dependent code (like ActionManager) to initialize earlier
-	public void onEnterWorld(final PlayerCharHandler charSelectHandler, Camera cam) {
-//		SceneRoot root = GameController.getInstance().getSceneRoot();
-//		Node player =root.getCharRoot();
-		data = charSelectHandler.getSelectedChar();
+	public void onEnterWorld(final PlayerCharHandler pcHandler,
+			Camera cam) {
+
+		data = pcHandler.getSelectedChar();
+		visible = pcHandler.createPCComponents(data, new NewCharacterModel(pcHandler.getSelectedSummary()));
+		logger.fine("Character initialized to:" + visible.getLocalTranslation());
+
+		setupChaseCamera(visible, cam);
+
+		pl = new PointLight();
+		pl.setColor(ColorRGBA.White);
+		pl.setRadius(15f);
+		visible.addLight(pl);
+
+		ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
+		acts.add(new GotoClickedInputAction(pcHandler, cam));
+
+		InputController.get().pushInput(acts);
 		
-//		if (player != null) {
-//			player.detachAllChildren();
-
 		SceneManager.get().removeChar();
-			
-			visible = new NewCharacterModel(charSelectHandler.getSelectedSummary());
-			visible.attachVisuals();
-			visible.setLocalTranslation(data.getX(), data.getY(), data.getZ());
-			logger.fine("Character initialized to:"+visible.getLocalTranslation());
+		SceneManager.get().changeCharNode(visible, 0);
 
-			setupChaseCamera(visible, cam);
-			
-			//hook up of the terrain swapping @see SimpleTerrainManager
-			visible.addControl(new AbstractControl(){
-
-				@Override
-				public Control cloneForSpatial(Spatial spatial) {
-					return null;
-				}
-
-				@Override
-				protected void controlUpdate(float tpf) {
-					//FIXME  move into SimpleTerrainManager
-					int x = (int)visible.getLocalTranslation().x/IArea.TERRAIN_SIZE;
-					int z = (int)visible.getLocalTranslation().z/IArea.TERRAIN_SIZE;
-					SimpleTerrainManager.get().setCenter(x, z);
-				}
-
-				@Override
-				protected void controlRender(RenderManager rm, ViewPort vp) {
-				}}
-	
-			);
-
-			ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
-			acts.add(new GotoClickedInputAction(charSelectHandler, cam));
-			
-			InputController.get().pushInput(acts);
-			
-//			player.attachChild(visible);
-
-			pl = new PointLight();
-			pl.setColor(ColorRGBA.White);
-			pl.setRadius(15f);
-			visible.addLight(pl);
-			
-			SceneManager.get().changeCharNode(visible,0);
-//			root.updateGeometricState();
-//		}
 	}
 
 	//TODO reentrant safe, gamecontroller needed at all?

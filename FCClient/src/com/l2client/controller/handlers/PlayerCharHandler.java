@@ -3,10 +3,26 @@ package com.l2client.controller.handlers;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
+import com.jme3.scene.control.Control;
+import com.l2client.component.AnimationSystem;
+import com.l2client.component.EnvironmentComponent;
+import com.l2client.component.JmeUpdateSystem;
+import com.l2client.component.L2JComponent;
+import com.l2client.component.PositioningSystem;
 import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.VisualComponent;
+import com.l2client.controller.area.IArea;
+import com.l2client.controller.area.SimpleTerrainManager;
+import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
-import com.l2client.gui.CharacterController;
+import com.l2client.gui.GameController;
+import com.l2client.model.jme.VisibleModel;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.model.network.EntityData;
@@ -184,6 +200,7 @@ public class PlayerCharHandler {
 					+ info.getX() + "," + info.getY() + "," + info.getZ());
 			selected.updateFrom(info);
 			selectedObjectId = selected.getObjectId();
+			GameController.getInstance().doEnterWorld();
 			return true;				
 		} else {
 			log.severe("No char selected but received a CharSelectInfopackage");
@@ -199,7 +216,7 @@ public class PlayerCharHandler {
 		return selectedObjectId;
 	}
 
-	//FIXME some might only have charIDs filled as they are not instantiated
+	//TODO some might only have charIDs filled as they are not instantiated, this should only be during pre onEnterWorld
 	public Integer[] getObjectIDs() {
 		Integer[] ret = new Integer[charSelections.size()];
 		for(int i=0;i<ret.length;i++)
@@ -218,9 +235,84 @@ public class PlayerCharHandler {
 		// get current pos
 		EntityData e = getSelectedChar();
 		SimplePositionComponent pos = (SimplePositionComponent) EntityManager.get().getComponent(e.getObjectId(), SimplePositionComponent.class);
+		if(pos != null){
 		//revert jme uses y as up, l2j uses z as up, so we change y and z here
 		ClientFacade.get().sendPacket(
 				new MoveBackwardToLocation(x, z, /*put the char a bit above the current height just a fake*/ ServerValues
 						.getClientCoord(e.getServerZ() + 8), pos.currentPos.x, pos.currentPos.y, pos.currentPos.z, false));		
+//						.getClientCoord(e.getServerZ() + 8), e.getX(), e.getY(), e.getZ(), false));
+		log.info("Player "+e.getObjectId()+ " requests to move to:"+x+" "+z+" "+ServerValues
+						.getClientCoord(e.getServerZ() + 8)+" from:"+pos.currentPos.x+" "+pos.currentPos.y+" "+pos.currentPos.z);
+		} else {
+			log.severe("Player "+e.getObjectId()+"is missing SimplePositioningComponent!");
+		}
+	}
+	
+	//FIXME this is a copy from NPCHandler move this out to the entity Manager !!
+	public Entity createPCComponents(EntityData e, VisibleModel visible) {
+		
+		
+		final Entity ent = EntityManager.get().createEntity(e.getObjectId());
+		SimplePositionComponent pos = new SimplePositionComponent();
+		L2JComponent l2j = new L2JComponent();
+		VisualComponent vis = new VisualComponent();
+		EnvironmentComponent env = new EnvironmentComponent();
+		
+		//done here extra as in update values will be left untouched
+		pos.startPos.set(e.getX(), e.getY(), e.getZ());
+		pos.currentPos.set(pos.startPos);
+		pos.goalPos.set(pos.currentPos);
+		pos.walkSpeed = e.getWalkSpeed();
+		pos.runSpeed = e.getRunSpeed();
+		pos.running = e.isRunning();
+		pos.heading = e.getHeading();
+		pos.targetHeading = pos.heading;
+		
+		vis.vis = visible;
+		visible.attachVisuals();
+		
+		l2j.isPlayer  = true;
+		l2j.l2jEntity = e;
+
+		ent.setLocalTranslation(pos.currentPos);
+		ent.setLocalRotation(new Quaternion().fromAngleAxis(e.getHeading(), Vector3f.UNIT_Y));
+		ent.attachChild(visible);
+		
+		EntityManager.get().addComponent(ent.getId(), env);
+		EntityManager.get().addComponent(ent.getId(), l2j);
+		EntityManager.get().addComponent(ent.getId(), pos);		
+		EntityManager.get().addComponent(ent.getId(), vis);
+
+		
+		
+		PositioningSystem.get().addComponentForUpdate(pos);
+		JmeUpdateSystem.get().addComponentForUpdate(pos);
+		AnimationSystem.get().addComponentForUpdate(env);
+
+
+		
+		//hook up of the terrain swapping @see SimpleTerrainManager
+		ent.addControl(new AbstractControl(){
+
+			@Override
+			public Control cloneForSpatial(Spatial spatial) {
+				return null;
+			}
+
+			@Override
+			protected void controlUpdate(float tpf) {
+				//FIXME  move into SimpleTerrainManager
+				int x = (int)ent.getLocalTranslation().x/IArea.TERRAIN_SIZE;
+				int z = (int)ent.getLocalTranslation().z/IArea.TERRAIN_SIZE;
+				SimpleTerrainManager.get().setCenter(x, z);
+			}
+
+			@Override
+			protected void controlRender(RenderManager rm, ViewPort vp) {
+			}}
+
+		);
+		
+		return ent;
 	}
 }

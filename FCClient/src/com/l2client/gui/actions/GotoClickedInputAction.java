@@ -9,9 +9,8 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.l2client.controller.SceneManager;
+import com.l2client.controller.area.SimpleTerrainManager;
 import com.l2client.controller.handlers.PlayerCharHandler;
-import com.l2client.gui.GameController;
-import com.l2client.model.l2j.ServerValues;
 
 /**
  * Action for triggering the movement of the player. Just an example.
@@ -68,20 +67,20 @@ public class GotoClickedInputAction extends Action {
 
 		if (results.size() > 0) {
 			for (CollisionResult res : results) {
-
-				if ("bottom".equals(res.getGeometry().getName())) {
+				//FIXME WOAHHHHH what hardcoded stuff did I do here!?!? Make this at least a static
+				if (res.getGeometry().getName().startsWith(SimpleTerrainManager.TILE_PREFIX)) {
 					// this is the one
 
 					Vector3f location = res.getContactPoint();
-					System.out
-							.println("new loc:"
-									+ location
-									+ " sent:"
-									+ ServerValues.getServerCoord(location.x)
-									+ ","
-									+ ServerValues.getServerCoord(location.y)
-									+ ","
-									+ ServerValues.getServerCoord(location.z));
+//					System.out
+//							.println("new loc:"
+//									+ location
+//									+ " sent:"
+//									+ ServerValues.getServerCoord(location.x)
+//									+ ","
+//									+ ServerValues.getServerCoord(location.y)
+//									+ ","
+//									+ ServerValues.getServerCoord(location.z));
 					handler.requestMoveToAction(location.x, location.y,
 							location.z);
 					results.clear();

@@ -83,7 +83,7 @@ public final class GameController {
 	    b.updateBound();
 	    Geometry geom = new Geometry("backdrop", b);
 	    Material mat = new Material(AssetManager.getInstance().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
-	    mat.setTexture("m_ColorMap", AssetManager.getInstance().getJmeAssetMan().loadTexture("start/backdrop.png"));
+	    mat.setTexture("ColorMap", AssetManager.getInstance().getJmeAssetMan().loadTexture("start/backdrop.png"));
 	    geom.setMaterial(mat);
 	    geom.setLocalTranslation(-40f, -30f, -90f);
 	    cam.setLocation(new Vector3f(0,0,0));  
@@ -374,7 +374,8 @@ public final class GameController {
 						// FIXME choose char and not select first, remove
 						clientInfo.getCharHandler().setSelected(0);
 						clientInfo.getCharHandler().onCharSelected();
-						doEnterWorld();
+						//moved to UserInfo.handlePacket() because at the moment the EntityData.id is 0 (will be provided with UserInfo)
+//						doEnterWorld();
 						//cleanup of the buttons
 						GuiController.getInstance().removeButton(new JButton[]{b,bb});
 					}
@@ -402,22 +403,24 @@ public final class GameController {
 		
 		
 		
-		//FIXME move this out to config item
+		//FIXME more natural way load and store in a webstartable way
 		//############################################################
-		//load server properties
+		//load server properties, ev. from user.home ?
 		Properties servers = new Properties();
 
-        FileInputStream in;
+        FileInputStream in = null;
 		try {
 			in = new FileInputStream("cServer.properties");
 			servers.load(in);
+			System.getProperties().putAll(servers);
 		} catch(Exception e) {//Ignore
 		} 
-
+		
 		//get startup server
-		final String host = servers.getProperty("client.server.host");
-		final String port = servers.getProperty("client.server.port");
+		final String host = System.getProperty("client.server.host","127.0.0.1");
+		final String port = System.getProperty("client.server.port","2106");
 
+		final FileInputStream stream = in;
 		//#############################################################
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -455,6 +458,7 @@ public final class GameController {
 													"Failed to Connect to login server");
 
 								}
+								//else save port and host to user.home ?
 							}
 						});
 				pan.addCancelActionListener(new ActionListener(){
