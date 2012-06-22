@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.l2client.dao.IDAO;
@@ -68,7 +69,7 @@ public class CSVDatastoreDAO implements IDAO {
 		BaseUsable[] ret = new BaseUsable[0];
 		try {
 			CSVReader reader = new CSVReader(new InputStreamReader(
-					CSVDatastoreDAO.class.getResourceAsStream("/db/actions.csv")));
+					CSVDatastoreDAO.class.getResourceAsStream("/db/actions.csv")), 1/*skip header*/, new CSVParser('\t','\'','"'));
 			ret = ActionResultBuilder.buildActions(reader);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Failed to load /db/actions.csv", e);
@@ -83,7 +84,7 @@ public class CSVDatastoreDAO implements IDAO {
 		npcCache = new HashMap<Integer, CSVDatastoreDAO.CSVNpc>();
 		try {
 			CSVReader reader = new CSVReader(new InputStreamReader(
-					CSVDatastoreDAO.class.getResourceAsStream("/db/npc.csv")));
+					CSVDatastoreDAO.class.getResourceAsStream("/db/npc.csv")), 1/*skip header*/, new CSVParser('\t','\'','"'));
 			
 			String[] line = reader.readNext();
 			while (line != null) {
