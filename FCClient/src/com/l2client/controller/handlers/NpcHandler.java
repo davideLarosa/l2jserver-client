@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.l2client.app.Singleton;
 import com.l2client.component.AnimationSystem;
 import com.l2client.component.EnvironmentComponent;
 import com.l2client.component.IdentityComponent;
@@ -15,7 +16,7 @@ import com.l2client.component.VisualComponent;
 import com.l2client.controller.SceneManager;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
-import com.l2client.dao.DatastoreDAO;
+import com.l2client.dao.derby.DatastoreDAO;
 import com.l2client.model.jme.NPCModel;
 import com.l2client.model.network.NewCharSummary;
 import com.l2client.model.network.NpcData;
@@ -55,7 +56,7 @@ public class NpcHandler {
 					+ " present coords are:" + e.getX() + "," + e.getY()
 					+ "," + e.getZ());
 			if(e.getName()== null||e.getName().length()<=0 )
-				e.setName(DatastoreDAO.getInstance().getNpcName(((NpcData)e).getTemplateId()));
+				e.setName(Singleton.get().getDataManager().getNpcName(((NpcData)e).getTemplateId()));
 		}
 		IdentityComponent  id = (IdentityComponent) EntityManager.get().getComponent(e.getObjectId(), IdentityComponent.class);
 
@@ -102,16 +103,6 @@ System.out.println("FIXME update of NPC received, but so far not fully implement
 		//FIXME why has visual and ent its own location ?!?!? 
 //		v.setLocalTranslation(pos.currentPos);
 		vis.vis = v;
-		
-		l2j.isPlayer  = false;
-		l2j.l2jEntity = e;
-		
-		//do nothing?
-//		pos.startPos.set(pos.startPos);
-//		pos.currentPos.set(pos.currentPos);
-//		pos.goalPos.set(pos.goalPos);
-//		pos.heading = pos.heading;
-//		pos.targetHeading = pos.heading;
 		
 		//FIXME why has visual and ent its own location ?!?!? 
 		ent.setLocalTranslation(pos.currentPos);
