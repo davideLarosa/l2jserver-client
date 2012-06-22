@@ -1,4 +1,4 @@
-package com.l2client.dao;
+package com.l2client.dao.derby;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -6,8 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import com.l2client.dao.IDAO;
 import com.l2client.dao.builders.ActionResultBuilder;
 import com.l2client.gui.actions.BaseUsable;
+
+
 
 
 /**
@@ -19,35 +22,21 @@ import com.l2client.gui.actions.BaseUsable;
  *
  */
 //TODO extract SQLs into statics
-public final class DatastoreDAO {
+public final class DatastoreDAO implements IDAO {
 
 	private static Logger logger = Logger.getLogger(DatastoreDAO.class.getName());
+
+	private static ConnectionPool pool = null;
 	
-	private static DatastoreDAO instance = null;
-	private final static ConnectionPool pool = ConnectionPool.getInstance();
+	private static class SingletonHolder {
+		public static final IDAO instance = new DatastoreDAO();
+	}
 
 	private DatastoreDAO() {
-		logger.finest("Datastore is initializing");
 	}
 	
-	public static DatastoreDAO getInstance() {
-		if (instance != null)
-			return instance;
-		
-		instance = new DatastoreDAO();
-		//early init of database
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				String name = instance.getNpcName(18342);
-				logger.finest("Initialized DatastoreDAO by query for 18342 returned "+name);
-			}
-		}){
-			
-		}.start();
-		
-		return instance;
+	public static IDAO get() {
+		return SingletonHolder.instance;
 	}
 
 	/**
@@ -128,8 +117,31 @@ public final class DatastoreDAO {
 		logger.finest("loadAllActions exited");
 		return ret;
 	}
-	
-	public void release(){
+
+	@Override
+	public void init() {
+		logger.finest("Datastore is initializing");
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				pool = ConnectionPool.getInstance();
+				String name = get().getNpcName(18342);
+				logger.finest("Initialized DatastoreDAO by query for 18342 returned "+name);
+			}
+		}){
+			
+		}.start();
+	}
+
+	@Override
+	public void finit() {
 		pool.shutdown();
+	}
+
+	@Override
+	public String getNpcGameModel(int templateId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

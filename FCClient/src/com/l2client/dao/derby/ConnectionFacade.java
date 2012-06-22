@@ -1,4 +1,4 @@
-package com.l2client.dao;
+package com.l2client.dao.derby;
 
 import java.sql.Array;
 import java.sql.Blob;

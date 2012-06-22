@@ -1,4 +1,4 @@
-package com.l2client.dao;
+package com.l2client.dao.derby;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -66,7 +66,7 @@ public final class ConnectionPool {
 					new org.apache.derby.jdbc.EmbeddedDriver();
 					for (int i = 0; i < MAX_CONNECTIONS; i++) {
 						Connection con = DriverManager
-								.getConnection("jdbc:derby:derby/l2jclient;user=l2jclient;password=l2jclient;");
+								.getConnection("jdbc:derby:classpath:derby/l2jclient;user=l2jclient;password=l2jclient;");
 						connections.add(con);
 					}
 				}

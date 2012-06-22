@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import au.com.bytecode.opencsv.CSVReader;
+
 import com.l2client.gui.actions.AttackAction;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.CompanionAction;
@@ -49,6 +51,31 @@ public class ActionResultBuilder {
 					b.setDisplayOrder(rs.getInt("DISPLAYORDER"));
 
 					ret.add(b);
+				}
+			}
+		} catch (Exception e) {
+			logger.log(Level.SEVERE,"Error in loadig Actions from DAO", e);
+		}
+		return ret.toArray(new BaseUsable[0]);
+	}
+	
+	public static BaseUsable[] buildActions(CSVReader rs) {
+		ArrayList<BaseUsable> ret = new ArrayList<BaseUsable>();
+		try {
+			String[] line = rs.readNext();
+			while(line != null) {
+				if(line.length == 8){
+				BaseUsable b = getUsable(Integer.valueOf(line[1]), line[8], line[2]);
+				if (b != null) {
+					b.setCategory(line[0]);
+					b.setType(line[5]);
+					b.setDescription(line[4]);
+					b.setImage(line[3]);
+					b.setActionID(Integer.valueOf(line[6]));
+					b.setDisplayOrder(Integer.valueOf(line[7]));
+
+					ret.add(b);
+				}
 				}
 			}
 		} catch (Exception e) {
