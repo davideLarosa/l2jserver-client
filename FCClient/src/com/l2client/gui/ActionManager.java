@@ -3,7 +3,8 @@ package com.l2client.gui;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import com.l2client.dao.DatastoreDAO;
+import com.l2client.app.Singleton;
+import com.l2client.dao.derby.DatastoreDAO;
 import com.l2client.gui.actions.BaseUsable;
 
 //FIXME think about using a static NULLAction
@@ -43,7 +44,7 @@ public final class ActionManager {
 					return;
 				
 				loaded = 0;
-				BaseUsable[] arr =DatastoreDAO.getInstance().loadAllActions();
+				BaseUsable[] arr = Singleton.get().getDataManager().loadAllActions();
 				if(arr.length <=0){
 					loaded = 1;
 					logger.severe("Failed to load actions, DAO returned 0 actions");
