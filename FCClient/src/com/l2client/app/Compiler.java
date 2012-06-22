@@ -35,7 +35,7 @@ public class Compiler {
 
 		@Override
 		public boolean accept(File dir, String name) {
-			if (name.endsWith("skeleton.xml"))
+			if (name.endsWith(".skeleton.xml"))
 				return true;
 
 			return false;
@@ -131,7 +131,7 @@ public class Compiler {
 			return;// -20;
 		}
 		else {assetMan.registerLocator(file.toString(),
-                FullPathFileLocator.class.getName());
+                FullPathFileLocator.class);
 			FileOutputStream megaFile = createMegaSetFile(target.getAbsolutePath()+File.separatorChar);
 			Compiler com = new Compiler(megaFile);
 			for(File f : file.listFiles()){
