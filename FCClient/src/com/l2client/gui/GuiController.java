@@ -315,16 +315,13 @@ public final class GuiController {
 		internalFrame.setSize(new java.awt.Dimension(320, 250));
 		internalFrame.pack();
 		internalFrame.setLocation(0,desktopPane.getHeight()-internalFrame.getHeight());
-
-//System.out.println("tFrame: "+internalFrame.getSize()+"Pos:"+internalFrame.getLocation());
-//System.out.println("Desktop: "+desktopPane.getSize()+"Settings: width="+settings.getWidth()+" height="+settings.getHeight());
-		
 		desktopPane.add(internalFrame);
 		
+		// minimize on mouse out maximize on mouse in
 		MinMaxListener mima = new MinMaxListener(internalFrame, "Chatwindow", pan, desktopPane);
 		pan.addMouseListener(mima);
-		
-		wireInputSwitch(null, pan);
+
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
 
 		desktopPane.repaint();
 		desktopPane.revalidate();
