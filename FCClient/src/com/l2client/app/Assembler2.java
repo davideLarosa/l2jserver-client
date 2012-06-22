@@ -80,7 +80,7 @@ public class Assembler2 {
 		PartSet det = top.getPart("mesh");
 		for( PartSet oSet : det.getParts()){
 			String name = oSet.getName();
-			if(name.startsWith("Weapon") || name.startsWith("Shield"))//skip weapon+shield model
+			if(name.startsWith("weapon") || name.startsWith("shield"))//skip weapon+shield model
 				continue;
 			String next = oSet.getNext();
 			Asset a = new Asset(next,name);
@@ -201,7 +201,10 @@ public class Assembler2 {
 
 		PartSet top = getTopPart(template);
 		//FIMXE error handling
-		//if(top == null)
+		if(top == null) {
+			new Exception("Failed to find temple <"+template+"> in megaset").printStackTrace();
+			return new Node("NULL");
+		}
 		
 		HashMap<String, Asset> materials = getMaterials(top);
 
