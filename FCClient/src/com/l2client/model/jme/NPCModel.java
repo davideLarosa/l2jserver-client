@@ -5,6 +5,7 @@ import com.jme3.scene.Node;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.jme.JMEAnimationController;
 import com.l2client.app.Assembler2;
+import com.l2client.app.Singleton;
 import com.l2client.model.network.NewCharSummary;
 
 public class NPCModel extends VisibleModel {
@@ -22,15 +23,12 @@ public class NPCModel extends VisibleModel {
 	
 			
 			Node n = null;
-			//Assembler2.getModel3("dwarfwarrior");
-			//FIXME move this out to client db
-			switch(charSelection.templateId){
-			case 18342: n = Assembler2.getModel3("goblin");break;//Gremlin
-			case 30340: n = Assembler2.getModel3("pelfmmage");break;//Newbie Helper
-			case 30370: n = Assembler2.getModel3("pelffmage");break;//Nerupa
-			case 31848: n = Assembler2.getModel3("goblin");break;//Pixy
-			default: n = super.createVisuals();
-			}
+			String gamemodel = Singleton.get().getDataManager().getNpcGameModel(charSelection.templateId);
+			if(gamemodel != null)
+				n = Assembler2.getModel3(gamemodel);
+			else
+				n = super.createVisuals();
+
 			
 			if (n != null) {
 //				//FIXME modelconverter should already have set this one, this is not the case -> NPE
