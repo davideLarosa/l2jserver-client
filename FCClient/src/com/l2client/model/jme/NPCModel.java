@@ -24,7 +24,7 @@ public class NPCModel extends VisibleModel {
 			
 			Node n = null;
 			String gamemodel = Singleton.get().getDataManager().getNpcGameModel(charSelection.templateId);
-			if(gamemodel != null)
+			if(gamemodel != null && gamemodel.length() > 0)
 				n = Assembler2.getModel3(gamemodel);
 			else
 				n = super.createVisuals();
