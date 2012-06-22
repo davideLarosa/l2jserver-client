@@ -64,7 +64,7 @@ public class ActionResultBuilder {
 		try {
 			String[] line = rs.readNext();
 			while(line != null) {
-				if(line.length == 8){
+				if(line.length == 9){
 				BaseUsable b = getUsable(Integer.valueOf(line[1]), line[8], line[2]);
 				if (b != null) {
 					b.setCategory(line[0]);
@@ -77,6 +77,7 @@ public class ActionResultBuilder {
 					ret.add(b);
 				}
 				}
+				line = rs.readNext();
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE,"Error in loadig Actions from DAO", e);
