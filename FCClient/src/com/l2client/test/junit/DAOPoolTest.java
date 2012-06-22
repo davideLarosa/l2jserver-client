@@ -4,7 +4,7 @@ import java.sql.Connection;
 
 import junit.framework.TestCase;
 
-import com.l2client.dao.ConnectionPool;
+import com.l2client.dao.derby.ConnectionPool;
 
 public class DAOPoolTest extends TestCase {
 
