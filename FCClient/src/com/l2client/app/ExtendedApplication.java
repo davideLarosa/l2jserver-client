@@ -10,12 +10,11 @@ import com.l2client.asset.AssetManager;
 public class ExtendedApplication extends SimpleApplication {
 
 	public ExtendedApplication(){
+		showSettings = false;
 		this.assetManager = AssetManager.getInstance().getJmeAssetMan();
 	}
 
 	@Override
 	public void simpleInitApp() {
-		// TODO Auto-generated method stub
-		
 	}
 }
