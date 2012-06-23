@@ -96,7 +96,6 @@ public abstract class ComponentSystem {
 		usedBudget = 0f;
 		Component c = null;
 		Component started = null;
-		
 		NanoTimer timer = new NanoTimer();
 		do{
 			c = getComponent();
@@ -105,7 +104,7 @@ public abstract class ComponentSystem {
 					if(c!=started){
 						onUpdateOf(c, tpf);
 					} else {
-						log.finest(this.getClass()+" used budget up to:"+usedBudget+" of "+timeBudget);
+						log.finest(this.getClass()+" used budget up to:"+usedBudget+" of "+timeBudget);					
 						return;
 					}
 				} else {
@@ -115,10 +114,10 @@ public abstract class ComponentSystem {
 			}
 			else
 				return;
-			usedBudget += timer.getTimeInSeconds();
+			usedBudget = timer.getTimeInSeconds();
 			log.finest(this.getClass()+" used time budget:"+usedBudget);
 		} while( usedBudget <timeBudget);
-			log.severe(this.getClass()+" used complete budget:"+usedBudget+" of "+timeBudget);
+		log.severe(this.getClass()+" used complete budget:"+usedBudget+" of "+timeBudget);
 	}
 	
 	/**
