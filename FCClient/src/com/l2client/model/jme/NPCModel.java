@@ -26,8 +26,10 @@ public class NPCModel extends VisibleModel {
 			String gamemodel = Singleton.get().getDataManager().getNpcGameModel(charSelection.templateId);
 			if(gamemodel != null && gamemodel.length() > 0)
 				n = Assembler2.getModel3(gamemodel);
-			else
+			else {
+				logger.warning("No game model found in npc table for entity "+charSelection.templateId);
 				n = super.createVisuals();
+			}
 
 			
 			if (n != null) {
