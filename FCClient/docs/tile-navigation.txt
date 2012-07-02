@@ -1,0 +1,44 @@
+a tile has a fixed size in world coordinates. a navmesh is created exclusively for a tile.
+all triangles of the navmesh must be within the navmesh. some triangles of the navmesh which should be used as bridges to other tiles lie with one edge on the tile edge. other triangles of the navmesh which should not be connecting to other tiles must be a minimal unit away from the tile edge.
+tiles which connect must create a navmesh in a way, that the edges of the overlapping lines match in their center.
+
+            +--------
+            |
+------------+
+            | side b
+ side a     . center point is in center of quad on side a and quad on side b
+            |
+------------+
+            |
+            +--------
+path planning will use the "border cells" (trinagles which have one side on the tile border) to prepare transitions to other tile navmeshes.
+path planning will go along waypoints, these are placed in a manor where tile transition is supported by having two waypoints lying close by on the two different tile sides. in addition path planning will normally cover a very small area
+Path lookup should go as follows:
+
+	determin the navmesh where the endpoint is on.
+	determin if it is a different navmesh than the one we are on.
+	
+	if it is a different one
+		if the start is on the other side too normal path lookup
+		else navigate to the closest borderpoint
+	else
+		normal path lookup
+path execution:
+	if in border cell and path result would be exiting to a side outside the tile
+		switch the navmesh to the adjecant navmesh
+		new path lookup
+		
+so on transitions the path is only planed to the closest borderpoint lying in the final goal direction
+then after crossing the navmesh the path planning is reevaluated.
+
+path planning should be done by creating a path of waypoints. The waypoint paths are lines, they do not branch. waypoints are tagged with orders to be executed on that waypoint location.
+the path lines can be seen as action vectors, along which a certain action should be executed.
+for example a watchman doing his round could be something like this:
+	waypoint 1: wait for 10, look for enemies
+	waypoint 2: wait for 10, look for eneimes
+	waypoint 3: wait for 10, look for enemies, nextgoal waypoint 1
+
+an example where branching would be executed is here (a differnt "branch" is just a new waypoint path line starting in the same (or in the near) "navmesh cell": starting at waypoint 1 the unit heads for waypoint 2, where they will wait 10 sec. for enemies around to attack. they are at a gate, if they do not manage to crack the gate open in 30 seconds (which is also an enemy), they start looking for an alternative plan.  
+
+	waypoint 1: look for enemies
+	waypoint 2: wait 30, look for enemies, after 30 - look for alternative plan

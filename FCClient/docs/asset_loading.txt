@@ -1,0 +1,39 @@
+asset manager
+ release asset
+ register asset
+ assets are: terrainmesh, texture, objectmesh, light, state
+ assets are only loaded once and later reused or released
+ 
+regionmanager
+ loads region definitions
+ anwereres querries to region/position related stuff
+
+region definition 
+ a region definition has several assets
+ x,y,z coords
+ terrainmesh
+ textures
+ objectmeshes
+ lights
+ ..
+
+
+patch
+ x,y,z
+ terrain
+ sharedmeshes[] models
+ sharedmeshed[] details
+ 
+ 
+ patch.position
+ patch.terrain.file
+ patch.models.model1.file
+ patch.models.model1.position
+ patch.models.model1.rotation
+ patch.models.model1.scale
+ patch.models....
+ patch.details.model2.file
+ patch.details.model2.position
+ patch.details.model2.rotation
+ patch.details.model2.scale
+ patch.details.... 
