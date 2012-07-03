@@ -6,6 +6,7 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.Light;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.l2client.dao.UserPropertiesDAO;
 
 /**
  * L2J uses z as up
@@ -44,13 +45,15 @@ public class L2JClient extends ExtendedApplication {
 
 
 	private void initGui(){
+		//load last used sever port and host from properties into system properties
+		UserPropertiesDAO.loadProperties();
 		settings.setTitle("L2J Client");
 		flyCam.setEnabled(false);
 		singles.getSceneManager().setRoot(rootNode);
 		singles.getPartManager().loadParts("megaset.csv");
 		singles.getInputController().initialize(inputManager);
 		singles.getGuiController().initialize(settings, renderManager);
-		singles.getGameController().initialize(cam,settings);
+		singles.getGameController().initialize(cam,settings, viewPort);
 		singles.getGameController().doLogin();
 
 		inputManager.setCursorVisible(true);
