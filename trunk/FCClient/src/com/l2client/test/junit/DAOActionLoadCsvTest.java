@@ -14,7 +14,7 @@ public class DAOActionLoadCsvTest extends TestCase{
 		dao.init();
 //		InputController.getInstance().setInGameInputHandler(new InputHandler());
 		BaseUsable[] ret = dao.loadAllActions();
-		String name = dao.getNpcName(100);
+		String name = dao.getNpcName(30370);
 		assertTrue("Any actions returned", ret != null && ret.length > 0);
 		assertNotNull(name);
 		dao.finit();
