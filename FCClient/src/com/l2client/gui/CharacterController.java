@@ -7,6 +7,7 @@ import com.jme3.bounding.BoundingBox;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -58,6 +59,10 @@ public final class CharacterController {
 		logger.fine("Character initialized to:" + visible.getLocalTranslation());
 
 		setupChaseCamera(visible, cam);
+		
+        AmbientLight al = new AmbientLight();
+        al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
+		SceneManager.get().changeRootLight(al,0);
 
 		pl = new PointLight();
 		pl.setColor(ColorRGBA.White);
