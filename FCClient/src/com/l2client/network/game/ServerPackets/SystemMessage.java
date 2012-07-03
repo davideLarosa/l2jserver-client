@@ -32,7 +32,7 @@ public class SystemMessage extends GameServerPacket
 		//TODO read Parameters of SystemMessage
 		//..
 		
-		if(pars < 0) {
+		if(pars <= 0) {
 			log.fine("Read from Server "+this.getClass().getSimpleName()+" with ID:"+id+" Params:"+pars);
 			return;
 		}
