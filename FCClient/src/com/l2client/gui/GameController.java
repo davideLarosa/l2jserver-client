@@ -4,8 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.FileInputStream;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,17 +11,23 @@ import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
 import com.jme3.light.AmbientLight;
-import com.jme3.light.DirectionalLight;
-import com.jme3.light.PointLight;
+import com.jme3.light.Light;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.SceneProcessor;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
+import com.l2client.app.Singleton;
 import com.l2client.asset.AssetManager;
 import com.l2client.controller.SceneManager;
+import com.l2client.dao.UserPropertiesDAO;
 import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.gui.dialogs.GameServerJPanel;
@@ -46,6 +50,8 @@ import com.l2client.network.login.LoginHandler;
 //FIXME check if jme gamestates could replace this
 public final class GameController {
 
+	private static final String SCENES_CREATE = "scenes/create/create.j3o";
+
 	private static final Logger logger = Logger.getLogger(GameController.class
             .getName());
 	
@@ -64,6 +70,11 @@ public final class GameController {
 	private Camera camera;
 
 	private AppSettings settings;
+
+	/**
+	 * viewport needed for post process filter integration
+	 */
+	private ViewPort viewPort;
 	
 	private GameController(){	
 	}
@@ -72,11 +83,12 @@ public final class GameController {
 		return instance;
 	}	
 	
-	public void initialize(Camera cam, AppSettings settings){
+	public void initialize(Camera cam, AppSettings settings, ViewPort viewPort){
 		//TODO check backdrop is removed properly
 //		sceneRoot = SceneManager.get().getRoot();
 		SceneManager.get().removeAll();
 		camera = cam;
+		this.viewPort = viewPort;
 		this.settings = settings;
 		
 	    Quad b = new Quad(80f,60f);
@@ -183,6 +195,20 @@ public final class GameController {
 //		//reset scene
 //		sceneRoot.cleanupScene();
 		SceneManager.get().removeAll();
+		try {
+		for(SceneProcessor p : viewPort.getProcessors()){
+			viewPort.removeProcessor(p);
+		}
+		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
+		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
+				0.32999992f, 0.6059958f);
+		fpp.addFilter(ssaoFilter);
+		viewPort.addProcessor(fpp);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		//display available chars + gui for creation of new one
 		//if none present go directly for creation of new char
         if (clientInfo.getCharHandler().getCharCount() > 0) {
@@ -193,22 +219,31 @@ public final class GameController {
 	}
 	
 	public void doCharCreation() {
-//		//FIXME change quickfix to a real solution for headless tests
-//		if(sceneRoot==null)
-//			return;
-//		//purge rootNode
-//		this.sceneRoot.cleanupScene();
 		
 		SceneManager.get().removeAll();
 		
-		PointLight pl = new PointLight();
-        pl.setColor(ColorRGBA.White);
-        pl.setRadius(4f);
-        pl.setPosition(new Vector3f(10,-50,20));
+		try{
+			Spatial n = Singleton.get().getAssetManager().getJmeAssetMan()
+					.loadModel(SCENES_CREATE);
+			SceneManager.get().changeTerrainNode(n, 0);
+			
+			//this is needed as the ssao pass will other wise only render 
+			//the shadow of our attached chars as they are on a different 
+			//root (nice for a ghost effect or so)
+			for(Light l : n.getLocalLightList()){
+				if(l instanceof AmbientLight){
+					n.removeLight(l);
+					l.setColor(new ColorRGBA(0.6f,0.6f,0.8f,1.0f));
+					SceneManager.get().changeRootLight(l, 0);
+				}
+			}
+				
+		} catch (Exception e1) {
+			logger.log(Level.SEVERE, "Failed to load creation scene file "+SCENES_CREATE, e1);
+		}
 		
-        SceneManager.get().changeRootLight(pl,0);
-		
-		//FIXME setup camera
+		camera.setLocation(new Vector3f(2.1353703f, 0.10786462f, 14.364603f));
+		camera.lookAtDirection(new Vector3f(-0.1764535f, 0.27474004f, -0.94518876f), Vector3f.UNIT_Y);
 		
 		//FIXME move to own class
 		//for the first just display the menu for char selection which steers the display
@@ -249,7 +284,7 @@ public final class GameController {
 						//FIXME reevaluate model composition
 						charSummary.setNewCharSummary(pan.getNewCharSummary());
 						charSummary.attachVisuals();
-						charSummary.setLocalTranslation(0f, -1f, -4f);
+						charSummary.setLocalTranslation(.126f, -0.1224f, 7.76f);
 						SceneManager.get().changeCharNode(charSummary,0);
 						//FIXME end of move this out
 					}
@@ -296,9 +331,15 @@ public final class GameController {
 		//add gui buttons for enter world, exit, options
 		//on enter world start game with the chosen, on exit cleanup, on options show options pane
 
-		// getPj().charSelectHandler.showDialog();
+			AmbientLight al = new AmbientLight();
+			    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
+				SceneManager.get().changeRootLight(al,0);
+
 		
 		//FIXME setup camera
+				
+		camera.setLocation(new Vector3f(3f,0f,4f));
+		camera.lookAtDirection(Vector3f.UNIT_Z.mult(-1f), Vector3f.UNIT_Y);
 		
 		for (int i = clientInfo.getCharHandler().getCharCount()-1; i >= 0; i--) {
 			NewCharacterModel v = new NewCharacterModel(clientInfo.getCharHandler().getCharSummary(i));
@@ -335,16 +376,16 @@ public final class GameController {
 		}
 		
  
-        DirectionalLight light = new DirectionalLight();
-        light.setDirection(new Vector3f(0, -1, 0));
-        light.setColor(ColorRGBA.White.mult(1.5f));
-//        sceneRoot.addLight(light);
-        
-        AmbientLight am = new AmbientLight();
-        am.setColor(ColorRGBA.White);
-//        sceneRoot.addLight(am);
-        SceneManager.get().changeRootLight(light,0);
-        SceneManager.get().changeRootLight(am,0);
+//        DirectionalLight light = new DirectionalLight();
+//        light.setDirection(new Vector3f(0, -1, 0));
+//        light.setColor(ColorRGBA.White.mult(1.5f));
+////        sceneRoot.addLight(light);
+//        
+//        AmbientLight am = new AmbientLight();
+//        am.setColor(ColorRGBA.White);
+////        sceneRoot.addLight(am);
+//        SceneManager.get().changeRootLight(light,0);
+//        SceneManager.get().changeRootLight(am,0);
 
 //		sceneRoot.removeAllLights();
 //        
@@ -401,26 +442,7 @@ public final class GameController {
 //		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "localhost:2106");
 //		if(true)return;
 		
-		
-		
-		//FIXME more natural way load and store in a webstartable way
-		//############################################################
-		//load server properties, ev. from user.home ?
-		Properties servers = new Properties();
 
-        FileInputStream in = null;
-		try {
-			in = new FileInputStream("cServer.properties");
-			servers.load(in);
-			System.getProperties().putAll(servers);
-		} catch(Exception e) {//Ignore
-		} 
-		
-		//get startup server
-		final String host = System.getProperty("client.server.host","127.0.0.1");
-		final String port = System.getProperty("client.server.port","2106");
-
-		final FileInputStream stream = in;
 		//#############################################################
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -428,7 +450,8 @@ public final class GameController {
 			public void run() {
 				final TransparentLoginPanel pan = GuiController.getInstance()
 						.displayUserPasswordJPanel();
-				pan.setServer(host+":"+port);
+				// get properties initialized from file or by defaut 
+				pan.setServer(System.getProperty(UserPropertiesDAO.SERVER_HOST_PROPERTY)+":"+System.getProperty(UserPropertiesDAO.SERVER_PORT_PROPERTY));
 				// action that gets executed in the update thread:
 				pan.addLoginActionListener(new ActionListener(){
 					@Override
@@ -444,7 +467,11 @@ public final class GameController {
 							return;
 						}
 						try {
-							Integer port = Integer.parseInt(split[1]);
+							//store setting in user property for later usage
+							System.setProperty(UserPropertiesDAO.SERVER_HOST_PROPERTY,split[0]);
+							System.setProperty(UserPropertiesDAO.SERVER_PORT_PROPERTY,split[1]);
+							//intentionally not used
+							Integer.parseInt(split[1]);
 						} catch (NumberFormatException ex) {
 							GuiController.getInstance().showErrorDialog("Your port is not a number entry");
 							return;
@@ -457,8 +484,10 @@ public final class GameController {
 											.showErrorDialog(
 													"Failed to Connect to login server");
 
+								} else {
+									//save port and host to user.home on a successfull login
+									UserPropertiesDAO.saveProperties();
 								}
-								//else save port and host to user.home ?
 							}
 						});
 				pan.addCancelActionListener(new ActionListener(){
