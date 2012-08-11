@@ -1,0 +1,93 @@
+<mesh>
+  <submeshes>
+    <submesh material="figure" name="spikes_2" usesharedvertices="false" use32bitindexes="false">
+      <faces count="6">
+        <face v1="0" v2="1" v3="2" />
+        <face v1="0" v2="3" v3="1" />
+        <face v1="4" v2="5" v3="6" />
+        <face v1="4" v2="7" v3="5" />
+        <face v1="8" v2="9" v3="10" />
+        <face v1="8" v2="11" v3="9" />
+      </faces>
+      <geometry vertexcount="12">
+        <vertexbuffer positions="true" normals="true" colours_diffuse="false" texture_coords="1" texture_coords_dimensions_0="2" >
+          <vertex>
+            <position x="-0.012661" y="-0.047569" z="0.139953" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.468150" v="0.430000" />
+          </vertex>
+          <vertex>
+            <position x="-0.010862" y="-0.049840" z="0.148520" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.472550" v="0.405650" />
+          </vertex>
+          <vertex>
+            <position x="-0.012864" y="-0.046303" z="0.148489" />
+            <normal x="-0.869277" y="-0.491673" z="0.051134" />
+            <texcoord u="0.463900" v="0.407500" />
+          </vertex>
+          <vertex>
+            <position x="-0.007457" y="-0.047686" z="0.147744" />
+            <normal x="0.450530" y="-0.834460" z="-0.317330" />
+            <texcoord u="0.480600" v="0.406650" />
+          </vertex>
+          <vertex>
+            <position x="-0.012661" y="-0.047569" z="0.139953" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.468150" v="0.430000" />
+          </vertex>
+          <vertex>
+            <position x="-0.010862" y="-0.049840" z="0.148520" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.472550" v="0.405650" />
+          </vertex>
+          <vertex>
+            <position x="-0.012864" y="-0.046303" z="0.148489" />
+            <normal x="-0.869277" y="-0.491673" z="0.051134" />
+            <texcoord u="0.463900" v="0.407500" />
+          </vertex>
+          <vertex>
+            <position x="-0.007457" y="-0.047686" z="0.147744" />
+            <normal x="0.450530" y="-0.834460" z="-0.317330" />
+            <texcoord u="0.480600" v="0.406650" />
+          </vertex>
+          <vertex>
+            <position x="-0.012661" y="-0.047569" z="0.139953" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.468150" v="0.430000" />
+          </vertex>
+          <vertex>
+            <position x="-0.010862" y="-0.049840" z="0.148520" />
+            <normal x="-0.294276" y="-0.937760" z="-0.184413" />
+            <texcoord u="0.472550" v="0.405650" />
+          </vertex>
+          <vertex>
+            <position x="-0.012864" y="-0.046303" z="0.148489" />
+            <normal x="-0.869277" y="-0.491673" z="0.051134" />
+            <texcoord u="0.463900" v="0.407500" />
+          </vertex>
+          <vertex>
+            <position x="-0.007457" y="-0.047686" z="0.147744" />
+            <normal x="0.450530" y="-0.834460" z="-0.317330" />
+            <texcoord u="0.480600" v="0.406650" />
+          </vertex>
+        </vertexbuffer>
+      </geometry>
+      <boneassignments>
+        <vertexboneassignment vertexindex="0" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="1" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="2" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="3" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="4" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="5" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="6" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="7" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="8" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="9" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="10" boneindex="0" weight="1.0" />
+        <vertexboneassignment vertexindex="11" boneindex="0" weight="1.0" />
+      </boneassignments>
+    </submesh>
+  </submeshes>
+	<skeletonlink name="std_1.0.skeleton"/>
+</mesh>
