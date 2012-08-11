@@ -159,7 +159,7 @@ The file should have a skeletonlink entry with the file name (without .xml endin
 
 = Preparing the files =
 
-Once you have prepared all your assets in the FCModelData/_raw/meshes folder (one subfolder for each npc) and also prepared all animations in the _raw/anims folder (one subolder per animation set) run the Compiler class over it. This will create all needed npc data in the _target folder. Pack this folders content and provide it to the game in the classpath of your game for the models to be found. 
+Once you have prepared all your assets in the `FCModelData/_raw/meshes` folder (one subfolder for each npc) and also prepared all animations in the `_raw/anims` folder (one subolder per animation set) run the Compiler class over it. This will create all needed npc data in the `_target` folder. Pack this folders content and provide it to the game in the classpath of your game for the models to be found. 
 
 Adjust the file FCData/data/db/npc.csv to assign any of the models as npcs. For player models this is a bit more complex and will be described on a different page (to be done).
 
