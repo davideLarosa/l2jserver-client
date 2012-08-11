@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="_target"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/engine"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/FCClient">
+		<accessrules>
+			<accessrule kind="nonaccessible" pattern="**.jar"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/FCOgre"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
