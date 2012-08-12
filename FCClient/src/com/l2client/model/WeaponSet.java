@@ -134,4 +134,9 @@ System.out.println("Failed to read from "+fname);
 		}
 		
 	}
+	
+	@Override
+	public String toString(){
+		return "WeaponSet:"+primhand+"/"+offhand+" anim:"+animSet;
+	}
 }

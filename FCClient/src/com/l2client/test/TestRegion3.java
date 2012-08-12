@@ -81,6 +81,7 @@ public class TestRegion3 extends SimpleApplication {
         rootNode.addLight(ambLight);
     	
     	cam.setLocation(cam.getLocation().add(0, 120, 50));
+    	cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
     	cam.setFrustumFar(1000f);
     	cam.setFrustumNear(1f);
     	flyCam.setMoveSpeed(50f);

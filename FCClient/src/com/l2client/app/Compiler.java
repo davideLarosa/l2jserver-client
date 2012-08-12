@@ -9,12 +9,13 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 
 import com.jme3.animation.Animation;
-import com.jme3.animation.BoneAnimation;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.DesktopAssetManager;
 import com.jme3.export.binary.BinaryExporter;
 import com.jme3.material.Material;
 import com.jme3.material.MaterialList;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.ogre.AnimData;
 import com.jme3.scene.plugins.ogre.SkeletonLoader;
@@ -108,8 +109,9 @@ public class Compiler {
 
 	/**
 	 * @param args directory of the exported files, TODO flags vsam for only converting meshes, skeletons, anims, materials
+	 * @throws Throwable 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Throwable {
 		if (args != null && args.length != 2) {
 			System.out
 					.println("ERROR: compiler needs a directory for files to convert as parameter, and a directory as target");
@@ -162,7 +164,7 @@ public class Compiler {
 		}	
 	}
 
-	private void convertMeshesParent(File f, File target) {
+	private void convertMeshesParent(File f, File target) throws Throwable {
 		for(File ff : f.listFiles()){
 			if(ff.isDirectory())
 			{
@@ -204,7 +206,7 @@ public class Compiler {
 		}
 	}
 
-	private int convertMeshes(File file, File target) {
+	private int convertMeshes(File file, File target) throws Throwable {
 		//target directory (exporters create them directly
 		String path = target.getAbsolutePath() + File.separatorChar + "meshes";
 
@@ -216,11 +218,24 @@ public class Compiler {
 			//new loader each time, yes
 			try {
 				String fName = name.getName().substring(0,name.getName().length()-".mesh.xml".length());
-				Spatial n = (Spatial) assetMan.loadAsset(name.getAbsolutePath());
-				n.setName(fName);
-					BinaryExporter.getInstance().save(n,
+				Node n =  (Node) assetMan.loadAsset(name.getAbsolutePath());
+				if(n.getChildren().size() > 1)
+					throw new Throwable("Mesh with more children detected than one on "+name.getName());
+				
+				Spatial s = n.getChild(0);
+				String mat = "default";
+				if(s instanceof Geometry) {
+					Geometry g = ((Geometry)s);
+					g.setName(fName);
+					g.updateModelBound();
+					mat = g.getMaterial().getName();
+					//remove material, we don't want jme to store different materials being all the same on load, so we remove it here
+					g.setMaterial(null);
+				}
+				
+					BinaryExporter.getInstance().save(s,
 							new File(path + File.separatorChar + file.getName()+ File.separatorChar + fName+ ".j3o"));
-					appendMegaSet(new String[] {"entity",file.getName(),"mesh",truncateEndNumbers(fName),"meshes/"+file.getName()+"/"+fName + ".j3o"});
+					appendMegaSet(new String[] {"entity",file.getName(),"mesh",truncateEndNumbers(fName),mat,"meshes/"+file.getName()+"/"+fName + ".j3o"});
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -305,10 +320,11 @@ public class Compiler {
 				MaterialList mats = (MaterialList) assetMan.loadAsset(name.getAbsolutePath());
 				for(String id : mats.keySet()){
 					Material m = mats.get(id);
-					String ass = "mats/"+file.getName()+"/"+id+ ".j3m";
+					m.setName(id);
+					String ass = "mats/"+file.getName()+"/"+id+ ".j3o";
 //					m.setAssetName(ass);
 				BinaryExporter.getInstance().save(m,
-						new File(path + File.separatorChar + file.getName() + File.separatorChar + id+ ".j3m"));
+						new File(path + File.separatorChar + file.getName() + File.separatorChar + id+ ".j3o"));
 				//Special handling of onyl one material! this one must be named "default"!
 				if(fList.length > 1){
 					appendMegaSet(new String[]{"entity",file.getName(),"mat",id,ass});
@@ -407,7 +423,7 @@ public class Compiler {
 			if(s.readFromTextfile(f.getAbsolutePath())){
 				try {
 					BinaryExporter.getInstance().save(s,new File(target.getAbsolutePath()+File.separator+f.getName()+ ".j3o"));
-					appendMegaSet(new String[] {"entity",sourceDir.getName(),"weapon","Weapon","weapons/"+sourceDir.getName()+"/"+f.getName()+ ".j3o"});
+					appendMegaSet(new String[] {"entity",sourceDir.getName(),"weapon","weapons/"+sourceDir.getName()+"/"+f.getName()+ ".j3o"});
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

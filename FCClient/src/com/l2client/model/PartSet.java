@@ -13,7 +13,7 @@ import com.jme3.export.Savable;
 public class PartSet implements Savable{
 	String name;
 	HashMap<String, PartSet> parts = new HashMap<String, PartSet>();
-	String detail = null;
+//	String detail = null;
 	String[] partsArray;
 	volatile int next = 0;
 	
@@ -53,13 +53,13 @@ public class PartSet implements Savable{
 		return parts.values();
 	}
 	
-	public String getDetail(){
-		return detail;
-	}
-	
-	public void setDetail(String in){
-		detail = in;
-	}
+//	public String getDetail(){
+//		return detail;
+//	}
+//	
+//	public void setDetail(String in){
+//		detail = in;
+//	}
 	
 	public int getSize(){
 		synchronized (parts) {
@@ -150,17 +150,17 @@ public class PartSet implements Savable{
 	@Override
 	public String toString(){
 		StringBuilder str = new StringBuilder();
-		str.append(name).append(": ");
+		str.append(name).append("\n");
 		synchronized (parts) {
 //			str.append(parts.toString());
 			for(PartSet p : parts.values()){
-				str.append(p.toString()+"\n");
+				str.append(" "+p.toString()+"\n");
 			}
 		}
-		if(detail != null){
-			str.append(" -> ");
-			str.append(detail);
-		}
+//		if(detail != null){
+//			str.append(" -> ");
+//			str.append(detail);
+//		}
 		return str.toString();
 	}
 }
