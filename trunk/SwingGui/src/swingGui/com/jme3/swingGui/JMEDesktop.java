@@ -83,6 +83,7 @@ import com.jme3.input.RawInputListener;
 import com.jme3.input.event.JoyAxisEvent;
 import com.jme3.input.event.JoyButtonEvent;
 import com.jme3.input.event.KeyInputEvent;
+import com.jme3.input.event.MotionSensorEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
@@ -499,6 +500,11 @@ setMesh(new Quad());
       }
 	@Override
 	public void onTouchEvent(TouchEvent evt) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onMotionSensorEvent(MotionSensorEvent evt) {
 		// TODO Auto-generated method stub
 		
 	}
