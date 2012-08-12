@@ -1,0 +1,86 @@
+Index: src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java
+===================================================================
+--- src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java	(revision 9645)
++++ src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java	(working copy)
+@@ -227,6 +227,21 @@
+         } else {
+             if (materialList != null) {
+                 mat = materialList.get(matName);
++            } else if(matName != null && matName.length()>0){
++				//TR load it from submesh material name
++                try {
++                    
++                    	materialList = (MaterialList) assetManager
++							.loadAsset(new OgreMaterialKey(folderName
++									+ matName + ".material"));
++                    	mat = materialList.get(matName);
++                    	if(mat != null) {
++                    		mat.setName(matName);
++                    		logger.log(Level.WARNING, "Using material {0} from submesh for model {1}", new Object[]{matName, key});
++                    	}
++                    } catch (AssetNotFoundException ex){
++                    //intentionally left blank        	
++                }
+             }
+         }
+         
+@@ -757,7 +772,7 @@
+     }
+ 
+     private Node compileModel() {
+-        Node model = new Node(meshName + "-ogremesh");
++        Node model = new Node(meshName);// + "-ogremesh");
+ 
+         for (int i = 0; i < geoms.size(); i++) {
+             Geometry g = geoms.get(i);
+@@ -834,6 +849,11 @@
+             if (folderName != null && folderName.length() > 0) {
+                 meshName = meshName.substring(folderName.length());
+             }
++            //TR Hack for Windows names not properly done in AssetKey
++            int last = meshName.lastIndexOf("\\");
++            if(last != -1)
++            	meshName = (meshName.substring(last+1));
++            
+             assetManager = info.getManager();
+ 
+             if (key instanceof OgreMeshKey) {
+Index: src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java
+===================================================================
+--- src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java	(revision 9645)
++++ src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java	(working copy)
+@@ -101,8 +101,12 @@
+             assert elementStack.peek().equals("tracks");
+             String boneName = SAXUtil.parseString(attribs.getValue("bone"));
+             Bone bone = nameToBone.get(boneName);
+-            int index = skeleton.getBoneIndex(bone);
+-            track = new BoneTrack(index);
++            //TR FIX for anim only loading
++            if(skeleton != null){
++	            int index = skeleton.getBoneIndex(bone);
++	            track = new BoneTrack(index);
++            }else
++            	track = new BoneTrack(boneName);
+         } else if (qName.equals("boneparent")) {
+             assert elementStack.peek().equals("bonehierarchy");
+             String boneName = attribs.getValue("bone");
+@@ -125,7 +129,8 @@
+             assert elementStack.peek().equals("animations");
+             String name = SAXUtil.parseString(attribs.getValue("name"));
+             float length = SAXUtil.parseFloat(attribs.getValue("length"));
+-            animation = new Animation(name, length);
++            //TR HACK, otherwise names in anim and boneanim do not match, FIX YOUR ASSETS and remove this !
++            animation = new Animation(name.toLowerCase(), length);
+         } else if (qName.equals("bonehierarchy")) {
+             assert elementStack.peek().equals("skeleton");
+         } else if (qName.equals("animations")) {
+@@ -165,6 +170,9 @@
+             indexToBone.clear();
+             skeleton = new Skeleton(bones);
+         } else if (qName.equals("animation")) {
++        	//TR FIX for only anim loading without skeleton
++        	if(animations == null)
++        		animations = new ArrayList<Animation>();
+             animations.add(animation);
+             animation = null;
+         } else if (qName.equals("track")) {
