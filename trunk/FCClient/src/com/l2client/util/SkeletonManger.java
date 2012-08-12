@@ -35,26 +35,25 @@ public final class SkeletonManger {
 	/**
 	 * Returns an instance of the specified skeleton
 	 * @param name	Name of the file to be loaded
-	 * @param scale Scale of the skeleton
+	 * @param scale Scale of the skeleton (Deprecated, not used anymore)
 	 * @return
 	 */
-	public Skeleton getSkeleton(String name , float scale){
+	public Skeleton getSkeleton(String name , float scale/*deprecated*/){
 		
-		String scala = String.valueOf(scale);
+//		String scala = String.valueOf(scale);
 		//create name (name+scale)
-		String cName = name + scala;
+//		String cName = name + scala;
 		//lookup in cache or load it
-		Skeleton s = skeletons.get(cName);
-		if(s == null){
-			Asset a = new Asset(name,cName);
+		Skeleton s = skeletons.get(name);
+		if (s == null) {
+			Asset a = new Asset(name, name);
 			AssetManager.getInstance().loadAsset(a, true);
-			s = (Skeleton)a.getBaseAsset();
+			s = (Skeleton) a.getBaseAsset();
 		}
-		if(s!= null){
+		if (s != null) {
+			skeletons.put(name, s);
 			return s;
-		}
-		else {
-			skeletons.put(cName, s);
+		} else {
 			return null;
 		}
 	}

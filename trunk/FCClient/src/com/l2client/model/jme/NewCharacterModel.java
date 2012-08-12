@@ -128,14 +128,13 @@ public class NewCharacterModel extends VisibleModel {
 					
 					//Meshes start
 					HashMap<String, Geometry> geoms = assembler.getMeshes();
-					ArrayList<Asset> me = Assembler2.getMeshes(top);
+					HashMap<Asset, String> me = Assembler2.getMeshesWithMaterial(top);
 					//weapons + anim defintion
 					WeaponSet w = Assembler2.getWeaponset(top);
-					Assembler2.addWeaponSetToMesh(top, w, me);
+					Assembler2.addWeaponSetToMeshMap(top, w, me);
 					//meshes end
-					for(Asset a : me){
-						//FIXME this is crap!!! just store the geom and not a node in the asset generation process!!!
-						Geometry g = (Geometry) ((Node)a.getBaseAsset()).getChild(0);
+					for(Asset a : me.keySet()){
+						Geometry g = (Geometry) a.getBaseAsset();
 						geoms.put(g.getName(), g);
 						if(g.getName().startsWith("hair"))
 							hair = g.getName();

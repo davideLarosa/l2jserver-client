@@ -8,10 +8,12 @@ import java.util.HashSet;
 import com.l2client.model.PartSet;
 
 public final class PartSetManager {
+	private static final String ROOT_ENTITY = "entity";
+
 	private static PartSetManager singleton = null;
 	
 	HashMap<String, PartSet> sets = new HashMap<String, PartSet>();
-	HashSet<String> templates = new HashSet<String>();
+	HashSet<String> entityTemplates = new HashSet<String>();
 	
 	/**
 	 * singleton private constructor
@@ -46,15 +48,16 @@ public final class PartSetManager {
 			if(next == null)
 				next = new PartSet(token[i]);
 
-			if(i==token.length-1)
-				last.setDetail(token[i-1]);
+//			if(i==token.length-2)
+//				last.setDetail(token[i+1]);
 			
 			last.setPart(next);
 			last = next;			
 		}
 		
 		sets.put(token[0], top);
-		templates.add(token[0]);
+		if(ROOT_ENTITY.equals(token[0]))
+			entityTemplates.add(token[1]);
 	}
 	
 	private PartSet getCreatePart(String id){
@@ -127,8 +130,8 @@ public final class PartSetManager {
 	 * @return Array of distnct Strings of template names
 	 */
 	public String[] getTemplates(){
-		if(templates != null)
-			return templates.toArray(new String[templates.size()]);
+		if(entityTemplates != null)
+			return entityTemplates.toArray(new String[entityTemplates.size()]);
 		else
 			return new String[0];
 	}
