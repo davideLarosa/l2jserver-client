@@ -83,7 +83,6 @@ import com.jme3.input.RawInputListener;
 import com.jme3.input.event.JoyAxisEvent;
 import com.jme3.input.event.JoyButtonEvent;
 import com.jme3.input.event.KeyInputEvent;
-import com.jme3.input.event.MotionSensorEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
@@ -479,20 +478,27 @@ setMesh(new Quad());
     inputManager = manager;
     rawInputListener = new RawInputListener()
     {
+      @Override
       public void beginInput() {}
+      @Override
       public void endInput() {}
+      @Override
       public void onJoyAxisEvent(JoyAxisEvent evt) {}
+      @Override
       public void onJoyButtonEvent(JoyButtonEvent evt) {}
+      @Override
       public void onMouseMotionEvent(MouseMotionEvent evt)
       {
         onMove(evt.getDX(), evt.getDY(), evt.getX(), evt.getY());
         onWheel(evt.getDeltaWheel(), evt.getX(), evt.getY());
       }
+      @Override
       public void onMouseButtonEvent(MouseButtonEvent evt)
       {
             setButtonDown(evt.getButtonIndex(), evt.isPressed());
             onButton( evt.getButtonIndex(), evt.isPressed(), lastXin, lastYin );
       }
+      @Override
       public void onKeyEvent(KeyInputEvent evt)
       {
         setKeyDown(evt.getKeyCode(), evt.isPressed());
@@ -500,11 +506,6 @@ setMesh(new Quad());
       }
 	@Override
 	public void onTouchEvent(TouchEvent evt) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void onMotionSensorEvent(MotionSensorEvent evt) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -1318,9 +1319,9 @@ texture.getImage().setUpdateNeeded();
     {
       public void run()
       {
-        System.out.println("Disposing JMEDesktop: START");
+    	logger.fine("Disposing JMEDesktop: START");
         doDispose();
-        System.out.println("Disposing JMEDesktop: READY");
+        logger.fine("Disposing JMEDesktop: READY");
       }
     } );
   }
