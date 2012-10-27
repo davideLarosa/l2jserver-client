@@ -5,9 +5,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -104,10 +102,10 @@ public abstract class BaseLoginHandler implements Runnable {
 			}
 		} catch (Exception e) {
 			//exception wil be thrown alos when closing gracefully and wayting for input on the socket
-			if(status != LoginStatus.DISCONNECTED && connected !=false){
+//			if(status != LoginStatus.DISCONNECTED && connected !=false){
 			log.log(Level.SEVERE, "Connection error", e);
 			connected = false;
-			}
+//			}
 		} 
 		
 	}

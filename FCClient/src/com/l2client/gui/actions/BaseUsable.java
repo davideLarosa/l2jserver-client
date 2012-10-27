@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 
 import com.jme3.input.InputManager;
-import com.jme3.input.controls.AnalogListener;
 import com.l2client.gui.IconManager;
 
 /**
@@ -17,7 +16,8 @@ import com.l2client.gui.IconManager;
  * Extend these in your implementation.
  * 
  */
-abstract public class BaseUsable implements AnalogListener, ActionListener {
+//TODO currently all actions have one key/trigger mapping, this should be settable, so users can configure it and we can listen to shift , ctrl, whatever key(s)
+abstract public class BaseUsable implements com.jme3.input.controls.ActionListener, ActionListener {
 
 	Icon icon = null;
 	int id = -1;
@@ -119,7 +119,6 @@ abstract public class BaseUsable implements AnalogListener, ActionListener {
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		onAnalog(name, 1.0f, 0f);
+		onAction(name, true, 0.0001f);
 	}
-
 }

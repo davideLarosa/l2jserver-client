@@ -25,10 +25,10 @@ public class ValidatePosition extends GameClientPacket {
 	public ValidatePosition(Vector3f pos, float heading){
 		writeC(0x30);
 		writeD(ServerValues.getServerCoord(pos.x));
-		writeD(ServerValues.getServerCoord(pos.y));
 		writeD(ServerValues.getServerCoord(pos.z));
-		writeD((int) heading);//Heading in L2J is in degree multiplied by 182.044444444
+		writeD(ServerValues.getServerCoord(pos.y));
+		writeD(ServerValues.getServerHeading(heading));//Heading in L2J is in degree multiplied by 182.044444444
 		writeD(0);
-		
+//System.out.println("VALIDATE PLAYER: "+ServerValues.getServerCoord(pos.x)+ ","+ServerValues.getServerCoord(pos.z)+","+ServerValues.getServerCoord(pos.y)+" -> "+pos);
 	}
 }

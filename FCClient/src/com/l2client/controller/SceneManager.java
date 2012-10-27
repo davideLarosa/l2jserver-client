@@ -4,6 +4,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.jme3.light.Light;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.SceneProcessor;
+import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
@@ -14,7 +17,7 @@ import com.jme3.scene.control.AbstractControl;
  * general access to the scene root (for attachment of variable kind) All visual
  * elements should be attached to the scene root in a somewhat consistent way.
  * 
- * This class is a singleton and should be accessed by using SceneManager.get()
+ * This class is a singleton and should be accessed by using Singleton.get().getSceneManager()
  * 
  */
 // TODO improve the handling of the terrain and root nodes, can cause
@@ -39,6 +42,7 @@ public final class SceneManager {
 		public int act;//0 = add, 1 = remove
 	}
 
+	private volatile ViewPort viewPort = null;
 	private volatile Node root = null;
 	private volatile Node chars = new Node("players");
 	private volatile Node terrain = new Node("terrains");
@@ -46,13 +50,15 @@ public final class SceneManager {
 
 	private ConcurrentLinkedQueue<Tuple> queue = new ConcurrentLinkedQueue<Tuple>();
 
-	private boolean removeWalkers;
+	private boolean removeWalkers = false;
 
-	private boolean removeChar;
+	private boolean removeChar = false;
 
-	private boolean removeTerrains;
+	private boolean removeTerrains = false;
 
-	private boolean removeLights;
+	private boolean removeLights = false;
+
+	private boolean removePostProcessors;
 
 	/**
 	 * Internal constructor which also creates the terrain root, but does not
@@ -101,9 +107,19 @@ public final class SceneManager {
 			terrainUpdate();
 			walkerUpdate();
 			lightUpdate();
+			postProcessorUpdate();
 			queueUpdate();
 		}
 		
+	}
+	
+	private void postProcessorUpdate(){
+		if(removePostProcessors){
+			SceneProcessor[] list = viewPort.getProcessors().toArray(new SceneProcessor[0]);
+			for(SceneProcessor p: list)
+				viewPort.removeProcessor(p);
+			removePostProcessors = false;
+		}
 	}
 	
 	private void charUpdate(){
@@ -142,10 +158,14 @@ public final class SceneManager {
 			if(t.element != null && t.target != null){
 			switch(t.type){
 			case 0://node
-				if(t.act != 1)
+				if(t.act != 1) {
 					((Node)t.target).attachChild((Spatial)t.element);
-				else
+//					((Node)t.target).updateModelBound();
+				}
+				else {
 					((Node)t.target).detachChild((Spatial)t.element);
+//					((Node)t.target).updateModelBound();
+				}
 					break;
 			case 1://control
 				if(t.act != 1)
@@ -158,6 +178,12 @@ public final class SceneManager {
 					((Node)t.target).addLight((Light)t.element);
 				else
 					((Node)t.target).removeLight((Light)t.element);
+				break;
+			case 3://postprocessor
+				if(t.act != 1)
+					((ViewPort)t.target).addProcessor((SceneProcessor) t.element);
+				else
+					((ViewPort)t.target).removeProcessor((SceneProcessor) t.element);
 				break;
 			}}
 		}
@@ -239,6 +265,20 @@ public final class SceneManager {
 		removeChar();
 		removeTerrains();
 		removeLights();
+		removePostProcessors();
+	}
+
+	public void removePostProcessors() {
+		this.removePostProcessors = true;
+	}
+	
+	public void changePostProcessor(FilterPostProcessor fpp, int action){
+		Tuple t = new Tuple(viewPort,fpp,3,action);
+		queue.add(t);
+	}
+
+	public void setViewPort(ViewPort view) {
+		this.viewPort = view;
 		
 	}
 

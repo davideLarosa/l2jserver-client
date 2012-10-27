@@ -41,7 +41,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
-import com.l2client.asset.AssetManager;
+import com.l2client.app.Singleton;
 import com.l2client.component.JmeUpdateSystem;
 import com.l2client.component.PositioningComponent;
 import com.l2client.component.PositioningSystem;
@@ -83,13 +83,13 @@ public class TestRegion4 extends SimpleApplication {
     	cam.lookAt(new Vector3f(256f,0,0), Vector3f.UNIT_Y);
     	flyCam.setMoveSpeed(50f);
     	
-		assetManager = AssetManager.getInstance().getJmeAssetMan();
-    	enm = EntityNavigationManager.get();
-    	em = EntityManager.get();
+		assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
+    	enm = Singleton.get().getNavManager();
+    	em = Singleton.get().getEntityManager();
     	am = AreaTerrainManager.get();
-    	sm = SceneManager.get();
+    	sm = Singleton.get().getSceneManager();
     	js = JmeUpdateSystem.get();
-    	ps = PositioningSystem.get();
+    	ps = Singleton.get().getPosSystem();
 		am.update(cam.getLocation());
     	rootNode.attachChild(debugNodes);
 
@@ -223,7 +223,7 @@ if(pc != null){
 
 		Entity e = EntityManager.get().createEntity(id++);
 		if (e != null) {
-			Cell c = EntityNavigationManager.get().FindClosestCell(pos, false);
+			Cell c = Singleton.get().getNavManager().FindClosestCell(pos, false);
 			pc = new PositioningComponent();
 			if (c != null) {
 				pc.cell = c;

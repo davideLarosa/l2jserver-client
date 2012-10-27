@@ -5,9 +5,9 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.l2client.animsystem.InputProvider;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.app.Singleton;
 import com.l2client.component.AnimationSystem;
 import com.l2client.component.EnvironmentComponent;
 import com.l2client.component.VisualComponent;
@@ -20,7 +20,7 @@ public class TestAnim extends ExtendedApplication {
 	
 	private static final int _1000 = 1000;
 
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man = Singleton.get().getPartManager();
 	
 	
 	static float time = 0f;
@@ -58,8 +58,8 @@ public class TestAnim extends ExtendedApplication {
     }
  
     private void setupGUI() {
-    	em = EntityManager.get();
-    	as = AnimationSystem.get();
+    	em = Singleton.get().getEntityManager();
+    	as = Singleton.get().getAnimSystem();
 	}
 
     private void setupScene() {

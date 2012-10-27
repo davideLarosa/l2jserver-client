@@ -15,6 +15,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Line;
+import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
 import com.l2client.component.PositioningSystem;
 import com.l2client.navigation.Path.WAYPOINT;
@@ -95,7 +96,7 @@ public class NavTestHelper {
 //        		cur = pa.GetFurthestVisibleWayPoint(cur);
 //        	}
         	
-        	PositioningSystem mover = PositioningSystem.get();
+        	PositioningSystem mover = Singleton.get().getPosSystem();
         	PositioningComponent com = new PositioningComponent();
         	com.initByWayPoint(pa);
         	com.acc =0f;

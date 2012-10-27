@@ -2,9 +2,9 @@ package com.l2client.animsystem.jme.actions;
 
 import com.l2client.animsystem.Action;
 import com.l2client.animsystem.Animation;
+import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.Mediator;
-import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.jme.input.Hurt;
 import com.l2client.animsystem.jme.input.HurtVector;
 
@@ -16,18 +16,21 @@ public class Wounded extends Action {
 	@Override
 	protected Animation evaluate(Mediator med){
 		Animation ret = null;
-		if(med.forceLockCheck(Channels.AllChannels,3)){
+		if(med.forceLockCheck(Channels.AllChannels,4)){
 			ret = med.getAnimation();
 			ret.setChannel(med.getChannel(Channels.AllChannels));
-			ret.setLevel(4);	
+			ret.setLevel(4);
+			ret.setBlendTime(0.05f);
 			ret.setLooping(false);
-			ret.setKeep(1.0f);
 			InputProvider i = med.getInput();
 			switch(i.getInput(Hurt.class)){
+			case None:
+				ret.setName("ready");
+				break;
 			case Light:{
-				int j = rand.nextInt(9);
+				int j = rand.nextInt(10);
 				String name; 
-				if(rand.nextInt(9)>7){
+				if(rand.nextInt(10)>7){
 					name = "knockback_";
 				} else {
 					name = "knockback_move_";			
@@ -163,6 +166,9 @@ public class Wounded extends Action {
 			}
 //			return ret;
 		}
+		ret.setName("knockback_move_from_left");
+		log.info("Wounded:->"+ret.getName());
+		
 		return ret;
 	}
 }

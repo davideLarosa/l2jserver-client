@@ -14,6 +14,7 @@ import com.jme3.scene.Spatial;
 import com.l2client.animsystem.jme.JMEAnimationController;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.app.Singleton;
 import com.l2client.util.PartSetManager;
 
 public class TestManyModels extends ExtendedApplication implements ActionListener {
@@ -21,7 +22,7 @@ public class TestManyModels extends ExtendedApplication implements ActionListene
 
 	int MAX_NODES = 10;
 	
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man = Singleton.get().getPartManager();
 	
 	Node[] nodes = new Node[MAX_NODES];
 	
@@ -115,7 +116,7 @@ public class TestManyModels extends ExtendedApplication implements ActionListene
     	}
     	
 //    	if(currentNode%2!=0){
-	    	n = Assembler2.getModel3("pelfmmage"); //goblin");
+	    	n = Assembler2.getModel3("ElfWizardM"); //goblin");
 //    	} else{
 //    		VisibleModel v = new VisibleModel(new NewCharSummary());
 //    		v.attachVisuals();

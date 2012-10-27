@@ -7,8 +7,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.jme3.util.SkyFactory;
-import com.l2client.asset.AssetManager;
-import com.l2client.controller.SceneManager;
+import com.l2client.app.Singleton;
 
 /**
  * A simple terrain manager, storing definitions of terrain tiles, loaded tiles, etc.
@@ -64,7 +63,7 @@ public final class AreaTerrainManager {
 	 */
 	public void initialize(){
 //		initDummyTexture();
-		addSkyDome();
+//		addSkyDome();
 	}
 	
 	public void update(Vector3f worldPosition) {
@@ -104,7 +103,7 @@ public final class AreaTerrainManager {
 
 		unloadPatches.putAll(loadedPatches);
 
-//		SceneManager.get().removeTerrains();
+//		Singleton.get().getSceneManager().removeTerrains();
 
 		loadedPatches.clear();
 
@@ -210,10 +209,15 @@ System.out.println("AreaTerrainManager checkLoad found "+x+","+z);
 	}
 
 
-
-	private void addSkyDome(){
-		sky = SkyFactory.createSky(AssetManager.getInstance().getJmeAssetMan(),"textures/sky_povray1.jpg", true);
-        SceneManager.get().changeCharNode(sky,0);
+	public void addSkyDome(){
+		if(sky == null)
+			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
+        Singleton.get().getSceneManager().changeCharNode(sky,0);
+	}
+	
+	public void removeSkyDome(){
+		if(sky != null)
+			Singleton.get().getSceneManager().changeCharNode(sky,1);
 	}
 	
 }

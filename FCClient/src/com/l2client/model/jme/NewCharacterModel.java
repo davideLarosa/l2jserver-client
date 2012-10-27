@@ -1,10 +1,8 @@
 package com.l2client.model.jme;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 
-import com.jme3.bounding.BoundingBox;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -14,16 +12,14 @@ import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.jme.JMEAnimationController;
 import com.l2client.app.Assembler;
 import com.l2client.app.Assembler2;
+import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
-import com.l2client.controller.SceneManager;
 import com.l2client.model.PartSet;
 import com.l2client.model.WeaponSet;
 import com.l2client.model.l2j.Race;
 import com.l2client.model.network.NewCharSummary;
 
 public class NewCharacterModel extends VisibleModel {
-
-	private static final long serialVersionUID = 1L;
 	
 	protected NewCharSummary lastCharSummary = null;
 
@@ -57,7 +53,7 @@ public class NewCharacterModel extends VisibleModel {
 	 */
 	//FIXME move to a builder, whcih should know what assets to load for which visual (stored in the DB)
 	protected Node createVisuals() {
-		SceneManager.get().changeAnyNode(this,vis, 1);
+		Singleton.get().getSceneManager().changeAnyNode(this,vis, 1);
 		if(assembler != null)
 			createChangedChar();
 		else
@@ -69,7 +65,7 @@ public class NewCharacterModel extends VisibleModel {
 			animControl.setInput(InputProvider.NOINPUT);
 //			animControl.setCurTime(animControl.getAnimationLength("stand_a_idle")
 //					* FastMath.nextRandomFloat());
-			SceneManager.get().changeAnyNode(this,vis, 0);
+			Singleton.get().getSceneManager().changeAnyNode(this,vis, 0);
 		} else
 			logger.severe("Vis animations are missing");
 		
@@ -84,21 +80,32 @@ public class NewCharacterModel extends VisibleModel {
 	private String raceToEntity(NewCharSummary sum){
 //		//FIXME check assets are present & working
 //		return "pelfmmage";
-		StringBuilder ret = new StringBuilder("p");
+		StringBuilder ret = new StringBuilder();
 		Race[] races = Race.values();
 		Race race = races[sum.race];
-		ret.append(race.toString().toLowerCase());
-		if(sum.sex != 0)
-			ret.append("f");
-		else
-			ret.append("m");
-		switch(sum.classId){
-		case 0x0a:
-		case 0x19:
-		case 0x26:
-		case 0x31:
-		case 0x7c:ret.append("mage");break;
-		default:ret.append("warrior");
+		switch(race){
+		case Dwarf:{ ret.append("DwarfWarriorM");break;}
+		case DarkElf:
+		case Elf:{
+			{
+				switch(sum.classId){
+				case 0x0a:
+				case 0x19:
+				case 0x26:
+				case 0x31:
+				case 0x7c:ret.append("ElfWizard");break;
+				default:ret.append("ElfWarrior");
+				}
+				if(sum.sex != 0)
+					ret.append("F");
+				else
+					ret.append("M");
+				}
+			break;
+		}
+		case Human:
+		case Kamael:{ ret.append("HumanWarriorM");break;}
+		case Orc:{ ret.append("Orc");break;}
 		}
 		return ret.toString();
 	}
@@ -108,7 +115,7 @@ public class NewCharacterModel extends VisibleModel {
 				String template = raceToEntity(charSelection);
 				top = Assembler2.getTopPart(template);
 				if(top == null){
-					template = "pdwarfmwarrior";
+					template = "DwarfWarriorM";
 					top = Assembler2.getTopPart(template);
 					if(top == null)
 						return;
@@ -119,6 +126,8 @@ public class NewCharacterModel extends VisibleModel {
 				try {
 					//Skel
 					assembler.setSkeleton(Assembler2.getSkeleton(top));
+					assembler.setUseOptimization(true);
+					assembler.setUseHWSkinning(true);
 					//Materials
 					HashMap<String, Asset> mats = Assembler2.getMaterials(top);
 //					for(Asset a : mats.values()){
@@ -133,11 +142,10 @@ public class NewCharacterModel extends VisibleModel {
 					WeaponSet w = Assembler2.getWeaponset(top);
 					Assembler2.addWeaponSetToMeshMap(top, w, me);
 					//meshes end
+					Assembler2.unpackMeshesIntoAssembler(me, mats, assembler);
 					for(Asset a : me.keySet()){
-						Geometry g = (Geometry) a.getBaseAsset();
-						geoms.put(g.getName(), g);
-						if(g.getName().startsWith("hair"))
-							hair = g.getName();
+						if(a.getName().startsWith("hair"))
+							hair = a.getName();
 					}
 					Assembler2.getAnimations(/*top, */w.getAnimSet(), w.getDefaultSet());
 					assembler.setAnimParts(w.getAnimSet());
@@ -160,14 +168,14 @@ public class NewCharacterModel extends VisibleModel {
 //		n.setModelBound(new BoundingBox());
 //		n.updateModelBound();
 //		if (vis != null && vis.getParent() != null) {
-//			SceneManager.get().changeAnyNode(this,vis, 1);
+//			Singleton.get().getSceneManager().changeAnyNode(this,vis, 1);
 //			vis.removeFromParent();
 //		}
 		vis = n;
 	}
 
 	private void createChangedChar(){
-//		SceneManager.get().changeAnyNode(this,vis, 1);
+//		Singleton.get().getSceneManager().changeAnyNode(this,vis, 1);
 		//significant chage?
 		if(lastCharSummary.classId != charSelection.classId || 
 				lastCharSummary.race != charSelection.race ||
@@ -186,7 +194,7 @@ public class NewCharacterModel extends VisibleModel {
 				replaceModel();				
 			}
 		}
-//		SceneManager.get().changeAnyNode(this,vis, 0);
+//		Singleton.get().getSceneManager().changeAnyNode(this,vis, 0);
 		//TODO hair color change ??
 	}
 

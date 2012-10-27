@@ -1,7 +1,6 @@
 package com.l2client.network.game.ServerPackets;
 
-import com.l2client.gui.GameController;
-import com.l2client.gui.GuiController;
+import com.l2client.app.Singleton;
 
 /**
  * Displays a dialog showing a message of a successful character creation.
@@ -16,9 +15,8 @@ public class CharCreateOk extends GameServerPacket
 	public  void handlePacket()
 	{
 		log.fine("Read from Server "+this.getClass().getSimpleName());
-
-		GuiController.getInstance().removeAll();
-		GameController.getInstance().doCharSelection();
-		GuiController.getInstance().showInfoDialog("Character created succesfully");
+		Singleton.get().getGuiController().removeAll();
+		Singleton.get().getGameController().doCharSelection();
+		Singleton.get().getGuiController().showInfoDialog("Character created succesfully");
 	}
 }

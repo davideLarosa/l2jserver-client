@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.l2client.component.Component;
+import com.l2client.component.ComponentSystem;
 import com.l2client.component.IdentityComponent;
+import com.l2client.component.SimplePositionComponent;
 
 /**
  * Singleton which manages entites, components and queries around them.
@@ -21,6 +23,9 @@ public class EntityManager {
 	private HashMap<Class<? extends Component>, HashMap<Integer, Component>> components;
 	private HashMap<Component, IdentityComponent> entities;
 	private HashSet<Integer> entityIds;
+	
+	//TODO remove this, just for debug stuff
+	private Integer playerID =-1;
 
 	private EntityManager() {
 		singleton = this;
@@ -28,7 +33,6 @@ public class EntityManager {
 		components = new HashMap<Class<? extends Component>, HashMap<Integer,Component>>();
 		entities = new HashMap<Component, IdentityComponent>();
 		entityIds = new HashSet<Integer>();
-
 	}
 
 	public static EntityManager get() {
@@ -153,5 +157,19 @@ public class EntityManager {
 			System.out.println("Create called but ID "+i+"already used ?!?");
 		}
 		return ret;
+	}
+
+	public boolean isPlayerComponent(Component com) {
+		return (getComponent(playerID, com.getClass()) == com);
+	}
+	
+	public void setPlayerId(int id){
+		playerID = id;
+	}
+	
+	public void dumpComponents(int entityId){
+		for(Component c : getComponents(entityId)){
+			System.out.println("DUMP of"+entityId+":"+c);
+		}
 	}
 }

@@ -31,8 +31,6 @@
  */
 package com.l2client.test;
 
-import jme3tools.converters.ImageToAwt;
-
 import com.jme3.app.SimpleApplication;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.font.BitmapText;

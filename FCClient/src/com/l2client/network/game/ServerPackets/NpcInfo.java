@@ -12,9 +12,7 @@ public final class NpcInfo extends GameServerPacket {
 
 	@Override
 	public void handlePacket() {
-		log.fine("Read from Server "
-				+ this.getClass().getSimpleName());
-
+		log.finer("Read from Server "+this.getClass().getSimpleName());
 		NpcData n = new NpcData();
 		n.setObjectId(readD());
 		n.setTemplateId(readD());
@@ -23,10 +21,10 @@ public final class NpcInfo extends GameServerPacket {
 		int x = readD();
 		int y = readD();
 		int z = readD();
-log.fine("NPC at "+x+","+y+","+z+" placed in world at "+
+log.finer("NPC at "+x+","+y+","+z+" placed in world at "+
 		(ServerValues.getClientCoord(x)+","+
-		(ServerValues.getClientCoord(y))+","+
-		(ServerValues.getClientCoord(z))));
+		(ServerValues.getClientCoord(z))+","+
+		(ServerValues.getClientCoord(y))));
 		n.setX(ServerValues.getClientCoord(x));
 		//reverted jme uses Y as up
 		n.setY(ServerValues.getClientCoord(z));
@@ -91,7 +89,7 @@ log.fine("NPC at "+x+","+y+","+z+" placed in world at "+
 		readD();//display effect
 		
 
-		getClientFacade().getNpcHandler().add(n);
+		_client.getNpcHandler().add(n);
 
 	}
 }

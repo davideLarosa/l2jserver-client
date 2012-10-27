@@ -397,7 +397,7 @@ public class NavigationMesh extends Mesh {
 //				return this.mesh.ResolveMotionOnMesh(StartPos, StartCell, EndPos);
 //			else{
 //				if (isPointInTile(StartPos.x, StartPos.z)) {
-//					Cell c = EntityNavigationManager.get().FindClosestCell(
+//					Cell c = Singleton.get().getNavManager().FindClosestCell(
 //							EndPos, true);
 //					if (c != null)
 //						c.MapVectorHeightToCell(EndPos);
@@ -420,7 +420,7 @@ public class NavigationMesh extends Mesh {
 //		
 //		return null;
 ////removed circular loop !!
-////		return EntityNavigationManager.get().FindClosestCell(Point);
+////		return Singleton.get().getNavManager().FindClosestCell(Point);
 //	}
 
 	public boolean isBorderCell(Cell c) {

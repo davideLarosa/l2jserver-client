@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 
 import com.jme3.animation.Animation;
 import com.jme3.animation.AnimationProvider;
+import com.l2client.app.Singleton;
 import com.l2client.model.PartSet;
 import com.l2client.util.AnimationManager;
 import com.l2client.util.PartSetManager;
@@ -12,7 +13,7 @@ public class TestAnimLoad extends TestCase {
 
 	public void testSelf()
     {
-    	PartSetManager man = PartSetManager.get();
+    	PartSetManager man = Singleton.get().getPartManager();
     	man.loadParts("megaset.csv");
         // create the geometry and attach it
 //    	AssetManager assetMan = new DesktopAssetManager(true);

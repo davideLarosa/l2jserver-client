@@ -13,20 +13,19 @@ import javax.swing.SwingUtilities;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.Light;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.SceneProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.l2client.app.Singleton;
-import com.l2client.asset.AssetManager;
-import com.l2client.controller.SceneManager;
 import com.l2client.dao.UserPropertiesDAO;
 import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
@@ -57,7 +56,9 @@ public final class GameController {
 	
 	private final static GameController instance = new GameController();
 	
-	private boolean finished = false;
+//	private boolean finished = false;
+	
+	private boolean worldEntered = false;
 	
 	private final NewCharacterModel charSummary = new NewCharacterModel(null);
 
@@ -74,65 +75,63 @@ public final class GameController {
 	/**
 	 * viewport needed for post process filter integration
 	 */
-	private ViewPort viewPort;
+//	private ViewPort viewPort;
 	
 	private GameController(){	
 	}
 	
-	public static GameController getInstance(){
+	public static GameController get(){
 		return instance;
 	}	
 	
-	public void initialize(Camera cam, AppSettings settings, ViewPort viewPort){
+	public void initialize(Camera cam, AppSettings settings /*, ViewPort viewPort*/){
 		//TODO check backdrop is removed properly
-//		sceneRoot = SceneManager.get().getRoot();
-		SceneManager.get().removeAll();
+//		sceneRoot = Singleton.get().getSceneManager().getRoot();
+		Singleton.get().getSceneManager().removeAll();
 		camera = cam;
-		this.viewPort = viewPort;
+//		this.viewPort = viewPort;
 		this.settings = settings;
-		
-	    Quad b = new Quad(80f,60f);
-	    b.updateBound();
-	    Geometry geom = new Geometry("backdrop", b);
-	    Material mat = new Material(AssetManager.getInstance().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
-	    mat.setTexture("ColorMap", AssetManager.getInstance().getJmeAssetMan().loadTexture("start/backdrop.png"));
-	    geom.setMaterial(mat);
-	    geom.setLocalTranslation(-40f, -30f, -90f);
-	    cam.setLocation(new Vector3f(0,0,0));  
-	    
-	    SceneManager.get().changeTerrainNode(geom,0);
 	}
 	
 	public void doEnterWorld(){
+		if(worldEntered)
+			return;
+		
+		worldEntered = true;
 //		if(sceneRoot==null)
 //			return;
 //		//reset scene
 //		sceneRoot.cleanupScene();
-		SceneManager.get().removeAll();
+		Singleton.get().getSceneManager().removeAll();
 //		TextureManager.doTextureCleanup();
 		//reset GUI
-		GuiController.getInstance().removeAll();
+		Singleton.get().getGuiController().removeAll();
 		System.gc();
 		//setup camera to be centered around player (char selecetd, or ingame object package?)
 		//hook up game input controller
-		CharacterController.getInstance().onEnterWorld(clientInfo.getCharHandler(), camera);
+		Singleton.get().getCharController().onEnterWorld(clientInfo.getCharHandler(), camera);
 //		//setup in game GUI
 		setupGameGUI();
 //		//startup of asset loading for area around char
 //		sceneRoot.updateModelBound();
 //		sceneRoot.updateGeometricState();
+		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
+		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
+				0.32999992f, 0.6059958f);
+		fpp.addFilter(ssaoFilter);
+		Singleton.get().getSceneManager().changePostProcessor(fpp, 0);
 	}
 	
 	private void setupGameGUI() {
 		// Actions GUI (start loading somewhat earlier, but only here as in onEnterWorld
 		//              the inGame inputHandler is created)
-		ActionManager.getInstance().loadActions();
+//		ActionManager.getInstance().loadActions();
 		//Chat GUI
 		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
 			public void run() {
-				final ChatPanel pan = GuiController.getInstance().displayChatJPanel();
+				final ChatPanel pan = Singleton.get().getGuiController().displayChatJPanel();
 				clientInfo.getChatHandler().setChatPanel(pan);
 				pan.addChatListener(new KeyListener() {
 					
@@ -154,34 +153,35 @@ public final class GameController {
 			}
 		});
 		
-		// Actions GUI
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					//FIXME move this out, actions should register themselves 
-					int runs = 20;//max 20 sec
-					while(!ActionManager.isLoaded()){
-						Thread.sleep(1000);
-						runs--;
-						logger.finest("waiting for ActionManager to complete for "+runs);
-						if(runs<=0)
-							return;
-					}
-					SwingUtilities.invokeLater(new Runnable() {
-
-						@Override
-						public void run() {
-							GuiController.getInstance().displayShortCutPanel();
-							GuiController.getInstance().displaySkillAndActionsPanel();
-						}
-					});
-				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Failed in action GUIs creation",e);
-				}
-			}
-		}).start();
+//		Removed here done in ShortCutInit packet
+//		// Actions GUI
+//		new Thread(new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//				try {
+//					//FIXME move this out, actions should register themselves 
+//					int runs = 20;//max 20 sec
+//					while(!ActionManager.isLoaded()){
+//						Thread.sleep(1000);
+//						runs--;
+//						logger.finest("waiting for ActionManager to complete for "+runs);
+//						if(runs<=0)
+//							return;
+//					}
+//					SwingUtilities.invokeLater(new Runnable() {
+//
+//						@Override
+//						public void run() {
+//							Singleton.get().getGuiController().displayShortCutPanel();
+//							Singleton.get().getGuiController().displaySkillAndActionsPanel();
+//						}
+//					});
+//				} catch (Exception e) {
+//					logger.log(Level.SEVERE, "Failed in action GUIs creation",e);
+//				}
+//			}
+//		}).start();
 		// System GUI
 	}
 
@@ -194,20 +194,13 @@ public final class GameController {
 //			return;
 //		//reset scene
 //		sceneRoot.cleanupScene();
-		SceneManager.get().removeAll();
-		try {
-		for(SceneProcessor p : viewPort.getProcessors()){
-			viewPort.removeProcessor(p);
-		}
+		Singleton.get().getSceneManager().removeAll();
+
 		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
 		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
 				0.32999992f, 0.6059958f);
 		fpp.addFilter(ssaoFilter);
-		viewPort.addProcessor(fpp);
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		Singleton.get().getSceneManager().changePostProcessor(fpp, 0);
 
 		//display available chars + gui for creation of new one
 		//if none present go directly for creation of new char
@@ -220,12 +213,12 @@ public final class GameController {
 	
 	public void doCharCreation() {
 		
-		SceneManager.get().removeAll();
+		Singleton.get().getSceneManager().removeAll();
 		
 		try{
 			Spatial n = Singleton.get().getAssetManager().getJmeAssetMan()
 					.loadModel(SCENES_CREATE);
-			SceneManager.get().changeTerrainNode(n, 0);
+			Singleton.get().getSceneManager().changeTerrainNode(n, 0);
 			
 			//this is needed as the ssao pass will other wise only render 
 			//the shadow of our attached chars as they are on a different 
@@ -234,7 +227,7 @@ public final class GameController {
 				if(l instanceof AmbientLight){
 					n.removeLight(l);
 					l.setColor(new ColorRGBA(0.6f,0.6f,0.8f,1.0f));
-					SceneManager.get().changeRootLight(l, 0);
+					Singleton.get().getSceneManager().changeRootLight(l, 0);
 				}
 			}
 				
@@ -251,14 +244,14 @@ public final class GameController {
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				final CharCreateJPanel pan = GuiController.getInstance()
+				final CharCreateJPanel pan = Singleton.get().getGuiController()
 						.displayCharCreateJPanel();
 				
 				// action that gets executed in the update thread:
 				pan.addCreateActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-								clientInfo.sendPacket(new CharacterCreate(pan.getNewCharSummary()));
+								clientInfo.sendGamePacket(new CharacterCreate(pan.getNewCharSummary()));
 								//dialog will stay open, will be closed on
 								//create ok package or cancel				
 							}
@@ -279,13 +272,13 @@ public final class GameController {
 
 						//FIXME check first what changed, only the label, the race (basemodel), the hair/face (components)
 
-						SceneManager.get().removeChar();
+						Singleton.get().getSceneManager().removeChar();
 						
 						//FIXME reevaluate model composition
 						charSummary.setNewCharSummary(pan.getNewCharSummary());
 						charSummary.attachVisuals();
 						charSummary.setLocalTranslation(.126f, -0.1224f, 7.76f);
-						SceneManager.get().changeCharNode(charSummary,0);
+						Singleton.get().getSceneManager().changeCharNode(charSummary,0);
 						//FIXME end of move this out
 					}
 				});
@@ -308,11 +301,7 @@ public final class GameController {
 	/**
 	 * comparable with the display of the characters in the lobby a player has for entering the world
 	 */
-	private void doCharPresentation() {
-//		if(sceneRoot==null)
-//			return;
-//		
-		
+	private void doCharPresentation() {	
 //		{
 //			// FIXME choose char and not select first, remove in product code
 //			clientInfo.getCharHandler().setSelected(0);
@@ -322,8 +311,7 @@ public final class GameController {
 //		}
 		
 		//purge root
-//		sceneRoot.cleanupScene();
-		SceneManager.get().removeAll();
+		Singleton.get().getSceneManager().removeAll();
 		
 		//TODO load the hall
 		//load the x representations of the characters into the hall
@@ -331,82 +319,26 @@ public final class GameController {
 		//add gui buttons for enter world, exit, options
 		//on enter world start game with the chosen, on exit cleanup, on options show options pane
 
-			AmbientLight al = new AmbientLight();
-			    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-				SceneManager.get().changeRootLight(al,0);
+		AmbientLight al = new AmbientLight();
+	    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
+		Singleton.get().getSceneManager().changeRootLight(al,0);
 
-		
-		//FIXME setup camera
-				
+		//setup camera	
 		camera.setLocation(new Vector3f(3f,0f,4f));
 		camera.lookAtDirection(Vector3f.UNIT_Z.mult(-1f), Vector3f.UNIT_Y);
 		
 		for (int i = clientInfo.getCharHandler().getCharCount()-1; i >= 0; i--) {
 			NewCharacterModel v = new NewCharacterModel(clientInfo.getCharHandler().getCharSummary(i));
 			v.attachVisuals();
-//			v.setLocalTranslation(16f + i * 1f, -16f + (-1.0f
-//					* (float) Math.sin(0.1 * i)), -16.5f);
 			v.setLocalTranslation(i*1.25f, -1f, -4f);
-//			v.setLocalScale(0.3f);
-//			v.updateModelBound();
-//			sceneRoot.getWalkerRoot().attachChild(v);
-			SceneManager.get().changeCharNode(v,0);
-//	        /** this blue box is our player character */
-//	        Box b = new Box(Vector3f.ZERO, 1, 1, 2);
-//	        Geometry g= new Geometry("blue cube", b);
-//	        Material mat = new Material(AssetManager.getInstance().getJmeAssetMan(),
-//	          "Common/MatDefs/Misc/Unshaded.j3md");
-//	        mat.setColor("Color", ColorRGBA.Blue);
-//	        g.setMaterial(mat);
-//	        g.setLocalTranslation(i*2f, 0f, -20f);
-//	        sceneRoot.getWalkerRoot().attachChild(g);
-//	        /** this blue box is our player character */
-//	        Box b2 = new Box(Vector3f.ZERO, 1, 2, 1);
-//	        Geometry g2= new Geometry("blue cube", b2);
-//	        Material mat2 = new Material(AssetManager.getInstance().getJmeAssetMan(),
-//	          "Common/MatDefs/Light/Lighting.j3md");
-//	        mat2.setFloat("Shininess", 1f);
-//	        mat2.setBoolean("UseMaterialColors", true);
-//	        mat2.setColor("Ambient", ColorRGBA.Black);
-//	        mat2.setColor("Diffuse", ColorRGBA.Red);
-//	        mat2.setColor("Specular", ColorRGBA.White.mult(0.6f));
-//	        g2.setMaterial(mat2);
-//	        g2.setLocalTranslation(i*2f, 0f, -20f);
-//	        sceneRoot.getWalkerRoot().attachChild(g2);
+			Singleton.get().getSceneManager().changeCharNode(v,0);
 		}
-		
- 
-//        DirectionalLight light = new DirectionalLight();
-//        light.setDirection(new Vector3f(0, -1, 0));
-//        light.setColor(ColorRGBA.White.mult(1.5f));
-////        sceneRoot.addLight(light);
-//        
-//        AmbientLight am = new AmbientLight();
-//        am.setColor(ColorRGBA.White);
-////        sceneRoot.addLight(am);
-//        SceneManager.get().changeRootLight(light,0);
-//        SceneManager.get().changeRootLight(am,0);
-
-//		sceneRoot.removeAllLights();
-//        
-//        PointLight pl = new PointLight();
-//        pl.setColor(new ColorRGBA(0.5f,0.5f,0.5f,1));
-//        pl.setPosition(new Vector3f(0,-5,0));
-//        sceneRoot.addLight(pl);
-        
-//		sceneRoot.updateGeometricState();
     	
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				// FIXME buttons + actions
-				final JButton b = GuiController.getInstance().displayButton("select");
-				b.setSize( b.getPreferredSize() );
-				b.setLocation((settings.getWidth()/2)-200, settings.getHeight()-50);
-				
-				final JButton bb = GuiController.getInstance().displayButton("create");
-				bb.setSize( b.getPreferredSize() );
-				bb.setLocation((settings.getWidth()/2)-200+b.getWidth()+20, settings.getHeight()-50);
+				final JButton b = Singleton.get().getGuiController().displayButton("select", 80, 30, (settings.getWidth()/2)-140, settings.getHeight()-50);
+				final JButton bb = Singleton.get().getGuiController().displayButton("create", 80, 30, (settings.getWidth()/2)+60, settings.getHeight()-50);
 				
 				b.addActionListener(new ActionListener() {
 					
@@ -415,10 +347,8 @@ public final class GameController {
 						// FIXME choose char and not select first, remove
 						clientInfo.getCharHandler().setSelected(0);
 						clientInfo.getCharHandler().onCharSelected();
-						//moved to UserInfo.handlePacket() because at the moment the EntityData.id is 0 (will be provided with UserInfo)
-//						doEnterWorld();
 						//cleanup of the buttons
-						GuiController.getInstance().removeButton(new JButton[]{b,bb});
+						Singleton.get().getGuiController().removeButton(new JButton[]{b,bb});
 					}
 				});
 				
@@ -439,16 +369,41 @@ public final class GameController {
 //			return;
 //		
 //		//TODO test settings for fast dev test
-//		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "localhost:2106");
+//		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "127.0.0.1:2106");
 //		if(true)return;
 		
-
+	    camera.setLocation(new Vector3f(0,0,0));  
+		
+		Singleton.get().getSceneManager().removeAll();
+	    Quad b = new Quad(80f,60f);
+	    b.updateBound();
+	    Geometry geom = new Geometry("backdrop", b);
+	    Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
+	    mat.setTexture("ColorMap", Singleton.get().getAssetManager().getJmeAssetMan().loadTexture("start/backdrop.png"));
+	    geom.setMaterial(mat);
+	    geom.setLocalTranslation(-40f, -30f, -90f);	    
+	    Singleton.get().getSceneManager().changeTerrainNode(geom,0);
+	    
+	    Quad b2 = new Quad(38f,29f);
+	    b2.updateBound();
+	    Geometry geom2 = new Geometry("wolf", b2);
+	    Material mat2 = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
+	    mat2.setTexture("ColorMap", Singleton.get().getAssetManager().getJmeAssetMan().loadTexture("start/wolf.png"));
+	    mat2.getAdditionalRenderState().setBlendMode(BlendMode.Alpha); // activate transparency
+	    geom2.setMaterial(mat2);
+	    geom2.setQueueBucket(Bucket.Transparent);
+	    geom2.setLocalTranslation(-39f, -15f, -90f);	
+	    Singleton.get().getSceneManager().changeTerrainNode(geom2,0);
+	    
+		AmbientLight al = new AmbientLight();
+	    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
+		Singleton.get().getSceneManager().changeRootLight(al,0);
 		//#############################################################
 
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				final TransparentLoginPanel pan = GuiController.getInstance()
+				final TransparentLoginPanel pan = Singleton.get().getGuiController()
 						.displayUserPasswordJPanel();
 				// get properties initialized from file or by defaut 
 				pan.setServer(System.getProperty(UserPropertiesDAO.SERVER_HOST_PROPERTY)+":"+System.getProperty(UserPropertiesDAO.SERVER_PORT_PROPERTY));
@@ -463,7 +418,7 @@ public final class GameController {
 						String[] split = pan.getServer().split(":");
 
 						if(split.length<2) {
-							GuiController.getInstance().showErrorDialog("Check your server:port entry");
+							Singleton.get().getGuiController().showErrorDialog("Check your server:port entry");
 							return;
 						}
 						try {
@@ -473,14 +428,13 @@ public final class GameController {
 							//intentionally not used
 							Integer.parseInt(split[1]);
 						} catch (NumberFormatException ex) {
-							GuiController.getInstance().showErrorDialog("Your port is not a number entry");
+							Singleton.get().getGuiController().showErrorDialog("Your port is not a number entry");
 							return;
 						}
 								if ( !initNetwork(pan.getUsername(), pan.getPassword(), pan.getServer()) ) {
 
 									doLogin();
-									GuiController
-											.getInstance()
+									Singleton.get().getGuiController()
 											.showErrorDialog(
 													"Failed to Connect to login server");
 
@@ -495,12 +449,12 @@ public final class GameController {
 					public void actionPerformed(ActionEvent e) {
 						// this gets executed in jme thread
 						// do 3d system calls in jme thread only!
-						finished = true;
-//						SoundController.getInstance().playOnetime("sound/click.ogg", false, Vector3f.ZERO);
-						try {
-							Thread.sleep(1500);
-						} catch (InterruptedException ex) {
-						}
+//						finished = true;
+////						SoundController.getInstance().playOnetime("sound/click.ogg", false, Vector3f.ZERO);
+//						try {
+//							Thread.sleep(1500);
+//						} catch (InterruptedException ex) {
+//						}
 					}
 				});
 			}
@@ -513,7 +467,7 @@ public final class GameController {
 		//verified by GUI already
 		Integer port = Integer.parseInt(split[1]);
 		
-		this.clientInfo = ClientFacade.get();
+		this.clientInfo = Singleton.get().getClientFacade();
 		
 		clientInfo.init(user);
 		
@@ -535,7 +489,7 @@ public final class GameController {
             	
             	//game server selection
             	if(servers != null && servers.length >0){
-            		final GameServerJPanel p = GuiController.getInstance().displayServerSelectionJPanel(servers);
+            		final GameServerJPanel p = Singleton.get().getGuiController().displayServerSelectionJPanel(servers);
             		p.addCancelActionListener(new ActionListener(){
     					@Override
     					public void actionPerformed(ActionEvent e) {
@@ -556,7 +510,7 @@ public final class GameController {
     				});
             	}
             	else {
-            		GuiController.getInstance().showErrorDialog("Failed to Connect to login server");
+            		Singleton.get().getGuiController().showErrorDialog("Failed to Connect to login server");
             		logger.severe("Loginserver returned no gameservers to login to");
             		doDisconnect(false, "", -1);
             	}
@@ -568,10 +522,10 @@ public final class GameController {
         loginHandler.setLoginInfo(user,pwd);
         return true;
 	}
-
-	public final boolean isFinished() {
-		return finished;
-	}
+//
+//	public final boolean isFinished() {
+//		return finished;
+//	}
 
 //	/**
 //	 * Top root of complete scene, including, statics, dynamics, player, etc.
@@ -593,7 +547,7 @@ public final class GameController {
 	}
 	
 	public void finish(){
-		finished = true;
+//		finished = true;
 		if(clientInfo!= null){
 			clientInfo.cleanup();
 			logger.info("Released Network Connections");

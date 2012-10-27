@@ -2,8 +2,7 @@ package com.l2client.animsystem.jme.input;
 
 
 /**
- * Input variables available for acting
- *
+ * Input variables available for acting on the atack vector the entity is using for his attack
  */
 public enum AttackVector {
 		None,

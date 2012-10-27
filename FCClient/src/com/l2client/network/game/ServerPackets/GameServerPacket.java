@@ -16,7 +16,7 @@ import com.l2client.util.ByteUtils;
 public abstract class GameServerPacket {
 	private byte[] _decrypt;
 	private int _off;
-	private ClientFacade _client;
+	ClientFacade _client;
 	
 	protected static Logger log = Logger.getLogger(GameServerPacket.class.getName());
 
@@ -164,14 +164,4 @@ public abstract class GameServerPacket {
 	public void setClientFacade(ClientFacade facade) {
 		this._client = facade;
 	}
-
-	/**
-	 * Used by the subclasses to access the ClientFacade
-	 * 
-	 * @return ClientFacade or null if none set
-	 */
-	public ClientFacade getClientFacade() {
-		return _client;
-	}
-
 }

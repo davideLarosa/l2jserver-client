@@ -5,6 +5,10 @@ import java.util.logging.Level;
 import com.l2client.network.game.ClientPackets.Logout;
 import com.l2client.network.game.ClientPackets.ProtocolVersion;
 import com.l2client.network.game.ServerPackets.AcquireSkillList;
+import com.l2client.network.game.ServerPackets.ActionFailed;
+import com.l2client.network.game.ServerPackets.Attack;
+import com.l2client.network.game.ServerPackets.AutoAttackStart;
+import com.l2client.network.game.ServerPackets.AutoAttackStop;
 import com.l2client.network.game.ServerPackets.ChangeMoveType;
 import com.l2client.network.game.ServerPackets.CharCreateFail;
 import com.l2client.network.game.ServerPackets.CharCreateOk;
@@ -12,17 +16,29 @@ import com.l2client.network.game.ServerPackets.CharInfo;
 import com.l2client.network.game.ServerPackets.CharSelected;
 import com.l2client.network.game.ServerPackets.CharSelectionInfo;
 import com.l2client.network.game.ServerPackets.CreatureSay;
+import com.l2client.network.game.ServerPackets.Die;
 import com.l2client.network.game.ServerPackets.ExBrExtraUserInfo;
 import com.l2client.network.game.ServerPackets.GameServerPacket;
+import com.l2client.network.game.ServerPackets.ItemList;
 import com.l2client.network.game.ServerPackets.KeyPacket;
 import com.l2client.network.game.ServerPackets.MoveToLocation;
+import com.l2client.network.game.ServerPackets.MoveToPawn;
+import com.l2client.network.game.ServerPackets.MyTargetSelected;
 import com.l2client.network.game.ServerPackets.NpcInfo;
+import com.l2client.network.game.ServerPackets.Revive;
 import com.l2client.network.game.ServerPackets.ServerClose;
+import com.l2client.network.game.ServerPackets.ShortCutInit;
 import com.l2client.network.game.ServerPackets.SkillList;
 import com.l2client.network.game.ServerPackets.SocialAction;
 import com.l2client.network.game.ServerPackets.StartRotation;
+import com.l2client.network.game.ServerPackets.StatusUpdate;
+import com.l2client.network.game.ServerPackets.StopMove;
 import com.l2client.network.game.ServerPackets.SystemMessage;
+import com.l2client.network.game.ServerPackets.TargetSelected;
+import com.l2client.network.game.ServerPackets.TargetUnselected;
+import com.l2client.network.game.ServerPackets.TeleportToLocation;
 import com.l2client.network.game.ServerPackets.UserInfo;
+import com.l2client.network.game.ServerPackets.ValidateLocation;
 
 /**
  * A concrete implementation of a L2J GameHandler. handlePacket creates
@@ -53,7 +69,10 @@ public class GameHandler extends BaseGameHandler {
 			log.warning("Packet with no data ?? size:" + raw[0]+":"+raw[1]);
 			return;
 		}
-		byte cde = raw[2];
+		short cde = (short) (raw[2]  & 0xff); //ByteUtils.Sbyte2int(raw[2]);
+		short ex = 0;
+		if((cde & 0xFF) == 0xfe && raw.length>=4)
+			ex = (short)((raw[4] << 8) | (raw[3] & 0xff));//ByteUtils.Sbyte2int(raw[3]) + ByteUtils.Sbyte2int(raw[4]) * 256;
 		GameServerPacket pa = null;
 		switch (status) {
 		case STATE_INITIAL: {
@@ -81,10 +100,10 @@ public class GameHandler extends BaseGameHandler {
 		case STATE_INGAME: {
 			switch (cde & 0xFF) {
 			case 0x00:
-//				pa = new Die();
+				pa = new Die();
 				break;
 			case 0x01:
-//				pa = new Revive();
+				pa = new Revive();
 				break;
 			case 0x05:
 //				pa = new SpawnItem();
@@ -114,7 +133,7 @@ public class GameHandler extends BaseGameHandler {
 				pa = new CharCreateFail();
 				break;
 			case 0x11:
-//				pa = new ItemList();
+				pa = new ItemList();
 				break;
 			case 0x12:
 //				pa = new SunRise();
@@ -132,7 +151,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new GetItem();
 				break;
 			case 0x18:
-//				pa = new StatusUpdate();
+				pa = new StatusUpdate();
 				break;
 			case 0x19:
 //				pa = new NpcHtmlMessage();
@@ -153,7 +172,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new CharDeleteFail();
 				break;
 			case 0x1f:
-//				pa = new ActionFailed();
+				pa = new ActionFailed();
 				break;
 			case 0x20:
 				pa = new ServerClose();
@@ -162,19 +181,19 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new InventoryUpdate();
 				break;
 			case 0x22:
-//				pa = new TeleportToLocation();
+				pa = new TeleportToLocation();
 				break;
 			case 0x23:
-//				pa = new TargetSelected();
+				pa = new TargetSelected();
 				break;
 			case 0x24:
-//				pa = new TargetUnselected();
+				pa = new TargetUnselected();
 				break;
 			case 0x25:
-//				pa = new AutoAttackStart();
+				pa = new AutoAttackStart();
 				break;
 			case 0x26:
-//				pa = new AutoAttackStop();
+				pa = new AutoAttackStop();
 				break;
 			case 0x27:
 				pa = new SocialAction();
@@ -204,7 +223,7 @@ public class GameHandler extends BaseGameHandler {
 				pa = new UserInfo();
 				break;
 			case 0x33:
-//				pa = new Attack();
+				pa = new Attack();
 				break;
 			case 0x39:
 //				pa = new AskJoinParty();
@@ -222,10 +241,10 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new ShortCutRegister();
 				break;
 			case 0x45:
-//				pa = new ShortCutInit();
+				pa = new ShortCutInit();
 				break;
 			case 0x47:
-//				pa = new StopMove();
+				pa = new StopMove();
 				break;
 			case 0x48:
 //				pa = new MagicSkillUse();
@@ -321,7 +340,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new RestartResponse();
 				break;
 			case 0x72:
-//				pa = new MoveToPawn();
+				pa = new MoveToPawn();
 				break;
 			case 0x73:
 //				pa = new SSQInfo();
@@ -336,7 +355,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new JoinPledge();
 				break;
 			case 0x79:
-//				pa = new ValidateLocation();
+				pa = new ValidateLocation();
 				break;
 			case 0x80:
 //				pa = new ValidateLocationInVehicle();
@@ -471,7 +490,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new PetDelete();
 				break;
 			case 0xb9:
-//				pa = new MyTargetSelected();
+				pa = new MyTargetSelected();
 				break;
 			case 0xba:
 //				pa = new PartyMemberPosition();
@@ -629,8 +648,11 @@ public class GameHandler extends BaseGameHandler {
 			case 0xfb:
 //				pa = new SSQStatus();
 				break;
+			case 0xfd:
+//				pa = new AgitDecoInfo();
+				break;
 			case 0xfe:
-				switch (raw[3] & 0xFF) {
+				switch (ex) {
 				case 0x01:
 //					pa = new ExRegMax();
 					break;
@@ -931,7 +953,7 @@ public class GameHandler extends BaseGameHandler {
 				case 0xaa:
 //					pa = new PremiumState();
 					break;
-				case 0xac:
+				case 0xda:
 					pa = new ExBrExtraUserInfo();
 					break;
 				default:
@@ -939,8 +961,7 @@ public class GameHandler extends BaseGameHandler {
 
 				}
 				break;
-			case 0xfd:
-//				pa = new AgitDecoInfo();
+			case 0xff:
 				break;
 			default:
 				break;//TR just to distinguish new from failed packets
@@ -949,7 +970,11 @@ public class GameHandler extends BaseGameHandler {
 		}
 		}
 		if (pa == null) {
-			log.warning("Unknown optcode:" + Integer.toHexString(raw[2]));
+			if((cde & 0xFF) == 0xfe)
+				log.warning("Unknown optcode (hex:): 0xfe." + Integer.toHexString(ex)+":"+ex+ " packetsize:"+raw.length);
+			else
+				log.warning("Unknown optcode (hex:): " + Integer.toHexString(cde)+":"+cde+ " packetsize:"+raw.length);
+				
 			return;
 		}
 		pa.setBytes(raw);
@@ -965,7 +990,7 @@ public class GameHandler extends BaseGameHandler {
 
 	@Override
 	public void onDisconnect() {
-			sendPacketToGame(new Logout().getBytes());
+			sendPacket(new Logout());
 	}
 
 	@Override
@@ -975,7 +1000,7 @@ public class GameHandler extends BaseGameHandler {
 		//revision 3978 (l2j 3.7 gracia epilogue) uses 146 protocol version
 		//revision 4548 uses 216
 		//revision 5135 uses 273
-		byte[] g = new ProtocolVersion(273).getBytes();
-		sendPacketToGame(g);
+
+		sendPacket(new ProtocolVersion(273));
 	}
 }

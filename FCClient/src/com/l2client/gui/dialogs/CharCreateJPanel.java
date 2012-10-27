@@ -54,7 +54,7 @@ public class CharCreateJPanel extends javax.swing.JPanel {
 	private int hair = 0;
 	
 	private static String FIGHTER = "Warrior";
-	private static String WIZARD = "Mage";
+	private static String WIZARD = "Wizard";
 	private static String SOLDIER = "Soldier";
 	/**
 	* Auto-generated main method to display this 

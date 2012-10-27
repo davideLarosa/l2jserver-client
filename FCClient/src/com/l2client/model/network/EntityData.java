@@ -1,5 +1,8 @@
 package com.l2client.model.network;
 
+import com.l2client.animsystem.jme.actions.CallActions;
+import com.l2client.app.Singleton;
+
 /**
  * Central client data model for entity (dynamic, movable objects) data based on the underlying 
  * raw network data.
@@ -29,10 +32,10 @@ public class EntityData  {
 	private int _hairColor=0;
 	private int _sex=0;
 	private int _level = 1;
-	private double _maxHp=0;
-	private double _currentHp=0;
-	private double _maxMp=0;
-	private double _currentMp=0;
+	private int _maxHp=0;
+	private int _currentHp=0;
+	private int _maxMp=0;
+	private int _currentMp=0;
 //	private int[][] _paperdoll;
     private int _karma=0;
     private int _pkKills=0;
@@ -101,19 +104,19 @@ public class EntityData  {
     {
         _baseClassId = baseClassId;
     }
-	public double getCurrentHp()
+	public int getCurrentHp()
 	{
 		return _currentHp;
 	}
-	public void setCurrentHp(double currentHp)
+	public void setCurrentHp(int currentHp)
 	{
 		_currentHp = currentHp;
 	}
-	public double getCurrentMp()
+	public int getCurrentMp()
 	{
 		return _currentMp;
 	}
-	public void setCurrentMp(double currentMp)
+	public void setCurrentMp(int currentMp)
 	{
 		_currentMp = currentMp;
 	}
@@ -181,19 +184,19 @@ public class EntityData  {
 	{
 		_level = level;
 	}
-	public double getMaxHp()
+	public int getMaxHp()
 	{
 		return _maxHp;
 	}
-	public void setMaxHp(double d)
+	public void setMaxHp(int d)
 	{
 		_maxHp = d;
 	}
-	public double getMaxMp()
+	public int getMaxMp()
 	{
 		return _maxMp;
 	}
-	public void setMaxMp(double d)
+	public void setMaxMp(int d)
 	{
 		_maxMp = d;
 	}

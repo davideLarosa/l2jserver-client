@@ -11,6 +11,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.export.Savable;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.l2client.app.Singleton;
 import com.l2client.navigation.Cell.ClassifyResult;
 
 /**
@@ -277,7 +278,7 @@ public class Mesh implements Savable{
 					TestCell = Result.cell;
 				} else {
 					//FIXME this could also be the case of switching meshes :-< check this !!
-					Cell c =EntityNavigationManager.get().FindClosestCell(EndPos, true);
+					Cell c = Singleton.get().getNavManager().FindClosestCell(EndPos, true);
 					if(c!= null && c != TestCell){
 //System.out.println("Mesh switching");
 							TestCell =c;
@@ -303,7 +304,7 @@ public class Mesh implements Savable{
 			} else if (Result.result == Cell.PATH_RESULT.NO_RELATIONSHIP) {
 //System.out.println("NO RELATION");
 				//FIXME this could also be the case of optimized meshes
-				Cell c =EntityNavigationManager.get().FindClosestCell(EndPos, true);
+				Cell c =Singleton.get().getNavManager().FindClosestCell(EndPos, true);
 				if(c!= null && c != TestCell){
 						TestCell =c;
 				} else {

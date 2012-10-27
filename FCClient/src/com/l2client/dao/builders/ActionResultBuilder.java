@@ -13,6 +13,7 @@ import com.l2client.gui.actions.CompanionAction;
 import com.l2client.gui.actions.EmoteAction;
 import com.l2client.gui.actions.PickItemAction;
 import com.l2client.gui.actions.SitStandAction;
+import com.l2client.gui.actions.UseMagicSkillAction;
 import com.l2client.gui.actions.WalkRunAction;
 
 public class ActionResultBuilder {
@@ -25,7 +26,8 @@ public class ActionResultBuilder {
 		EmoteAction("EmoteAction"),
 		PickItemAction("PickItemAction"),
 		SitStandAction("SitStandAction"),
-		WalkRunAction("WalkRunAction")
+		WalkRunAction("WalkRunAction"),
+		UseMagicSkillAction("UseMagicSkillAction")
 		;
 		
 		private String type;
@@ -63,24 +65,26 @@ public class ActionResultBuilder {
 		ArrayList<BaseUsable> ret = new ArrayList<BaseUsable>();
 		try {
 			String[] line = rs.readNext();
-			while(line != null) {
-				if(line.length == 9){
-				BaseUsable b = getUsable(Integer.valueOf(line[1]), line[8], line[2]);
-				if (b != null) {
-					b.setCategory(line[0]);
-					b.setType(line[5]);
-					b.setDescription(line[4]);
-					b.setImage(line[3]);
-					b.setActionID(Integer.valueOf(line[6]));
-					b.setDisplayOrder(Integer.valueOf(line[7]));
+			while (line != null) {
+				if (line.length == 9) {
+					BaseUsable b = getUsable(Integer.valueOf(line[1]), line[8],
+							line[2]);
+					if (b != null) {
+						b.setCategory(line[0]);
+						b.setType(line[5]);
+						b.setDescription(line[4]);
+						b.setImage(line[3]);
+						b.setActionID(Integer.valueOf(line[6]));
+						b.setDisplayOrder(Integer.valueOf(line[7]));
 
-					ret.add(b);
-				}
-				}
+						ret.add(b);
+					}
+				} else
+					logger.warning("Only "+line.length+" items of 9:"+line);
 				line = rs.readNext();
 			}
 		} catch (Exception e) {
-			logger.log(Level.SEVERE,"Error in loadig Actions from DAO", e);
+			logger.log(Level.SEVERE, "Error in loadig Actions from DAO", e);
 		}
 		return ret.toArray(new BaseUsable[0]);
 	}
@@ -109,6 +113,9 @@ public class ActionResultBuilder {
 				break;
 			case WalkRunAction:
 				b = new WalkRunAction(id, name);
+				break;
+			case UseMagicSkillAction:
+				b = new UseMagicSkillAction(id, name);
 				break;
 			default:
 				logger.severe("Table ACTIONS contains an action ("+id+") without implemented CLIENTACTION ("+clientAction+") in ActionResultBuilder");

@@ -12,11 +12,9 @@ public class ExBrExtraUserInfo extends GameServerPacket
 	public void handlePacket()
     {
     	log.fine("Read from Server "+this.getClass().getSimpleName());
-
-    	readH();
-    	readD();
-    	//TODO event effect id
-    	readD();
+     	readH();//remove sub id
+    	readD();//char id
+    	readD();//hair info
     	
     }
 }

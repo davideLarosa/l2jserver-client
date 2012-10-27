@@ -1,5 +1,7 @@
 package com.l2client.gui.actions;
 
+import java.util.logging.Logger;
+
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
@@ -8,9 +10,14 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.l2client.controller.SceneManager;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.l2client.app.Singleton;
 import com.l2client.controller.area.SimpleTerrainManager;
+import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
+import com.l2client.model.l2j.ServerValues;
+import com.l2client.model.network.ClientFacade;
 
 /**
  * Action for triggering the movement of the player. Just an example.
@@ -18,13 +25,17 @@ import com.l2client.controller.handlers.PlayerCharHandler;
  * 
  */
 public class GotoClickedInputAction extends Action {
+	
+	protected static Logger log = Logger.getLogger(GotoClickedInputAction.class.getName());
 
 	private Camera camera;
-	private PlayerCharHandler handler;
 	private InputManager inputManager;
+	private PlayerCharHandler handler;
+	float dt = 0f;
 
 	/**
 	 * constructor of the action
+	 * @param pcHandler 
 	 * 
 	 * @param charSelectHandler
 	 *            The PlayerCharHandler is needed to send the final move request
@@ -36,12 +47,10 @@ public class GotoClickedInputAction extends Action {
 	 *            The button this action should trigger (0 is left, 1 is right,
 	 *            2 is middle ...)
 	 */
-	// TODO refactor to be not dependant on the PlayerCharHandler
-	public GotoClickedInputAction(PlayerCharHandler charSelectHandler,
-			Camera cam) {
+	public GotoClickedInputAction(PlayerCharHandler pcHandler, Camera cam) {
 		super(-10, "GotoClickedInputAction");
 		camera = cam;
-		handler = charSelectHandler;
+		handler = pcHandler;
 	}
 
 	/**
@@ -53,43 +62,55 @@ public class GotoClickedInputAction extends Action {
 	 * move)
 	 */
 	@Override
-	public void onAnalog(String name, float value, float tpf) {
-		Vector3f origin = camera.getWorldCoordinates(
-				inputManager.getCursorPosition(), 0.0f);
-		Vector3f direction = camera.getWorldCoordinates(
-				inputManager.getCursorPosition(), 0.3f);
-		direction.subtractLocal(origin).normalizeLocal();
+	public void onAction(String name, boolean isPressed, float tpf) {
+		// only execute on button/key release
+		if (!isPressed) {
 
-		Ray ray = new Ray(origin, direction);
-		CollisionResults results = new CollisionResults();
+			Vector3f origin = camera.getWorldCoordinates(
+					inputManager.getCursorPosition(), 0.0f);
+			Vector3f direction = camera.getWorldCoordinates(
+					inputManager.getCursorPosition(), 0.3f);
+			direction.subtractLocal(origin).normalizeLocal();
 
-		SceneManager.get().getRoot().collideWith(ray, results);
+			Ray ray = new Ray(origin, direction);
+			CollisionResults results = new CollisionResults();
 
-		if (results.size() > 0) {
-			for (CollisionResult res : results) {
-				//FIXME WOAHHHHH what hardcoded stuff did I do here!?!? Make this at least a static
-				if (res.getGeometry().getName().startsWith(SimpleTerrainManager.TILE_PREFIX)) {
-					// this is the one
+			Singleton.get().getSceneManager().getRoot().collideWith(ray, results);
 
-					Vector3f location = res.getContactPoint();
-//					System.out
-//							.println("new loc:"
-//									+ location
-//									+ " sent:"
-//									+ ServerValues.getServerCoord(location.x)
-//									+ ","
-//									+ ServerValues.getServerCoord(location.y)
-//									+ ","
-//									+ ServerValues.getServerCoord(location.z));
-					handler.requestMoveToAction(location.x, location.y,
-							location.z);
-					results.clear();
-					return;
+			if (results.size() > 0) {
+				Geometry geom = null;
+				for (CollisionResult res : results) {
+					geom = res.getGeometry();
+					if (geom != null) {
+						Integer id = geom.getUserData(Entity.ENTITY_ID);
+						if (id != null) {
+							//Just create a target component rest is done in the jmeupdatesystem
+							Node n = res.getGeometry().getParent();
+							String na = n.getName();
+							log.fine("picked " + na + " id:"+ id);
+							Vector3f loc = n.getLocalTranslation();
+							Singleton.get().getClientFacade().sendAction(id, loc.x, loc.y, loc.z, false, true);
+							results.clear();
+							return;
+						} else if (res.getGeometry().getName()
+								.startsWith(SimpleTerrainManager.TILE_PREFIX)) {
+							// this is the one
+							Vector3f location = res.getContactPoint();
+							log.fine("new loc:" + location
+									+ " sent:"+ ServerValues.getServerCoord(location.x)
+									+ ","+ ServerValues.getServerCoord(location.y)
+									+ ","+ ServerValues.getServerCoord(location.z));
+							Singleton.get().getClientFacade().sendMoveToAction(location.x, location.y,
+									location.z);
+							results.clear();
+							return;
+						}
+					}
+
 				}
+				results.clear();
 			}
-			results.clear();
 		}
-
 	}
 
 	@Override

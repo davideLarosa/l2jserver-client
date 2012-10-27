@@ -16,8 +16,7 @@ public class CharInfo extends GameServerPacket {
 	 */
 	@Override
 	public void handlePacket() {
-		log.fine("Read from Server "+ this.getClass().getSimpleName());
-		
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		PlayerData p = new PlayerData();
 		p.setX(ServerValues.getClientCoord(readD()));
 		//reverted jme uses Y as up
@@ -29,6 +28,6 @@ public class CharInfo extends GameServerPacket {
 		p.setRace(readD());
 		p.setClassId(readD());
 		//FIXME read in the rest if CharInfo: paperdoll etc,.. whole lot more is in
-		getClientFacade().getNpcHandler().add(p);
+		_client.getNpcHandler().add(p);
 	}
 }

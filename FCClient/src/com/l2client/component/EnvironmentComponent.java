@@ -1,22 +1,31 @@
 package com.l2client.component;
 
-import com.jme3.math.Vector3f;
-import com.jme3.scene.Spatial;
 
 /**
  * A Component for internal Vars, Perception, Mind, etc.
  */
 public class EnvironmentComponent implements Component {
-	
-	public Spatial currentTarget = null;
-	public Spatial lastTarget = null;
-	public double targetSeenTime;
-	public boolean targetEnemy = false;
+
 	public boolean hidden = false;
-	public int lastWounded = 0;
-	public int currentWounded = 0;
-	public double woundedTime;
-	public Vector3f woundedFrom = null;
+	/**
+	 * how much damage have we produced, yeah!
+	 */
+	public int damageDealt = 0;
+	/**
+	 * how much damage have we received, ouch..
+	 */
+	public int damageReceived = 0;
+	/**
+	 * Type of damage dealt, 0 normal, 32 ??, 128 ??
+	 */
+	public int damageDealtType = -1;
+	/**
+	 * Type of damage received, 0 normal, 32 ??, 128 ??
+	 */
+	public int damageReceivedType = -1;
+	/**
+	 * if teamed how much health has the whole team
+	 */
 	public int teamHealthPercent = -1;
 	/**
 	 * flag if something changed at all, should be reset by the environment system

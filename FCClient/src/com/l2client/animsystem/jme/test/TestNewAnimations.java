@@ -5,12 +5,10 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import com.jme3.app.SimpleApplication;
 import com.jme3.input.RawInputListener;
 import com.jme3.input.event.JoyAxisEvent;
 import com.jme3.input.event.JoyButtonEvent;
 import com.jme3.input.event.KeyInputEvent;
-import com.jme3.input.event.MotionSensorEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
@@ -21,6 +19,7 @@ import com.l2client.animsystem.jme.JMEAnimationController;
 import com.l2client.animsystem.jme.gui.AnimationInputSwitchSidebar;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.app.Singleton;
 import com.l2client.util.PartSetManager;
 
 public class TestNewAnimations extends ExtendedApplication {
@@ -28,7 +27,7 @@ public class TestNewAnimations extends ExtendedApplication {
 
 	int MAX_NODES = 10;
 	
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man = Singleton.get().getPartManager();
 	
 	Node[] nodes = new Node[MAX_NODES];
 	
@@ -76,12 +75,6 @@ public class TestNewAnimations extends ExtendedApplication {
  			@Override
  			public void beginInput() {
  			}
-
-			@Override
-			public void onMotionSensorEvent(MotionSensorEvent evt) {
-				// TODO Auto-generated method stub
-				
-			}
  		});
     	
     	man.loadParts("megaset.csv");

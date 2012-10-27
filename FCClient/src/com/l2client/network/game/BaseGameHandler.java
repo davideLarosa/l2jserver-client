@@ -9,8 +9,9 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.l2client.gui.GuiController;
+import com.l2client.app.Singleton;
 import com.l2client.model.network.ClientFacade;
+import com.l2client.network.game.ClientPackets.GameClientPacket;
 import com.l2client.util.ByteUtils;
 
 /**
@@ -56,19 +57,19 @@ public abstract class BaseGameHandler implements Runnable{
 //			else {
 				i = InetAddress.getByName(host);
 //			}
-			log.fine("Using client address of "+i+" for connecting to server "+host+" on port "+port);
+			log.finer("Using client address of "+i+" for connecting to server "+host+" on port "+port);
 			socket = new Socket(i,port);
 			//end of added 
 			outStream = new DataOutputStream(socket.getOutputStream());
 			inStream = new DataInputStream(socket.getInputStream());
 		} catch (EOFException excepcionEOF) {
 			log.severe("Connection terminated:"+excepcionEOF);
-			GuiController.getInstance().showErrorDialog(excepcionEOF.toString());
+			Singleton.get().getGuiController().showErrorDialog(excepcionEOF.toString());
 			connected = false;
 			return;
 		} catch (IOException excepcionES) {
 			log.severe("Connection error:"+excepcionES);
-			GuiController.getInstance().showErrorDialog(excepcionES.toString());
+			Singleton.get().getGuiController().showErrorDialog(excepcionES.toString());
 			connected = false;
 			return;
 		}
@@ -137,6 +138,7 @@ public abstract class BaseGameHandler implements Runnable{
 		} catch (IOException e) {
 			log.log(Level.SEVERE, "Exception in onDisConnect:", e);
 		}
+		log.info("Gamesocket closed");
 		connected = false;
 	}
 
@@ -156,6 +158,9 @@ public abstract class BaseGameHandler implements Runnable{
 					}
 					log.severe("Disconnected due to eond of stream in read");
 					return;
+				} else if(read != 2){
+					log.severe("Read less than 2 bytes for packet length, skipping info");
+					continue;
 				}
 				int rawSize = ByteUtils.Sbyte2int(buf[0]) + ByteUtils.Sbyte2int(buf[1]) * 256;
 
@@ -172,6 +177,14 @@ public abstract class BaseGameHandler implements Runnable{
 					}
 					log.severe("Disconnected due to eond of stream in read");
 					return;
+				} else{
+					if(read !=rawSize-2){
+						log.info("Stream read returned only "+read+" of "+(rawSize-2)+" bytes in total");
+						while(read != rawSize-2)
+							read+=inStream.read(buf2,2+read,rawSize-2-read);
+						
+						log.info("Stream finally read "+read+" bytes of "+(rawSize-2)+" bytes in total");
+					}
 				}
 
 				try {
@@ -199,6 +212,7 @@ public abstract class BaseGameHandler implements Runnable{
 				}
 			log.log(Level.SEVERE, "Connection error", e);
 			connected = false;
+			//FIXME display error & close
 			} //else we have closed the socket and received a SocketEception while waiting in read() for data so ignore this
 		} 
 	}
@@ -208,8 +222,12 @@ public abstract class BaseGameHandler implements Runnable{
 	 * key was set. The sent packet has 2 bytes more (for length information) than the raw packet
 	 * @param raw The byte array to be sent
 	 */
-	public synchronized void sendPacketToGame(byte[] raw) {
+	public void sendPacket(GameClientPacket packet) {
+		if(connected)
 		try {
+			log.fine("Sending "+packet.getClass().getSimpleName()+" to LoginServer");
+			
+			byte[] raw = packet.getBytes();
 			byte[] h = new byte[raw.length + 2];
 			h[0] = (byte) (h.length % 256);
 			h[1] = (byte) (h.length / 256);

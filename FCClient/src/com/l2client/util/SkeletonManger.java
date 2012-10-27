@@ -3,8 +3,8 @@ package com.l2client.util;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.jme3.animation.Skeleton;
+import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
-import com.l2client.asset.AssetManager;
 
 
 public final class SkeletonManger {
@@ -47,12 +47,12 @@ public final class SkeletonManger {
 		Skeleton s = skeletons.get(name);
 		if (s == null) {
 			Asset a = new Asset(name, name);
-			AssetManager.getInstance().loadAsset(a, true);
+			Singleton.get().getAssetManager().loadAsset(a, true);
 			s = (Skeleton) a.getBaseAsset();
 		}
 		if (s != null) {
 			skeletons.put(name, s);
-			return s;
+			return new Skeleton(s);
 		} else {
 			return null;
 		}

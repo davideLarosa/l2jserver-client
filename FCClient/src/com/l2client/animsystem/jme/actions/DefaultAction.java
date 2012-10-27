@@ -2,9 +2,9 @@ package com.l2client.animsystem.jme.actions;
 
 import com.l2client.animsystem.Action;
 import com.l2client.animsystem.Animation;
+import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.Mediator;
-import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.jme.input.Acting;
 import com.l2client.animsystem.jme.input.Direction;
 import com.l2client.animsystem.jme.input.Enemy;
@@ -32,7 +32,7 @@ public class DefaultAction extends Action {
 
 		if (med.setLockCheck(Channels.AllChannels, 2)) {
 			Animation ret = med.getAnimation();
-			ret.setLevel(1);
+			ret.setLevel(2);
 			switch (in.getInput(Enemy.class)) {
 			case None:
 			case VeryFar: {
@@ -86,11 +86,11 @@ public class DefaultAction extends Action {
 			switch (in.getInput(Enemy.class)) {
 			case None:
 			case VeryFar: {
-				an = outCombatAnimation(med, in);
+				an = standingAnimationOutCombat(med, in);
 				break;
 			}
 			default: {
-				an = inCombatAnimation(med, in);
+				an = standingAnimationInCombat(med, in);
 				break;
 			}
 			}
@@ -103,7 +103,7 @@ public class DefaultAction extends Action {
 		return null;
 	}
 
-	private Animation outCombatAnimation(Mediator a, InputProvider in) {
+	private Animation standingAnimationOutCombat(Mediator a, InputProvider in) {
 		Animation ret = a.getAnimation();
 
 		if (rand.nextInt(9) > 4) {
@@ -117,11 +117,10 @@ public class DefaultAction extends Action {
 			}
 		}
 		ret.setBlendTime(1f);
-
 		return ret;
 	}
 
-	private Animation inCombatAnimation(Mediator a, InputProvider in) {
+	private Animation standingAnimationInCombat(Mediator a, InputProvider in) {
 		Animation ret = a.getAnimation();
 
 		if (Acting.Open.equals(in.getInput(Acting.class)))
@@ -130,8 +129,6 @@ public class DefaultAction extends Action {
 			ret.setName("hide_idle");
 
 		ret.setBlendTime(1f);
-		ret.setLevel(1);
-
 		return ret;
 	}
 

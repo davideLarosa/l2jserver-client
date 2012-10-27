@@ -25,7 +25,7 @@ import com.jme3.system.NanoTimer;
  * Here is an example on how an entity could be initialized
  * <br>
  * <pre>
- 		Entity ent = EntityManager.get().createEntity(e.getObjectId());
+ 		Entity ent = Singleton.get().getEntityManager().createEntity(e.getObjectId());
 		SimplePositionComponent pos = new SimplePositionComponent();
 		L2JComponent l2j = new L2JComponent();
 		VisualComponent vis = new VisualComponent();
@@ -43,16 +43,16 @@ import com.jme3.system.NanoTimer;
 		
 		updateComponents(e, ent, pos, l2j, env, vis);
 		
-		EntityManager.get().addComponent(ent.getId(), env);
-		EntityManager.get().addComponent(ent.getId(), l2j);
-		EntityManager.get().addComponent(ent.getId(), pos);		
-		EntityManager.get().addComponent(ent.getId(), vis);
+		Singleton.get().getEntityManager().addComponent(ent.getId(), env);
+		Singleton.get().getEntityManager().addComponent(ent.getId(), l2j);
+		Singleton.get().getEntityManager().addComponent(ent.getId(), pos);		
+		Singleton.get().getEntityManager().addComponent(ent.getId(), vis);
 
 		
 		
-		PositioningSystem.get().addComponentForUpdate(pos);
+		Singleton.get().getPosSystem().addComponentForUpdate(pos);
 		JmeUpdateSystem.get().addComponentForUpdate(pos);
-		AnimationSystem.get().addComponentForUpdate(env);
+		Singleton.get().getAnimSystem().addComponentForUpdate(env);
 		</pre>
  */
 //TODO check components not having had enough processing time get an extra dt during update (store last tpf for that system if not all ways processed)

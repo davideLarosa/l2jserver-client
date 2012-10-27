@@ -11,7 +11,7 @@ import com.jme3.animation.Animation;
 import com.jme3.animation.AnimationProvider;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
-import com.l2client.asset.AssetManager;
+import com.l2client.app.Singleton;
 import com.l2client.model.PartSet;
 
 
@@ -46,13 +46,13 @@ public final class AnimationManager {
 			PartSet p = anims.get(name);
 			Animation anim = null;
 			if (p != null) {
-				anim = AnimationManager.get().getAnimation(
+				anim = Singleton.get().getAnimManager().getAnimation(
 						p.getNext());
 			}
 			if(anim == null){
 				//try default substitute
 				if(defaultSet != null){
-					AnimationProvider an = AnimationManager.get().getAnimationProvider(defaultSet);
+					AnimationProvider an = Singleton.get().getAnimManager().getAnimationProvider(defaultSet);
 					anim = an.getAnimation(name, control);
 				}
 			}
@@ -161,9 +161,9 @@ public final class AnimationManager {
 		Animation a ;
 		//FIXME remove this !=!
 		if(path.endsWith(".j3o"))
-			a = (Animation) AssetManager.getInstance().getJmeAssetMan().loadAsset(path);
+			a = (Animation) Singleton.get().getAssetManager().getJmeAssetMan().loadAsset(path);
 		else
-			a = (Animation) AssetManager.getInstance().getJmeAssetMan().loadAsset(path+".j3o");	
+			a = (Animation) Singleton.get().getAssetManager().getJmeAssetMan().loadAsset(path+".j3o");	
 
 		return (Animation)a;
 	}

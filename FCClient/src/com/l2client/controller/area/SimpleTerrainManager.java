@@ -12,8 +12,7 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.SkyFactory;
-import com.l2client.asset.AssetManager;
-import com.l2client.controller.SceneManager;
+import com.l2client.app.Singleton;
 
 /**
  * A simple terrain manager, storing definitions of terrain tiles, loaded tiles, etc.
@@ -27,7 +26,7 @@ import com.l2client.controller.SceneManager;
 public final class SimpleTerrainManager {
 	
 	/**
-	 * This is used to find nav/ground tiles in the simple example
+	 * "tile_" this is used to find nav/ground tiles in the simple example
 	 * @see GotoClickedInputAction.onAnalog()
 	 */
 	public static String TILE_PREFIX = "tile_";
@@ -115,7 +114,11 @@ public final class SimpleTerrainManager {
 	 */
 	public void initialize(){
 		initDummyTexture();
-		addSkyDome();
+	}
+	
+	public void update(Vector3f worldPosition) {
+			setCenter((int) worldPosition.x / IArea.TERRAIN_SIZE,
+					(int) worldPosition.z / IArea.TERRAIN_SIZE);
 	}
 
 	/**
@@ -136,7 +139,7 @@ public final class SimpleTerrainManager {
 
 		unloadPatches.putAll(loadedPatches);
 
-		SceneManager.get().removeTerrains();
+		Singleton.get().getSceneManager().removeTerrains();
 
 		loadedPatches.clear();
 
@@ -197,6 +200,7 @@ public final class SimpleTerrainManager {
 	 */
 	private PatchInfo addLoadAll(PatchInfo p) {
 		loadedPatches.put(p.hashCode(), p);
+		Singleton.get().getSceneManager().changeTerrainNode(p.patch,0);
 		return p;
 	}
 
@@ -221,18 +225,21 @@ public final class SimpleTerrainManager {
 	 */
 	private PatchInfo checkLoadPatch(int x, int y) {
 		PatchInfo ret = new PatchInfo(x, y, false);
-		if (unloadPatches.contains(ret))
-			return unloadPatches.remove(ret.hashCode());
-
+		if (unloadPatches.contains(ret)){
+			ret = unloadPatches.remove(ret.hashCode());
+			if(ret != null)
+				return ret;
+			else
+				ret = new PatchInfo(x, y, false);//FIXME how can this happen?
+		}
 		try {
 			Quad q = new Quad(1f * IArea.TERRAIN_SIZE, 1f * IArea.TERRAIN_SIZE);
-			//TODO this is the same as in GotoClickedInputAction
+			//this is the same as in GotoClickedInputAction
 			Geometry n = new Geometry(TILE_PREFIX + x + " " + y,q);
 			n.setMaterial(material);
 			n.setLocalTranslation(x * IArea.TERRAIN_SIZE, 0f,y * IArea.TERRAIN_SIZE);
 			ret.patch = n;
 			n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
-			SceneManager.get().changeTerrainNode(n,0);
 		} catch (Exception e) {
 			//TODO use logger & error handling on failed load of a tile (in which case is this ok?)
 			e.printStackTrace();
@@ -247,7 +254,7 @@ public final class SimpleTerrainManager {
 	 * JME specific
 	 */
 	private void initDummyTexture() {
-		com.jme3.asset.AssetManager assetManager = AssetManager.getInstance().getJmeAssetMan();
+		com.jme3.asset.AssetManager assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
 		// TERRAIN TEXTURE material
 		material = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
         material.setBoolean("useTriPlanarMapping", false);
@@ -277,9 +284,15 @@ public final class SimpleTerrainManager {
 		material.setFloat("Tex3Scale", 128f);
 	}
 
-	private void addSkyDome(){
-		sky = SkyFactory.createSky(AssetManager.getInstance().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
-        SceneManager.get().changeCharNode(sky,0);
+	public void addSkyDome(){
+		if(sky == null)
+			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
+        Singleton.get().getSceneManager().changeCharNode(sky,0);
+	}
+	
+	public void removeSkyDome(){
+		if(sky != null)
+			Singleton.get().getSceneManager().changeCharNode(sky,1);
 	}
 	
 }

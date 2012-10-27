@@ -1,6 +1,7 @@
 package com.l2client.controller.entity;
 
 import com.jme3.scene.Node;
+import com.l2client.component.ComponentSystem;
 
 /**
  * Just a reference to an id for entities based on components.
@@ -9,6 +10,11 @@ import com.jme3.scene.Node;
  * 
  */
 public class Entity extends Node {
+	
+	/**
+	 * Identifier used for userData on jme geometries
+	 */
+	public static final String ENTITY_ID = "entity_id";
 
 	private int id;
 

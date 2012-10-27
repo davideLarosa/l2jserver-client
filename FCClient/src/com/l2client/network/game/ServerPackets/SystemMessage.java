@@ -1,5 +1,7 @@
 package com.l2client.network.game.ServerPackets;
 
+import com.l2client.app.Singleton;
+
 
 /**
  * A SystemMessage 0x62
@@ -23,23 +25,24 @@ public class SystemMessage extends GameServerPacket
 	private static final byte TYPE_NUMBER = 1;
 	private static final byte TYPE_TEXT = 0;
 	/**
-	 * Triggers the display action, by using GuiController.getInstance().showErrorDialog
+	 * Triggers the display action, by using Singleton.get().getGuiController().showErrorDialog
 	 */
 	public  void handlePacket()
 	{
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		int id = readD();//MessageId
 		int pars = readD();//# of Params
-		//TODO read Parameters of SystemMessage
-		//..
+
+		String msg = Singleton.get().getDataManager().getSystemMessage(id);
 		
-		if(pars <= 0) {
-			log.fine("Read from Server "+this.getClass().getSimpleName()+" with ID:"+id+" Params:"+pars);
+		if(pars <= 0 || pars > 50) {
+			log.finer("Read from Server "+this.getClass().getSimpleName()+" with ID:"+id+" "+msg+" Params:"+pars);
 			return;
 		}
 		String [] arr = new String[pars];
 		
 		StringBuilder bui = new StringBuilder("Read from Server ").append(
-				this.getClass().getSimpleName()).append(" with ID:").append(id).append(" Params:").append(pars);
+				this.getClass().getSimpleName()).append(" with ID:").append(id).append(" ").append(msg).append(" Params:").append(pars);
 		
 		for (int i = 0; i < pars; i++)
 		{
@@ -89,10 +92,11 @@ public class SystemMessage extends GameServerPacket
 					arr[i] = "TODO";
 			}
 			
-			bui.append(arr[i]);
+			bui.append(",").append(arr[i]);
 		}
-		
-		log.fine(bui.toString());
+		String fin = bui.toString();
+		log.finer(fin);
+		_client.getChatHandler().receiveMessage(-1,0 /*all*/,null,fin);
 		
 	}
 

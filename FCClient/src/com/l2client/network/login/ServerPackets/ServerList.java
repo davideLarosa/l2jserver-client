@@ -1,7 +1,5 @@
 package com.l2client.network.login.ServerPackets;
 
-import java.util.logging.Level;
-
 import com.l2client.model.network.GameServerInfo;
 
 /**

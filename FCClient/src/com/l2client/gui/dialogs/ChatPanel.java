@@ -95,8 +95,7 @@ public class ChatPanel extends javax.swing.JPanel {
 						tabAll.setViewportView(textAll);
 						textAll.setEditable(false);
 						// textAll.setFocusable(false);
-						textAll
-								.setForeground(new java.awt.Color(255, 255, 255));
+						textAll.setForeground(new java.awt.Color(0,0,0));
 						textAll
 								.setBackground(new java.awt.Color(192, 192, 192));
 					}
@@ -162,7 +161,7 @@ public class ChatPanel extends javax.swing.JPanel {
 	}
 
 	public void clearAllTexts() {
-		textAll.setText("");
+		textAll.setText("type and hit Enter to send..");
 		textTrade.setText("");
 		textParty.setText("");
 		textClan.setText("");
@@ -170,37 +169,47 @@ public class ChatPanel extends javax.swing.JPanel {
 	}
 
 	public void addTextAll(String te) {
-		StringBuilder bu = new StringBuilder(textAll.getText());
-		bu.append(te);
+		StringBuilder bu = new StringBuilder(te);
 		bu.append('\n');
+		bu.append(textAll.getText());
+		bu.setLength(1024);
+		bu.append("...");
 		textAll.setText(bu.toString());
 	}
 
 	public void addTextTrade(String te) {
-		StringBuilder bu = new StringBuilder(textTrade.getText());
-		bu.append(te);
+		StringBuilder bu = new StringBuilder(te);
 		bu.append('\n');
+		bu.append(textTrade.getText());
+		bu.setLength(1024);
+		bu.append("...");
 		textTrade.setText(bu.toString());
 	}
 
 	public void addTextClan(String te) {
-		StringBuilder bu = new StringBuilder(textClan.getText());
-		bu.append(te);
+		StringBuilder bu = new StringBuilder(te);
 		bu.append('\n');
+		bu.append(textClan.getText());
+		bu.setLength(1024);
+		bu.append("...");
 		textClan.setText(bu.toString());
 	}
 
 	public void addTextParty(String te) {
-		StringBuilder bu = new StringBuilder(textParty.getText());
-		bu.append(te);
+		StringBuilder bu = new StringBuilder(te);
 		bu.append('\n');
+		bu.append(textParty.getText());
+		bu.setLength(1024);
+		bu.append("...");
 		textParty.setText(bu.toString());
 	}
 
 	public void addTextAlliance(String te) {
-		StringBuilder bu = new StringBuilder(textAlliance.getText());
-		bu.append(te);
+		StringBuilder bu = new StringBuilder(te);
 		bu.append('\n');
+		bu.append(textAlliance.getText());
+		bu.setLength(1024);
+		bu.append("...");
 		textAlliance.setText(bu.toString());
 	}
 

@@ -1,6 +1,6 @@
 package com.l2client.network.game.ServerPackets;
 
-import com.l2client.gui.GuiController;
+import com.l2client.app.Singleton;
 import com.l2client.network.game.ClientPackets.AuthLogin;
 
 /**
@@ -10,8 +10,7 @@ import com.l2client.network.game.ClientPackets.AuthLogin;
 public final class KeyPacket extends GameServerPacket {
 
 	public void handlePacket() {
-		log.fine("Read from Server " + this.getClass().getSimpleName());
-
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		// 0 wrong protocol, 1 correct
 		if (readC() != 0) {
 			// 8 bytes representing the key
@@ -32,20 +31,19 @@ public final class KeyPacket extends GameServerPacket {
 			// next values in buffer are static and ignored
 
 			// FIXME move the trigger of AuthLogion out from KeyPacket?
-			if (getClientFacade() != null) {
-				getClientFacade().setGameCrypt(key);
-				getClientFacade().sendPacket(new AuthLogin(
-						getClientFacade().getAccountName(),
-						getClientFacade().getLoginKey1(), getClientFacade().getLoginKey2(), 
-						getClientFacade().getPlayKey1(), getClientFacade().getPlayKey2()));
+			if (_client != null) {
+				_client.setGameCrypt(key);
+				_client.sendGamePacket(new AuthLogin(
+						_client.getAccountName(),
+						_client.getLoginKey1(), _client.getLoginKey2(), 
+						_client.getPlayKey1(), _client.getPlayKey2()));
 			}
 		} else {
-			GuiController
-					.getInstance()
+			Singleton.get().getGuiController()
 					.showErrorDialog(
 							"The client version differs from server. Please update your client.");
-			getClientFacade().cleanup();
-			// getClientFacade().loginSocket.doDisconnect(false, "", -1, null);
+			_client.cleanup();
+			// _client.loginSocket.doDisconnect(false, "", -1, null);
 		}
 	}
 }

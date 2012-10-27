@@ -19,9 +19,10 @@ import com.l2client.gui.actions.BaseUsable;
  * Mediates between internal storage an the model data.
  * 
  * Currently only fetches the NPC Names, as an example.
- *
+ * @deprecated getSystemMessage and getNpcGameModel not implemented, due to move to csv files for easier user customization
  */
 //TODO extract SQLs into statics
+@Deprecated
 public final class DatastoreDAO implements IDAO {
 
 	private static Logger logger = Logger.getLogger(DatastoreDAO.class.getName());
@@ -142,6 +143,18 @@ public final class DatastoreDAO implements IDAO {
 	@Override
 	public String getNpcGameModel(int templateId) {
 		// TODO Auto-generated method stub
-		return null;
+		return "";
+	}
+
+	@Override
+	public String getSystemMessage(int id) {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
+	@Override
+	public String getItemDescription(int itemId) {
+		// TODO Auto-generated method stub
+		return "";
 	}
 }

@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.l2client.app.Singleton;
-import com.l2client.dao.derby.DatastoreDAO;
 import com.l2client.gui.actions.BaseUsable;
 
 //FIXME think about using a static NULLAction

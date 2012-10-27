@@ -24,7 +24,7 @@ public class CompanionAction extends Action {
 	}
 
 	@Override
-	public void onAnalog(String name, float value, float tpf) {
+	public void onAction(String name, boolean isPressed, float tpf) {
 		// TODO Auto-generated method stub
 	}
 }
