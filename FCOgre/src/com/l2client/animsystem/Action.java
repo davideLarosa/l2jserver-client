@@ -1,6 +1,7 @@
 package com.l2client.animsystem;
 
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * Actions are the place where the whole selection takes place. An actions tries
@@ -12,6 +13,8 @@ import java.util.Random;
  * 
  */
 public abstract class Action {
+	
+	protected Logger log = Logger.getLogger(Action.class.getName());
 
 	protected static Random rand = new Random();
 

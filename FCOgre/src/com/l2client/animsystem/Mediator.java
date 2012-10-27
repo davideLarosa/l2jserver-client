@@ -157,9 +157,9 @@ public class Mediator {
 		Action act = actionMap.get(action);
 		if(act != null){
 			nextActions.put(act, in);		
-log.finer("callAction:"+action);
+log.fine(this+" callAction:"+action);
 		} else
-			log.finer("callAction FAILED:"+action);
+			log.fine("callAction FAILED:"+action);
 		
 	}
 
@@ -183,8 +183,12 @@ log.finer("callAction:"+action);
 		//evaluate the default one, this is always done
 		if(defaultAction != null){
 			anim = defaultAction.evaluate(this);
-			if(anim != null)
-				updateResults.put(anim.getChannel(), anim);
+			if(anim != null) {
+				if(anim.getName() != null && anim.getName().length()>0)
+					updateResults.put(anim.getChannel(), anim);
+				else
+					log.severe("Tried to set animation without name, check your actions for inconsistencies:"+defaultAction+"->"+anim);
+			}
 		}
 		
 		//now check if we have any calls for action
@@ -206,8 +210,13 @@ log.finer("callAction:"+action);
 					currentInput = InputProvider.NOINPUT;
 				
 				anim = actions[i].evaluate(this);
-				if(anim != null)
-					updateResults.put(anim.getChannel(), anim);
+				if(anim != null) {
+					if(anim.getName() != null && anim.getName().length()>0)
+						updateResults.put(anim.getChannel(), anim);
+					else
+						log.severe("Tried to set animation without name, check your actions for inconsistencies:"+actions[i]+"->"+anim);
+
+				}
 			}
 		}
 		
@@ -218,15 +227,15 @@ log.finer("callAction:"+action);
 	private void setAnimation(Animation anim) {
 		Channel c = anim.getChannel();
 		if (c != null) {
-//			log.finest(c.hashCode()+" ev. Anim switch from " + c.getCurrentAnimation() + " to "
-//					+ anim.getName());
+			log.finest(this+" ev. Anim switch from " + c.getCurrentAnimation() + " to "
+					+ anim.getName());
 //System.out.println( System.nanoTime()*(1f/1000000000L)+" "+this.hashCode()+" "+c.hashCode()+" ev. Anim switch from " + c.getCurrentAnimation() + " to "
 //					+ anim.getName());
 			String tAnimation = transitions.getTransition(
 					c.getCurrentAnimation(), anim.getName());
 			Animation tAnim = null;
 			if (tAnimation != null) {
-				log.finest("Transition first :" + tAnimation);
+				log.fine(this+" Transition first :" + tAnimation);
 				tAnim = getAnimation();
 				tAnim.setName(tAnimation);
 				tAnim.setBlendTime(anim.getBlendTime());
@@ -237,7 +246,7 @@ log.finer("callAction:"+action);
 			}
 			c.setAnimation(anim, tAnim);
 		} else
-			log.severe("Channel is null on animation " + anim.getName());
+			log.severe(this+" Channel is null on animation " + anim.getName());
 	}
 	
 //CHANNEL CALLS
