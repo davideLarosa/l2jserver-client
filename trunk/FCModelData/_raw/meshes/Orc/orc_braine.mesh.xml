@@ -1,0 +1,34 @@
+<mesh>
+  <submeshes>
+    <submesh material="attachments" name="orc_braine" usesharedvertices="false" use32bitindexes="false">
+      <faces count="1">
+        <face v1="0" v2="1" v3="2" />
+      </faces>
+      <geometry vertexcount="3">
+        <vertexbuffer positions="true" normals="true" colours_diffuse="false" texture_coords="1" texture_coords_dimensions_0="2" >
+          <vertex>
+            <position x="-0.015339" y="-0.368568" z="0.727194" />
+            <normal x="-0.585205" y="0.781583" z="-0.216015" />
+            <texcoord u="0.855550" v="0.020914" />
+          </vertex>
+          <vertex>
+            <position x="0.007452" y="-0.351644" z="0.727224" />
+            <normal x="-0.585205" y="0.781583" z="-0.216015" />
+            <texcoord u="0.861654" v="0.022624" />
+          </vertex>
+          <vertex>
+            <position x="0.007452" y="-0.355906" z="0.711931" />
+            <normal x="-0.585205" y="0.781583" z="-0.216015" />
+            <texcoord u="0.867269" v="0.010661" />
+          </vertex>
+        </vertexbuffer>
+      </geometry>
+      <boneassignments>
+        <vertexboneassignment vertexindex="0" boneindex="6" weight="1.0" />
+        <vertexboneassignment vertexindex="1" boneindex="6" weight="1.0" />
+        <vertexboneassignment vertexindex="2" boneindex="6" weight="1.0" />
+      </boneassignments>
+    </submesh>
+  </submeshes>
+	<skeletonlink name="std_1.0.skeleton"/>
+</mesh>

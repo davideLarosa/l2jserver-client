@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import com.jme3.animation.SkeletonControl;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bounding.BoundingVolume;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -12,18 +14,22 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.SkeletonDebugger;
+import com.jme3.scene.debug.WireBox;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Line;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.controller.SceneManager;
 import com.l2client.util.PartSetManager;
 
 
-public class TestEndlessModels extends ExtendedApplication implements ActionListener {
+public class TestEndlessModelsOpt extends ExtendedApplication implements ActionListener {
 
 	PartSetManager man = PartSetManager.get();
 	
@@ -41,8 +47,14 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
 	Node skeletons = new Node("skeletons");
 	
 	private Material matWireframe;
+
+	private Material matBones;
 	
     public void simpleInitApp() {
+        matBones = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matBones.getAdditionalRenderState().setWireframe(true);
+        matBones.setColor("Color", ColorRGBA.Red);
+        matBones.getAdditionalRenderState().setDepthTest(false);
     	
         matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWireframe.setColor("Color", ColorRGBA.Green);
@@ -74,6 +86,9 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
         
         inputManager.addMapping("next_entity", new KeyTrigger(KeyInput.KEY_ADD));
         inputManager.addMapping("prev_entity", new KeyTrigger(KeyInput.KEY_SUBTRACT));
+     
+        flyCam.setEnabled(false);
+        inputManager.setCursorVisible(true);
     }
     
 
@@ -97,15 +112,41 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
      */
     private void setupScene() {
     	addModel();
+//    	addReferences();
     }
  
     @Override
     public void update() {
     	if(renderDebug && bboxes.getChildren().size()<=0){
+    		Vector3f origin = cam.getWorldCoordinates(
+    				inputManager.getCursorPosition(), 0.0f);
+    		Vector3f direction = cam.getWorldCoordinates(
+    				inputManager.getCursorPosition(), 0.3f);
+    		direction.subtractLocal(origin).normalizeLocal();
+    		
+    		Line li = new Line(origin.clone(), origin.add(direction.mult(30f)));
+//    		li.setLineWidth(3f);
+    		Geometry g = new Geometry(null, li);
+			g.setMaterial(matWireframe);
+			bboxes.attachChild(g);
+
+    		Ray ray = new Ray(origin, direction);
+    		CollisionResults results = new CollisionResults();
+
+    		rootNode.collideWith(ray, results);
+
+    		if (results.size() > 0) {
+    			for (CollisionResult res : results) {
+    				System.out.println("Picking: "+res.getGeometry());
+    			}
+    		} else
+    			System.out.println("Picking: no results");
     		addBBoxes(rootNode);
     		addSkeletons();
+            flyCam.setEnabled(true);
     	}
     	else if (!renderDebug && bboxes.getChildren().size()>0){
+    		flyCam.setEnabled(false);
     		removeBBoxesFromRoot();
     		removeSkeletons();
     	}
@@ -114,20 +155,18 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
     }
  
     private void removeBBoxesFromRoot() {
-    	System.out.println("remove boxes");
 		bboxes.detachAllChildren();
 	}
 
 
 	private void addBBoxes(Node n) {
-		System.out.println("add boxes");
 		for(Spatial s : n.getChildren()){
 			if(s instanceof Geometry){
 				Node a = s.getParent();
 				if(a==null)return;
 				BoundingVolume bound = ((Geometry) s).getModelBound();
 				if(bound instanceof BoundingBox) {
-				Box b = new Box(bound.getCenter(), ((BoundingBox) bound).getXExtent(), ((BoundingBox) bound).getYExtent(), ((BoundingBox) bound).getZExtent());
+				WireBox b = new WireBox(((BoundingBox) bound).getXExtent(), ((BoundingBox) bound).getYExtent(), ((BoundingBox) bound).getZExtent());
 				Geometry g = new Geometry(null, b);
 				g.setLocalTransform(s.getWorldTransform());
 				g.setMaterial(matWireframe);
@@ -145,11 +184,7 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
 			SkeletonControl con = n.getControl(SkeletonControl.class);
 			if(con != null) {
 		        SkeletonDebugger skeletonDebug = new SkeletonDebugger("skeletondebug", con.getSkeleton());
-		        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-		        mat.getAdditionalRenderState().setWireframe(true);
-		        mat.setColor("Color", ColorRGBA.Red);
-		        mat.getAdditionalRenderState().setDepthTest(false);
-		        skeletonDebug.setMaterial(mat);
+		        skeletonDebug.setMaterial(matBones);
 		        n.attachChild(skeletonDebug);
 			}
 		}
@@ -168,15 +203,17 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
     
     protected void addModel(){   	
 
-    	Node n = Assembler2.getModel3(templates[template_index]);
-    	
+    	Node n = Assembler2.getModel4(templates[template_index],true, true);
+ 
     	if(n != null){
-//    		n.removeControl(JMEAnimationController.class);
-//    		n.removeControl(SkeletonControl.class);
+    		n.setModelBound(new BoundingBox());
+    		n.updateGeometricState();
+    		n.updateModelBound();
     		nodes.add(n);
     		currentNode++;
     		int x = currentNode;
     		int y = 2+((currentNode%2)*-1);//*currentNode;
+//    		n.setLocalTranslation(x, 0.0f, y);
     		n.setLocalTranslation(x, 0.0f, y);
     		rootNode.attachChild(n);
     	}
@@ -200,7 +237,20 @@ public class TestEndlessModels extends ExtendedApplication implements ActionList
      * Entry point
      */
     public static void main(String[] args) {
-    	TestEndlessModels app = new TestEndlessModels();
+    	TestEndlessModelsOpt app = new TestEndlessModelsOpt();
         app.start();
+    }
+    
+    private void addReferences(){
+    	Box b1 = new Box(new Vector3f(1f,0f,1f), .5f, .5f, .5f);
+    	Geometry g1 = new Geometry("1,0,0",b1);
+    	g1.setMaterial(matBones);
+    	rootNode.attachChild(g1);
+    	
+    	Box b2 = new Box(new Vector3f(1f,0f,0f), .5f, .5f, .5f);
+    	Geometry g2 = new Geometry("0,0,1",b2);
+    	g2.setMaterial(matWireframe);
+    	rootNode.attachChild(g2);
+    	
     }
 }
