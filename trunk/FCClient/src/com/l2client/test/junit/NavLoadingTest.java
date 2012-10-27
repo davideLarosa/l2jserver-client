@@ -10,8 +10,6 @@ import com.jme3.export.binary.BinaryExporter;
 import com.jme3.export.binary.BinaryImporter;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.system.JmeSystem;
-import com.jme3.system.Timer;
 import com.l2client.navigation.NavigationMesh;
 
 public class NavLoadingTest extends TestCase {

@@ -1,7 +1,6 @@
 package com.l2client.gui.dialogs;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.HashMap;
 
@@ -30,9 +29,9 @@ import com.l2client.gui.dnd.DragAction;
 * LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
 */
 public class SkillAndActionsJPanel extends javax.swing.JPanel {
-	private static String BASIC_PANE= "Basic";
-	private static String SOCIAL_PANE= "Social";
-	private static String ADVANCED_PANE= "Advanced";
+	private static String BASIC_PANE= "basic";
+	private static String SOCIAL_PANE= "social";
+	private static String ADVANCED_PANE= "advanced";
 	private JTabbedPane jTabbedPane1;
 	private JScrollPane jScrollPane1;
 	private JScrollPane jScrollPane2;
@@ -63,14 +62,14 @@ public class SkillAndActionsJPanel extends javax.swing.JPanel {
 	
 	private void initGUI() {
 		try {
-			setPreferredSize(new Dimension(400, 300));
+			this.setPreferredSize(new java.awt.Dimension(395, 300));
 			this.setLayout(null);
 			{
 				jTabbedPane1 = new JTabbedPane();
 				this.add(jTabbedPane1);
 				paneLayout = new FlowLayout();
 				paneLayout.setAlignment(FlowLayout.LEFT);
-				jTabbedPane1.setBounds(0, 12, 395, 291);
+				jTabbedPane1.setBounds(0, -1, 395, 304);
 				{
 					jScrollPane1 = new JScrollPane();
 					jTabbedPane1.addTab("Basic", null, jScrollPane1, null);
@@ -105,7 +104,7 @@ public class SkillAndActionsJPanel extends javax.swing.JPanel {
 				jButton1 = new JButton();
 				this.add(jButton1);
 				jButton1.setText("x");
-				jButton1.setBounds(380, -1, 20, 20);
+				jButton1.setBounds(373, -1, 20, 20);
 				jButton1.setFont(new java.awt.Font("Tahoma",0,6));
 				jButton1.setMaximumSize(new java.awt.Dimension(14, 14));
 				jButton1.setIconTextGap(1);
@@ -115,12 +114,14 @@ public class SkillAndActionsJPanel extends javax.swing.JPanel {
 		}
 	}
 	
-	public void addUsable(BaseUsable[] useArr, JMEDesktop desktop){
-		for(BaseUsable use : useArr){
-		DragAction d = new DragAction(desktop, use);
-		d.setPreferredSize(new java.awt.Dimension(32, 32));
-		d.setContentAreaFilled(true);
-		addComponentToPane(d, use.getCategory());
+	public void addUsable(BaseUsable[] useArr, JMEDesktop desktop) {
+		for (BaseUsable use : useArr) {
+			if (use != null) {
+				DragAction d = new DragAction(desktop, use);
+				d.setPreferredSize(new java.awt.Dimension(32, 32));
+				d.setContentAreaFilled(true);
+				addComponentToPane(d, use.getCategory());
+			}
 		}
 	}
 

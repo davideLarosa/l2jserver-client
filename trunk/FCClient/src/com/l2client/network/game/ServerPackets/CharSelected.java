@@ -1,5 +1,6 @@
 package com.l2client.network.game.ServerPackets;
 
+import com.l2client.app.Singleton;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.EntityData;
 import com.l2client.network.game.ClientPackets.EnterWorld;
@@ -11,18 +12,16 @@ import com.l2client.network.game.ClientPackets.EnterWorld;
 //FIXME move EnterWorld request to own action
 public class CharSelected extends GameServerPacket {
 	public void handlePacket() {
-		log.fine("Read from Server "
-				+ this.getClass().getSimpleName());
-
-		EntityData ch = getClientFacade().getCharHandler()
+		log.fine("Read from Server "+this.getClass().getSimpleName());
+		EntityData ch = _client.getCharHandler()
 				.getSelectedChar();
 		// FIXME needed or is it just the same stuff from char selectioninfopackages
 		ch.setName(readS());
 		ch.setCharId(readD());
 		ch.setTitle(readS());
 		int id = readD();
-		if (id != getClientFacade().sessionId)
-			getClientFacade().sessionId = id;
+		if (id != _client.sessionId)
+			_client.sessionId = id;
 
 		readD();
 		readD();
@@ -47,6 +46,8 @@ public class CharSelected extends GameServerPacket {
 		readD();
 		readD();
 		// rest ignored
-		getClientFacade().sendPacket(new EnterWorld());
+		
+		//TODO RequestManorList, RequestAllFortressInfo, RequestKeyMapping
+		_client.sendGamePacket(new EnterWorld());
 	}
 }

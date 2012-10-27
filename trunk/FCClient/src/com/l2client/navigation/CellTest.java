@@ -1,8 +1,8 @@
 package com.l2client.navigation;
 
-import com.jme3.math.Vector3f;
-
 import junit.framework.TestCase;
+
+import com.jme3.math.Vector3f;
 
 public class CellTest extends TestCase {
 

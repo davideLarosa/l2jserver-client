@@ -11,7 +11,7 @@ public class ExtendedApplication extends SimpleApplication {
 
 	public ExtendedApplication(){
 		showSettings = false;
-		this.assetManager = AssetManager.getInstance().getJmeAssetMan();
+		this.assetManager = AssetManager.get().getJmeAssetMan();
 	}
 
 	@Override

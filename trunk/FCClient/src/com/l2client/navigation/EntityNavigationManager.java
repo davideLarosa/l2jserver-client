@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.jme3.math.Vector3f;
+import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
-import com.l2client.component.PositioningSystem;
 import com.l2client.controller.area.IArea;
 import com.l2client.controller.entity.ISpatialPointing;
 import com.l2client.navigation.Path.WAYPOINT;
@@ -71,7 +71,7 @@ public class EntityNavigationManager {
 		if(meshes.size()>25)
 			log.warning("NavigationManager attachMesh has more meshes than expected (> 25) , is a remove leak present?");
 
-		ISpatialPointing [] ents = PositioningSystem.get().getEntitiesAt(m.getPosition().x, m.getPosition().z, IArea.TERRAIN_SIZE_HALF);
+		ISpatialPointing [] ents = Singleton.get().getPosSystem().getEntitiesAt(m.getPosition().x, m.getPosition().z, IArea.TERRAIN_SIZE_HALF);
 		if(ents != null && ents.length>0)
 			positionEntitiesOnMesh(ents, m);
 	}

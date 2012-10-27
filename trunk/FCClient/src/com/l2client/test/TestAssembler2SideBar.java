@@ -12,6 +12,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.l2client.app.Assembler;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.app.Singleton;
 import com.l2client.gui.AssemblerSideBar;
 import com.l2client.util.PartSetManager;
 
@@ -20,7 +21,7 @@ public class TestAssembler2SideBar extends ExtendedApplication {
 
     private Assembler assembler;
 	private double time;
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man = Singleton.get().getPartManager();
 
     public void simpleInitApp() {
     	

@@ -9,13 +9,16 @@ import com.l2client.controller.area.SimpleTerrainManager;
 import com.l2client.controller.entity.EntityManager;
 import com.l2client.dao.IDAO;
 import com.l2client.dao.csv.CSVDatastoreDAO;
+import com.l2client.gui.ActionManager;
 import com.l2client.gui.CharacterController;
 import com.l2client.gui.GameController;
 import com.l2client.gui.GuiController;
 import com.l2client.gui.InputController;
+import com.l2client.model.network.ClientFacade;
 import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.util.AnimationManager;
 import com.l2client.util.PartSetManager;
+import com.l2client.util.SkeletonManger;
 
 public class Singleton {
 
@@ -36,6 +39,9 @@ public class Singleton {
 	private PositioningSystem posSystem;
 	private AnimationSystem animSystem;
 	private AssetManager assetManager;
+	private SkeletonManger skeletonManager;
+	private ActionManager actionManager;
+	private ClientFacade client;
 	
 	private Singleton(){
 	}
@@ -49,14 +55,15 @@ public class Singleton {
 	}
 	
 	public void init(){
-		charController = CharacterController.getInstance();
+    	assetManager = AssetManager.get();//this one goes first
+		charController = CharacterController.get();
 		dataManager = CSVDatastoreDAO.get();//DatastoreDAO.get();
 		dataManager.init();
 		sceneManager = SceneManager.get();
 		partManager = PartSetManager.get();
 		inputController = InputController.get();
-		guiController = GuiController.getInstance();
-		gameController = GameController.getInstance();
+		guiController = GuiController.get();
+		gameController = GameController.get();
 //		soundCon = SoundController.getInstance();
 		terrainManager = SimpleTerrainManager.get();
 		terrainManager.initialize();
@@ -67,16 +74,27 @@ public class Singleton {
     	jmeSystem = JmeUpdateSystem.get();
     	posSystem = PositioningSystem.get();
     	animSystem = AnimationSystem.get();
-    	assetManager = AssetManager.getInstance();
+    	skeletonManager = SkeletonManger.get();
+    	client = ClientFacade.get();
+    	actionManager = ActionManager.getInstance();
+    	actionManager.loadActions();
 	}
 	
 	public void finit(){
+    	guiController.finit();
     	gameController.finish();
     	dataManager.finit();
     	assetManager.shutdown();
+
 //    	soundCon.cleanup();	
 	}
 	
+	/**
+	 * @return the actionManager
+	 */
+	public ActionManager getActionManager(){
+		return actionManager;
+	}
 	
 	/**
 	 * @return the charController
@@ -181,6 +199,14 @@ public class Singleton {
 	 */
 	public AssetManager getAssetManager() {
 		return assetManager;
+	}
+
+	public SkeletonManger getSkeletonManager() {
+		return skeletonManager;
+	}
+	
+	public ClientFacade getClientFacade(){
+		return client;
 	}
 
 }

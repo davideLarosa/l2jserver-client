@@ -10,25 +10,20 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.control.Control;
-import com.l2client.component.AnimationSystem;
+import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
-import com.l2client.component.JmeUpdateSystem;
 import com.l2client.component.L2JComponent;
-import com.l2client.component.PositioningSystem;
+import com.l2client.component.LoggingComponent;
 import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.TargetComponent;
 import com.l2client.component.VisualComponent;
-import com.l2client.controller.area.IArea;
-import com.l2client.controller.area.SimpleTerrainManager;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
-import com.l2client.gui.GameController;
 import com.l2client.model.jme.VisibleModel;
-import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.model.network.EntityData;
 import com.l2client.model.network.NewCharSummary;
 import com.l2client.network.game.ClientPackets.CharacterSelect;
-import com.l2client.network.game.ClientPackets.MoveBackwardToLocation;
 
 /**
  * Handler for player character related tasks. Stores the currently selected character, the available characters, handles creation/deletion, etc. of existing chars
@@ -59,7 +54,7 @@ public class PlayerCharHandler {
     //TODO move this out to an own action?
     public void onCharSelected(){
     	if(this.selectedObjectId>=0)
-    		ClientFacade.get().sendPacket(new CharacterSelect(selected));
+    		Singleton.get().getClientFacade().sendGamePacket(new CharacterSelect(selected));
     	else
     		if(this.charSelections.size()>0)
     			log.warning("Trying to send a character selection to sever, but no characters selected so far");
@@ -200,7 +195,9 @@ public class PlayerCharHandler {
 					+ info.getX() + "," + info.getY() + "," + info.getZ());
 			selected.updateFrom(info);
 			selectedObjectId = selected.getObjectId();
-			GameController.getInstance().doEnterWorld();
+			//TODO check doEnterWorld could be called after charSelected, not here as this will come several times, and perhaps for other players too?
+			//FIXME second time we land here all guis are gone!?!???!!!
+			Singleton.get().getGameController().doEnterWorld();
 			return true;				
 		} else {
 			log.severe("No char selected but received a CharSelectInfopackage");
@@ -223,41 +220,26 @@ public class PlayerCharHandler {
 			ret[i] = charSelections.get(i).getObjectId();
 		return ret;
 	}
-
-
-	/**
-	 * Send a request to move the player to the backend
-	 * @param x
-	 * @param y
-	 * @param z
-	 */
-	public void requestMoveToAction(float x, float y, float z) {
-		// get current pos
-		EntityData e = getSelectedChar();
-		SimplePositionComponent pos = (SimplePositionComponent) EntityManager.get().getComponent(e.getObjectId(), SimplePositionComponent.class);
-		if(pos != null){
-		//revert jme uses y as up, l2j uses z as up, so we change y and z here
-		ClientFacade.get().sendPacket(
-				new MoveBackwardToLocation(x, z, /*put the char a bit above the current height just a fake*/ ServerValues
-						.getClientCoord(e.getServerZ() + 8), pos.currentPos.x, pos.currentPos.y, pos.currentPos.z, false));		
-//						.getClientCoord(e.getServerZ() + 8), e.getX(), e.getY(), e.getZ(), false));
-		log.info("Player "+e.getObjectId()+ " requests to move to:"+x+" "+z+" "+ServerValues
-						.getClientCoord(e.getServerZ() + 8)+" from:"+pos.currentPos.x+" "+pos.currentPos.y+" "+pos.currentPos.z);
-		} else {
-			log.severe("Player "+e.getObjectId()+"is missing SimplePositioningComponent!");
-		}
-	}
 	
 	//FIXME this is a copy from NPCHandler move this out to the entity Manager !!
 	public Entity createPCComponents(EntityData e, VisibleModel visible) {
 		
-		
-		final Entity ent = EntityManager.get().createEntity(e.getObjectId());
+		EntityManager em = Singleton.get().getEntityManager();
+		final Entity ent = em.createEntity(e.getObjectId());
 		SimplePositionComponent pos = new SimplePositionComponent();
 		L2JComponent l2j = new L2JComponent();
 		VisualComponent vis = new VisualComponent();
 		EnvironmentComponent env = new EnvironmentComponent();
+		TargetComponent tgt = new TargetComponent();
+		LoggingComponent log = new LoggingComponent();
 		
+		em.addComponent(ent.getId(), env);
+		em.addComponent(ent.getId(), l2j);
+		em.addComponent(ent.getId(), pos);		
+		em.addComponent(ent.getId(), vis);
+		em.addComponent(ent.getId(), tgt);
+		em.addComponent(ent.getId(), log);
+				
 		//done here extra as in update values will be left untouched
 		pos.startPos.set(e.getX(), e.getY(), e.getZ());
 		pos.currentPos.set(pos.startPos);
@@ -272,24 +254,12 @@ public class PlayerCharHandler {
 		visible.attachVisuals();
 		
 		l2j.isPlayer  = true;
+		em.setPlayerId(ent.getId());
 		l2j.l2jEntity = e;
 
 		ent.setLocalTranslation(pos.currentPos);
 		ent.setLocalRotation(new Quaternion().fromAngleAxis(e.getHeading(), Vector3f.UNIT_Y));
 		ent.attachChild(visible);
-		
-		EntityManager.get().addComponent(ent.getId(), env);
-		EntityManager.get().addComponent(ent.getId(), l2j);
-		EntityManager.get().addComponent(ent.getId(), pos);		
-		EntityManager.get().addComponent(ent.getId(), vis);
-
-		
-		
-		PositioningSystem.get().addComponentForUpdate(pos);
-		JmeUpdateSystem.get().addComponentForUpdate(pos);
-		AnimationSystem.get().addComponentForUpdate(env);
-
-
 		
 		//hook up of the terrain swapping @see SimpleTerrainManager
 		ent.addControl(new AbstractControl(){
@@ -301,10 +271,7 @@ public class PlayerCharHandler {
 
 			@Override
 			protected void controlUpdate(float tpf) {
-				//FIXME  move into SimpleTerrainManager
-				int x = (int)ent.getLocalTranslation().x/IArea.TERRAIN_SIZE;
-				int z = (int)ent.getLocalTranslation().z/IArea.TERRAIN_SIZE;
-				SimpleTerrainManager.get().setCenter(x, z);
+				Singleton.get().getTerrainManager().update(ent.getLocalTranslation());
 			}
 
 			@Override
@@ -312,6 +279,13 @@ public class PlayerCharHandler {
 			}}
 
 		);
+
+		Singleton.get().getPosSystem().addComponentForUpdate(pos);
+		Singleton.get().getPosSystem().addComponentForUpdate(log);
+		Singleton.get().getJmeSystem().addComponentForUpdate(pos);
+		Singleton.get().getJmeSystem().addComponentForUpdate(tgt);
+		Singleton.get().getAnimSystem().addComponentForUpdate(env);
+		
 		
 		return ent;
 	}

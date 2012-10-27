@@ -11,7 +11,7 @@ public class RequestServerList extends LoginClientPacket {
 	 * @param sessionId	just the current session id
 	 */
 	public RequestServerList(int ok1, int ok2) {
-		System.out.println("C sending " + this.getClass() + " packet");
+//		System.out.println("C sending " + this.getClass() + " packet");
 		writeC(0x05);
 		writeD(ok1);
 		writeD(ok2);

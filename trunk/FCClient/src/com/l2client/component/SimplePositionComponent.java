@@ -18,4 +18,5 @@ public class SimplePositionComponent implements Component {
 	public float heading = 0;
 	// in radians
 	public float targetHeading = heading;
+	public boolean teleport = true;
 }

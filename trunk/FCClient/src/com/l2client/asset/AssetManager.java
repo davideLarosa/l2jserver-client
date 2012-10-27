@@ -32,7 +32,7 @@ public class AssetManager {
 		jmeAssetMan.registerLocator("textures/entity/", "com.jme3.asset.plugins.ClasspathLocator");
 	}
 
-	public static AssetManager getInstance() {
+	public static AssetManager get() {
 		if (AssetManager.instance != null)
 			return AssetManager.instance;
 		else {

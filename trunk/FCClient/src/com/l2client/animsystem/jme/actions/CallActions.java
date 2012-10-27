@@ -10,6 +10,10 @@ public enum CallActions {
 	Celebrate,
 	DefaultAttack,
 	Defend,
+	Die,
+	Retreat,
+	Revive,
+	StopMove,
 	Taunt,
 	Wounded;
 }

@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 
 import com.jme3.animation.AnimControl;
-import com.jme3.scene.control.AbstractControl;
 
 /**
 * This code was edited or generated using CloudGarden's Jigloo

@@ -37,6 +37,7 @@ import java.util.Random;
 import junit.framework.TestCase;
 
 import com.jme3.math.Vector3f;
+import com.l2client.app.Singleton;
 import com.l2client.component.Component;
 import com.l2client.component.ComponentSystem;
 import com.l2client.component.PositioningSystem;
@@ -82,7 +83,7 @@ public class ComponentSystemTest extends TestCase {
 		sys.update(0.01f);
 		assertEquals(5, count);
 		
-		PositioningSystem ps = PositioningSystem.get();
+		PositioningSystem ps = Singleton.get().getPosSystem();
 		SimplePositionComponent pos = new SimplePositionComponent();
 		pos.currentPos = new Vector3f(10,0,0);
 		pos.startPos.set(pos.currentPos);

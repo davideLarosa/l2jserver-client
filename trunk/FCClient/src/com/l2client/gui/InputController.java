@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 import com.jme3.input.InputManager;
-import com.jme3.system.JmeSystem;
 import com.l2client.gui.actions.BaseUsable;
 
 /**

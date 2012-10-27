@@ -41,7 +41,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
-import com.l2client.asset.AssetManager;
+import com.l2client.app.Singleton;
 import com.l2client.controller.SceneManager;
 import com.l2client.controller.area.AreaTerrainManager;
 import com.l2client.navigation.EntityNavigationManager;
@@ -65,11 +65,11 @@ public class TestRegion3 extends SimpleApplication {
     @Override
     public void simpleInitApp() {
    	
-		assetManager = AssetManager.getInstance().getJmeAssetMan();
+		assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
 
-    	em = EntityNavigationManager.get();
+    	em = Singleton.get().getNavManager();
     	am = AreaTerrainManager.get();
-    	sm = SceneManager.get();
+    	sm = Singleton.get().getSceneManager();
     	rootNode.attachChild(debugNodes);
 
         DirectionalLight light = new DirectionalLight();
@@ -110,7 +110,7 @@ public class TestRegion3 extends SimpleApplication {
 
     		t=0f;
 System.out.println("Cam@"+cam.getLocation());    
-//System.out.println("EntityNavigationManger:"+EntityNavigationManager.get().toString());
+//System.out.println("EntityNavigationManger:"+Singleton.get().getNavManager().toString());
     	}
     }
 }

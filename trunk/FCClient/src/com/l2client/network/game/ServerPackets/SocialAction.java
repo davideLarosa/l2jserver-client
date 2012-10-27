@@ -1,7 +1,7 @@
 package com.l2client.network.game.ServerPackets;
 
 import com.l2client.animsystem.jme.actions.CallActions;
-import com.l2client.component.AnimationSystem;
+import com.l2client.app.Singleton;
 
 /**
  * 		writeC(0x27);
@@ -60,15 +60,16 @@ public class SocialAction extends GameServerPacket {
 
 	@Override
 	public void handlePacket() {
+		log.finest("Read from Server "+this.getClass().getSimpleName());
 		int entityId = readD();
 		int action = readD();
 
 		switch (action) {
 		case 2: //Greetings
-			AnimationSystem.get().callAction(CallActions.Taunt, entityId);
+			Singleton.get().getAnimSystem().callAction(CallActions.Taunt, entityId);
 			break;
 		case 3: // Victory
-			AnimationSystem.get().callAction(CallActions.Celebrate, entityId);
+			Singleton.get().getAnimSystem().callAction(CallActions.Celebrate, entityId);
 			break;
 		default: // nothing
 			log.finer("Social action not implemented for id:" + action);

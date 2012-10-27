@@ -12,16 +12,12 @@ import com.l2client.model.network.EntityData;
 public final class UserInfo extends GameServerPacket {
 	@Override
 	public void handlePacket() {
-		log.fine("Read from Server " + this.getClass().getSimpleName());
-
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		EntityData p = new EntityData();
 		int x = readD();
 		int y = readD();
 		int z = readD();
-		log.fine("User at " + x + "," + z + "," + y + " placed in world at "
-				+ ServerValues.getClientCoord(x) + ","
-				+ ServerValues.getClientCoord(z) + ","
-				+ ServerValues.getClientCoord( y));
+
 		p.setX(ServerValues.getClientCoord(x));
 		//reverted jme uses Y as up
 		p.setY(ServerValues.getClientCoord(z));
@@ -30,6 +26,10 @@ public final class UserInfo extends GameServerPacket {
 
 		readD();// airshipID
 		p.setObjectId(readD());
+		log.finer("User "+p.getObjectId()+" at " + x + "," + z + "," + y + " placed in world at "
+				+ ServerValues.getClientCoord(x) + ","
+				+ ServerValues.getClientCoord(z) + ","
+				+ ServerValues.getClientCoord( y));
 		p.setName(readS());
 		p.setRace(readD());
 		p.setSex(readD());
@@ -251,6 +251,6 @@ public final class UserInfo extends GameServerPacket {
 
 //		readD();//territory
 
-		getClientFacade().getCharHandler().updateUserInfo(p);
+		_client.getCharHandler().updateUserInfo(p);
 	}
 }

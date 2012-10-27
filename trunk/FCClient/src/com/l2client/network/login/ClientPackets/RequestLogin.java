@@ -36,7 +36,7 @@ public class RequestLogin extends LoginClientPacket {
 	 */
 	public RequestLogin(String user, char[] password, byte[] key)
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
-		System.out.println("C sending " + this.getClass() + " packet");
+//		System.out.println("C sending " + this.getClass() + " packet");
 		byte[] crypted = null;
 		byte[] raw = getArray(user, password);
 		BigInteger modulus = new BigInteger(ByteUtils.unscrambleModulus(key));

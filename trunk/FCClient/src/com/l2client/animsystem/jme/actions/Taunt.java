@@ -2,8 +2,8 @@ package com.l2client.animsystem.jme.actions;
 
 import com.l2client.animsystem.Action;
 import com.l2client.animsystem.Animation;
-import com.l2client.animsystem.Mediator;
 import com.l2client.animsystem.Channel.Channels;
+import com.l2client.animsystem.Mediator;
 import com.l2client.animsystem.jme.input.Direction;
 
 /**
@@ -21,7 +21,6 @@ public class Taunt extends Action {
 				ret.setLevel(1);
 				ret.setBlendTime(0.2f);
 				ret.setLooping(false);
-				ret.setKeep(1.0f);
 				ret.setName("taunt");
 				return ret;
 			}

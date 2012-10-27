@@ -1,6 +1,5 @@
 package com.l2client.model.jme;
 
-import com.jme3.bounding.BoundingBox;
 import com.jme3.scene.Node;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.jme.JMEAnimationController;
@@ -9,8 +8,6 @@ import com.l2client.app.Singleton;
 import com.l2client.model.network.NewCharSummary;
 
 public class NPCModel extends VisibleModel {
-
-	private static final long serialVersionUID = 1L;
 
 	public NPCModel(NewCharSummary sel) {
 		super(sel);
@@ -25,19 +22,16 @@ public class NPCModel extends VisibleModel {
 			Node n = null;
 			String gamemodel = Singleton.get().getDataManager().getNpcGameModel(charSelection.templateId);
 			if(gamemodel != null && gamemodel.length() > 0)
-				n = Assembler2.getModel3(gamemodel);
+				n = Assembler2.getModel4(gamemodel, true, true);
 			else {
-				logger.warning("No game model found in npc table for entity "+charSelection.templateId);
+				logger.warning("No game model found in npc table for entity:"+charSelection.templateId+" name:"+Singleton.get().getDataManager().getNpcName(charSelection.templateId));
 				n = super.createVisuals();
 			}
 
 			
 			if (n != null) {
-//				//FIXME modelconverter should already have set this one, this is not the case -> NPE
-				n.setModelBound(new BoundingBox());
-				n.updateModelBound();
-				n.updateGeometricState();
 				vis = n; //MeshCloner.cloneMesh(n);
+				vis.setName(name);
 //				vis.setLocalRotation(new Quaternion().fromAngleAxis(FastMath.HALF_PI, Vector3f.UNIT_X));
 
 				JMEAnimationController animControl = (JMEAnimationController) vis

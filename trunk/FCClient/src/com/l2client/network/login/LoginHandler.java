@@ -140,6 +140,8 @@ public abstract class LoginHandler extends BaseLoginHandler {
 	 */
 	public void sendPacket(LoginClientPacket pack) {
 
+		log.info("Sending "+pack.getClass().getSimpleName()+" to LoginServer");
+		
 		int size = pack.getLength();
 
 		size += (8 - (size % 8));

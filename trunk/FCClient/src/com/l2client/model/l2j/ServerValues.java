@@ -26,6 +26,7 @@ public class ServerValues {
 		return (int)(invertHeading*f*FastMath.RAD_TO_DEG);
 	}
 	
+	
 	/**
 	 * Scale a value to client heading in radians
 	 * @param i an int in server heading

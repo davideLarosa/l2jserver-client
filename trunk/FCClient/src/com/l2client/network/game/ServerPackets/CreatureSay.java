@@ -13,8 +13,7 @@ public class CreatureSay extends GameServerPacket
 	 */
 	public  void handlePacket()
 	{
-		log.fine("Read from Server "+this.getClass().getSimpleName());
-
+		log.finest("Read from Server "+this.getClass().getSimpleName());
 		int objectID = readD();
 		int type = readD();
 		String cName = "";
@@ -37,6 +36,6 @@ public class CreatureSay extends GameServerPacket
 //			}
 //		}
 		
-		getClientFacade().getChatHandler().receiveMessage(objectID,type,cName,msg);
+		_client.getChatHandler().receiveMessage(objectID,type,cName,msg);
 	}
 }

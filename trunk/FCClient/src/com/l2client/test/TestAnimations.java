@@ -4,10 +4,8 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import com.jme3.animation.AnimControl;
 import com.jme3.light.AmbientLight;
@@ -20,9 +18,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.swingGui.JMEDesktop;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
+import com.l2client.app.Singleton;
 import com.l2client.gui.AnimationSwitchSideBar;
-import com.l2client.gui.InputController;
-import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.model.PartSet;
 import com.l2client.util.PartSetManager;
 
@@ -31,7 +28,7 @@ public class TestAnimations extends ExtendedApplication {
 
 	int MAX_NODES = 10;
 	
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man = Singleton.get().getPartManager();
 	
 	Node[] nodes = new Node[MAX_NODES];
 	

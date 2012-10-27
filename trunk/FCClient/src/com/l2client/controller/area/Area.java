@@ -3,10 +3,8 @@ package com.l2client.controller.area;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
+import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
-import com.l2client.asset.AssetManager;
-import com.l2client.controller.SceneManager;
-import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavigationMesh;
 
 public class Area {
@@ -48,11 +46,11 @@ public class Area {
 			if(baseAsset != null && baseAsset instanceof Spatial){
 				//FIXME just for dummy tests
 				Spatial n = (Spatial)baseAsset;
-				Material mat = new Material(AssetManager.getInstance().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
+				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
 		        mat.setColor("Color", ColorRGBA.randomColor());
 		        n.setMaterial(mat);
 		        n.updateModelBound();
-				SceneManager.get().changeTerrainNode(n,0);
+				Singleton.get().getSceneManager().changeTerrainNode(n,0);
 System.out.println("DeferredTerrainAsset afterLoad of:"+this.name);
 			}
 		}
@@ -61,7 +59,7 @@ System.out.println("DeferredTerrainAsset afterLoad of:"+this.name);
 		public void beforeUnload(){
 			if(baseAsset != null && baseAsset instanceof Spatial){
 System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
-				SceneManager.get().changeTerrainNode((Spatial)baseAsset,1);
+				Singleton.get().getSceneManager().changeTerrainNode((Spatial)baseAsset,1);
 				baseAsset = null;
 			}
 		}
@@ -74,14 +72,14 @@ System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
 		@Override
 		public void afterLoad(){
 			if(baseAsset != null && baseAsset instanceof NavigationMesh )
-				EntityNavigationManager.get().attachMesh((NavigationMesh) baseAsset);
+				Singleton.get().getNavManager().attachMesh((NavigationMesh) baseAsset);
 //			System.out.println("NavAsset afterLoad of:"+this.name);
 		}
 		
 		@Override
 		public void beforeUnload(){
 			if(baseAsset != null && baseAsset instanceof NavigationMesh ){
-				EntityNavigationManager.get().detachMesh((NavigationMesh) baseAsset);
+				Singleton.get().getNavManager().detachMesh((NavigationMesh) baseAsset);
 				baseAsset = null;
 //				System.out.println("NavAsset beforeUnload of:"+this.name);
 			}
@@ -90,11 +88,11 @@ System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
 	
 	void load(){
 		nav = new NavAsset(areaPath+"nav.jnv");
-		AssetManager.getInstance().loadAsset(nav, true);
+		Singleton.get().getAssetManager().loadAsset(nav, true);
 		base = new DeferredTerrainAsset(areaPath+"base.j3o");
-		AssetManager.getInstance().loadAsset(base, false);
+		Singleton.get().getAssetManager().loadAsset(base, false);
 		detail1 = new DeferredTerrainAsset(areaPath+"detail1.j3o");
-		AssetManager.getInstance().loadAsset(detail1, false);
+		Singleton.get().getAssetManager().loadAsset(detail1, false);
 		
 		/*
 			Quad q = new Quad(1f * TERRAIN_SIZE, 1f * TERRAIN_SIZE);
@@ -103,7 +101,7 @@ System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
 			n.setLocalTranslation(x * TERRAIN_SIZE, 0f,y * TERRAIN_SIZE);
 			ret.patch = n;
 			n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
-			SceneManager.get().changeTerrainNode(n,0);
+			Singleton.get().getSceneManager().changeTerrainNode(n,0);
 		 * */
 	}
 

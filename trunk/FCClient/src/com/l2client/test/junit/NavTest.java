@@ -35,6 +35,7 @@ package com.l2client.test.junit;
 import junit.framework.TestCase;
 
 import com.jme3.math.Vector3f;
+import com.l2client.app.Singleton;
 import com.l2client.controller.area.IArea;
 import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavTestHelper;
@@ -44,7 +45,7 @@ import com.l2client.navigation.Path;
 public class NavTest extends TestCase {
 
 	public void testSelf(){
-    	EntityNavigationManager em = EntityNavigationManager.get();
+    	EntityNavigationManager em = Singleton.get().getNavManager();
 
         
         NavigationMesh n1 = getNavMesh("0/0", Vector3f.ZERO);

@@ -6,23 +6,26 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bounding.BoundingSphere;
-import com.jme3.bounding.BoundingVolume;
 import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapFont.Align;
 import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
+import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.control.BillboardControl;
-import com.jme3.scene.control.Control;
-import com.l2client.asset.AssetManager;
-import com.l2client.controller.SceneManager;
+import com.jme3.scene.shape.Quad;
+import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.WrapMode;
+import com.l2client.app.Singleton;
 import com.l2client.model.network.NewCharSummary;
 
 /**
@@ -40,13 +43,23 @@ import com.l2client.model.network.NewCharSummary;
 //TODO animation controller, rigging of actions against animations
 public class VisibleModel extends Node {
 
-	private static final long serialVersionUID = 1L;
+	public static final String ENTITY_PREFIX = "Entity_";
 
 	Logger logger = Logger.getLogger(VisibleModel.class.getName());
 
 	NewCharSummary charSelection;
 	
-	BitmapText label;
+	/**
+	 * Node for the text label
+	 */
+	Node label;
+	
+	static Spatial selection = null;
+	
+	/**
+	 * just one health bar visible, the one we have focus on
+	 */
+	static Node healthbar = null;
 
 	/**
 	 * In the demo all models look alike, so we store a base node
@@ -57,68 +70,6 @@ public class VisibleModel extends Node {
 	 */
 	protected Node vis = null;
 
-	/**
-	 * Internal class representing an simple movement controller for moving models around.
-	 * The controller is attached on the visual and moves the visual around, on reaching its goal
-	 * the controller removes itself, no turning at the moment
-	 *
-	 */
-	protected class MoveController extends AbstractControl{
-
-		private static final long serialVersionUID = 1L;
-		/// target position 
-		private Vector3f target = null;
-		/// direction to travel along
-		private Vector3f direction = null;
-		/// node to be moved
-		private Spatial parent = null;
-		
-		private float speed = 0f;
-		
-		MoveController(Spatial _parent, Vector3f _target, float _speed) {
-			target = _target;
-			parent = _parent;
-			speed = _speed;
-			if(parent != null && target != null)
-				direction = target.subtract(parent.getLocalTranslation()).normalizeLocal();
-		}
-
-		@Override
-		public Control cloneForSpatial(Spatial spatial) {
-			//we do not need this
-			return null;
-		}
-
-		/**
-		 * Updates parent local Translation and removes itself on reaching the goal.
-		 * The target is moved time * speed * normalized direction vector.
-		 */
-		@Override
-		protected void controlUpdate(float tpf) {
-			if(target != null){
-				Vector3f parentPos = parent.getLocalTranslation();
-	            //target reached then remove self
-	            if (target.subtract(parentPos).lengthSquared() <= (0.1f)) {
-	            	speed = 0f;
-	                parent.setLocalTranslation(target);
-	            	parent.removeControl(this);	            	
-	                this.target = null;
-	                this.direction = null;
-	                this.parent = null;
-	                return;
-	            }
-	            //TODO the npcdata should be updated too
-	            //move
-	            //TODO turn towards target direction and move
-	            parent.setLocalTranslation(parentPos.add(direction.mult(tpf * speed)));
-			}
-		}
-
-		@Override
-		protected void controlRender(RenderManager rm, ViewPort vp) {
-			//not used
-		}
-	};
 
 	/**
 	 * Constructor for a vismodel
@@ -127,26 +78,12 @@ public class VisibleModel extends Node {
 	 */
 	public VisibleModel(NewCharSummary sel) {
 		charSelection = sel;
+		if(sel != null){
+			name = ENTITY_PREFIX+sel.name+"_"+sel.objectId;
+		} else {
+			name = "Entity_troll_null";
+		}
 	}
-	
-	
-//	/**
-//	 * In the demo we drop out the z value (height) as all walk on the plane for simplicity
-//	 */
-//	//FIXME actually ignore height values
-//	@Override
-//	public void setLocalTranslation(float x, float y, float z){
-//		super.setLocalTranslation(x, y, 0f);
-//	}
-//	
-//	/**
-//	 * In the demo we drop out the z value (height) as all walk on the plane for simplicity
-//	 */
-//	//FIXME actually ignore height values
-//	@Override
-//	public void setLocalTranslation(Vector3f vec){
-//		super.setLocalTranslation(vec.x, vec.y, 0f);
-//	}
 
 	/**
 	 * Creates the visual if needed by loading it and places the name label above its head
@@ -159,10 +96,6 @@ public class VisibleModel extends Node {
 			if (vis != null)
 				attachChild(vis);
 		}
-//		if(vis != null){
-//			//done here for triggering an update
-//			updateGeometricState();
-//		}
 
 		updateLabel();
 	}
@@ -173,35 +106,161 @@ public class VisibleModel extends Node {
 		//here z is your up vector and not y
 		if (vis != null && charSelection != null && charSelection.name != null) {
 			if(label != null)
-				vis.detachChild(label);
-			//FIXME center label above character
-	        BitmapFont fnt = AssetManager.getInstance().getJmeAssetMan().loadFont("Interface/Fonts/Default.fnt");
-	        label = new BitmapText(fnt, false);
-//	        label.setBox(new Rectangle(0, 0, 6, 3));
-	        label.setQueueBucket(Bucket.Transparent);
-	        label.setSize( 0.5f );
-	        label.setText(charSelection.name);
+				detachChild(label);
 
-	        label.addControl(new BillboardControl());
-//	        label.updateModelBound();
-//	        label.updateGeometricState();
+	        BitmapFont fnt = Singleton.get().getAssetManager().getJmeAssetMan().loadFont("Interface/Fonts/Default.fnt");
+	        BitmapText txt = new BitmapText(fnt, false);
+	        txt.setSize( 0.4f );
+	        txt.setText(charSelection.name);
+	        float w = txt.getLineWidth()+20f;
+	        float off = w*0.5f;
+	        txt.setBox(new Rectangle(-off, 0f, w, txt.getHeight()));
+	        txt.setAlignment(Align.Center);
+	        txt.setQueueBucket(Bucket.Transparent);
+	        txt.addControl(new BillboardControl());
+			
+			label = new Node("label");
 	        if(vis.getWorldBound() instanceof BoundingBox){
 	        	BoundingBox bbox = (BoundingBox)vis.getWorldBound();
-	        	label.setLocalTranslation(-0.15f*charSelection.name.length(), 0f, bbox.getXExtent()+bbox.getXExtent()+0.2f); 
-	        	logger.finest("Label by BBox "+label.getText()+" @ "+label.getLocalTranslation());
+	        	label.setLocalTranslation(0f, bbox.getYExtent()+bbox.getYExtent()+0.5f, 0f);
+	        	logger.finest("Label by BBox "+txt.getText()+" @ "+label.getLocalTranslation());
 	        }
 	        else if(vis.getWorldBound() instanceof BoundingSphere){
 	        	BoundingSphere bound = (BoundingSphere)vis.getWorldBound();
-	        	label.setLocalTranslation(-0.15f*charSelection.name.length(),  0f, bound.getRadius()+bound.getRadius()+0.2f);
-	        	logger.finest("Label by BSphere "+label.getText()+" @ "+label.getLocalTranslation());
+	        	label.setLocalTranslation(0f, bound.getRadius()+bound.getRadius()+0.5f, 0f);
+	        	logger.finest("Label by BSphere "+txt.getText()+" @ "+label.getLocalTranslation());
 	        }
 	        else {
-	        	label.setLocalTranslation(-0.15f*charSelection.name.length(),0f, 2.5f);
-	        	logger.finest("Label by Code "+label.getText()+" @ "+label.getLocalTranslation());
+	        	label.setLocalTranslation(0f, 2.5f, 0f);
+	        	logger.finest("Label by Code "+txt.getText()+" @ "+label.getLocalTranslation());
 	        }
-			vis.attachChild(label);
-			vis.updateGeometricState();
+	        label.attachChild(txt);
+			attachChild(label);
 		}
+	}
+	
+	public void addSelectionMarker(ColorRGBA color){
+//		if(selection != null){
+//			Singleton.get().getSceneManager().changeAnyNode(this, selection, 0);
+//		} else {
+		if(selection == null)
+			selection = createSelectionMarker();
+			
+			Singleton.get().getSceneManager().changeAnyNode(this, selection, 0);
+			if(vis != null) {
+				ColorRGBA cl;
+				if(color != null)
+				cl = color.clone();
+				else
+					cl = ColorRGBA.White.clone();
+				//use an intensity of 12 for the rimlight
+				cl.a = 4f;
+				setRimLight(cl, vis);
+			}
+			
+		if(healthbar == null) 
+			healthbar = createHealthBar();
+		
+		Singleton.get().getSceneManager().changeAnyNode(this, healthbar, 0);
+//		}
+	}
+	
+	public void removeSelectionMarker(){
+		if(selection != null){
+			Singleton.get().getSceneManager().changeAnyNode(this, selection, 1);
+			if(vis != null)
+				setRimLight(ColorRGBA.BlackNoAlpha, vis);
+			selection = null;
+		}
+		if(healthbar != null){
+			Singleton.get().getSceneManager().changeAnyNode(this, healthbar, 1);
+		}
+	}
+	
+	/**
+	 * Updates the health bar above a targeted model
+	 * @param percent	value in 0-1.0 range to scale the health
+	 */
+	public void updateHealthbar(float percent){
+		if(healthbar != null){
+			healthbar.getChild("health_bar").setLocalScale(percent, 1f, 1f);
+		}
+	}
+	
+	private void setRimLight(ColorRGBA color, Node node){
+		for(Spatial s : node.getChildren()){
+			if(s instanceof Geometry){
+				Material m = ((Geometry) s).getMaterial();
+				m.setColor("RimLighting", color);//new ColorRGBA(1f, 0f, 0f, 12f));
+			}
+			if(s instanceof Node) {
+				setRimLight(color, (Node) s);
+			}
+		}
+		
+	}
+	
+	private Geometry createSelectionMarker(){
+		float size = 2f;
+		Geometry selectionMarker = new Geometry("selection", new Quad(size, size));
+		selectionMarker.setLocalTranslation(-0.5f*size, 0.2f, 0.5f*size); 
+		selectionMarker.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+
+	    com.jme3.asset.AssetManager am = Singleton.get().getAssetManager().getJmeAssetMan();
+	    Material mat = new Material(am, "Common/MatDefs/Light/Lighting.j3md");
+	    Texture sel = am.loadTexture("models/textures/flare4.png");
+	    sel.setWrap(WrapMode.Repeat);
+	    mat.setTexture("DiffuseMap", sel);
+	    mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+	    mat.getAdditionalRenderState().setDepthWrite(false);
+	    selectionMarker.setMaterial(mat);
+	    selectionMarker.setQueueBucket(Bucket.Transparent);
+	    selectionMarker.setShadowMode(ShadowMode.Receive);
+	    
+	    return selectionMarker;	
+	}
+	
+	
+	private Node createHealthBar(){
+		Node n = new Node("health");
+		Geometry frame = new Geometry("health_frame", new Quad(1f, 0.02f));
+		Material mat = null;
+	    com.jme3.asset.AssetManager am = Singleton.get().getAssetManager().getJmeAssetMan();
+	    mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.White);
+	    frame.setMaterial(mat);
+	    frame.setQueueBucket(Bucket.Transparent);
+	    frame.setShadowMode(ShadowMode.Off);
+		frame.setLocalTranslation(-0.5f, 0.11f, 0f); 
+	    n.attachChild(frame);
+	    
+		Geometry bar = new Geometry("health_bar", new Quad(1f, 0.1f));
+	    mat = new Material(am, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Red);
+        bar.setMaterial(mat);
+	    bar.setQueueBucket(Bucket.Transparent);
+        bar.setShadowMode(ShadowMode.Off);
+        bar.setLocalTranslation(-0.5f, 0f, 0f);
+	    n.attachChild(bar);
+        if(vis.getWorldBound() instanceof BoundingBox){
+        	BoundingBox bbox = (BoundingBox)vis.getWorldBound();
+        	n.setLocalTranslation(0f, bbox.getYExtent()+0.6f, 0f);
+        	logger.finest("Healthbar by BBox @ "+n.getLocalTranslation());
+        }
+        else if(vis.getWorldBound() instanceof BoundingSphere){
+        	BoundingSphere bound = (BoundingSphere)vis.getWorldBound();
+        	n.setLocalTranslation(0f, bound.getRadius()+0.6f, 0f);
+        	logger.finest("Healthbar by BSphere @ "+n.getLocalTranslation());
+        }
+        else {
+        	n.setLocalTranslation(0f, 2.8f, 0f);
+        	logger.finest("Healthbar by Code @ "+n.getLocalTranslation());
+        }
+        n.addControl(new BillboardControl());
+//        n.setLocalRotation(new Quaternion().fromAngleAxis(FastMath.HALF_PI, Vector3f.UNIT_X));
+//        n.updateGeometricState();
+
+	    return n;	
 	}
 	
 	/**
@@ -218,22 +277,24 @@ public class VisibleModel extends Node {
 		if (charSelection != null) {
 			if (baseNode == null) {	
 //				Asset a = new Asset("troll2/troll.xml.mesh.xml","troll");
-//				com.l2client.asset.AssetManager.getInstance().loadAsset(a,true);
-				Spatial s = AssetManager.getInstance().getJmeAssetMan().loadModel("models/troll2/troll.xml.mesh.xml");
+//				com.l2client.asset.Singleton.get().getAssetManager().loadAsset(a,true);
+				Spatial s = Singleton.get().getAssetManager().getJmeAssetMan().loadModel("models/troll2/troll.xml.mesh.xml");
 //				baseNode = (Node) a.getBaseAsset();
 				if(s instanceof Node ){
 				baseNode = (Node) s;
 				baseNode.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+				baseNode.setName(name);
 				}
 			}
 			if (baseNode != null) {
 //				//TODO check if still needed
 //				//FIXME modelconverter should already have set this one, this is not the case -> NPE
-				baseNode.setModelBound(new BoundingBox());
-				baseNode.updateModelBound();
-				baseNode.updateGeometricState();
+//				baseNode.setModelBound(new BoundingBox());
+//				baseNode.updateModelBound();
+//				baseNode.updateGeometricState();
 				vis = baseNode.clone(false);
-
+				baseNode.setName(name);
+				
 				AnimControl animControl = vis.getControl(AnimControl.class);
 				AnimChannel chan;
 				if(animControl != null) {
@@ -247,7 +308,7 @@ public class VisibleModel extends Node {
 						* FastMath.nextRandomFloat());
 					
 				} else {
-					logger.severe("Vis animations are missing for toll");
+					logger.severe("Vis animations are missing for troll");
 				}
 			}
 		}
@@ -255,23 +316,23 @@ public class VisibleModel extends Node {
 		return vis;
 	}
 	
-	/**
-	 * Adds a movement controller to move the model to the specified x,y coordinates (z is 0 here)
-	 * A previous move controller is removed
-	 * @param toX target position in world coords x
-	 * @param toY target position in world coords y
-	 * @param toZ ignored
-	 * @param speed   speed per second to be used for traveling
-	 */
-	// FIXME ignores height at the moment!
-	// FIXME add and remove should be done via scenemanager
-	public void initMoveTo(float toX, float toY, float toZ, float speed) {
-		if (speed > 0f) {
-			AbstractControl rem = getControl(MoveController.class);
-			if (rem != null)
-				removeControl(rem);
-			
-			addControl(new MoveController(this, new Vector3f(toX, 0, toZ), speed));
-		}
-	}
+//	/**
+//	 * Adds a movement controller to move the model to the specified x,y coordinates (z is 0 here)
+//	 * A previous move controller is removed
+//	 * @param toX target position in world coords x
+//	 * @param toY target position in world coords y
+//	 * @param toZ ignored
+//	 * @param speed   speed per second to be used for traveling
+//	 */
+//	// FIXME ignores height at the moment!
+//	// FIXME add and remove should be done via scenemanager
+//	public void initMoveTo(float toX, float toY, float toZ, float speed) {
+//		if (speed > 0f) {
+//			AbstractControl rem = getControl(MoveController.class);
+//			if (rem != null)
+//				removeControl(rem);
+//			
+//			addControl(new MoveController(this, new Vector3f(toX, 0, toZ), speed));
+//		}
+//	}
 }

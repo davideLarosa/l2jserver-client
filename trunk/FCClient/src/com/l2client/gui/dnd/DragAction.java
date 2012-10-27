@@ -14,7 +14,7 @@ import com.jme3.swingGui.dnd.JMEDragSourceListener;
 import com.jme3.swingGui.dnd.JMEDropTargetEvent;
 import com.jme3.swingGui.dnd.JMEDropTargetListener;
 import com.jme3.swingGui.dnd.JMEMouseDragGestureRecognizer;
-import com.l2client.gui.GuiController;
+import com.l2client.app.Singleton;
 import com.l2client.gui.actions.BaseUsable;
 
 /**
@@ -56,7 +56,7 @@ public class DragAction extends ActionButton implements JMEDragGestureListener,
 	@Override
 	public void dragDropEnd(JMEDragSourceEvent arg0) { 
 System.out.println("dragDropEnd DragAction completed:"+arg0.getDropSuccess());
-GuiController.getInstance().rewire();
+Singleton.get().getGuiController().rewire();
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.l2client.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -9,6 +10,7 @@ import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
@@ -18,12 +20,11 @@ import javax.swing.SwingUtilities;
 
 import com.jme3.math.FastMath;
 import com.jme3.renderer.RenderManager;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.swingGui.JMEDesktop;
 import com.jme3.swingGui.dnd.JMEDragAndDrop;
 import com.jme3.system.AppSettings;
-import com.l2client.controller.SceneManager;
+import com.l2client.app.Singleton;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.SkillAndActionsPanelToggel;
 import com.l2client.gui.dialogs.CharCreateJPanel;
@@ -31,6 +32,7 @@ import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.gui.dialogs.GameServerJPanel;
 import com.l2client.gui.dialogs.MinMaxListener;
 import com.l2client.gui.dialogs.MoveByBackgroundListener;
+import com.l2client.gui.dialogs.RevivePanel;
 import com.l2client.gui.dialogs.ShortCutPanel;
 import com.l2client.gui.dialogs.SkillAndActionsJPanel;
 import com.l2client.gui.dialogs.TransparentLoginPanel;
@@ -38,6 +40,7 @@ import com.l2client.gui.dnd.ActionButton;
 import com.l2client.gui.dnd.DnDSlotAction;
 import com.l2client.gui.transparent.TransparentInternalFrame;
 import com.l2client.model.network.GameServerInfo;
+import com.l2client.network.game.ClientPackets.RequestRestartPoint;
 
 
 /**
@@ -47,7 +50,7 @@ import com.l2client.model.network.GameServerInfo;
  * Specific user actions should be added to the components in the @see GameController which should
  * be more specific what should be done, and also should link any needed data in.
  * 
- * used as a singleton by calling GuiController.getInstance()
+ * used as a singleton by calling Singleton.get().getGuiController()
  * 
  * GuiController glues the swing gui components and the JME Desktop system together, if you use
  * a different rendering system you will have to replace this on with corresponding gui calls
@@ -59,7 +62,7 @@ public final class GuiController {
 	private final static GuiController instance = new GuiController();
 	
 	private JMEDesktop jmeDesktop;
-	private Node desktopNode;
+//	private Node desktopNode;
 	private JMEDragAndDrop jmeDragAndDrop;
 
 	protected boolean rewire = false;
@@ -67,7 +70,7 @@ public final class GuiController {
 	private GuiController(){	
 	}
 	
-	public static GuiController getInstance(){
+	public static GuiController get(){
 		return instance;
 	}
 	
@@ -80,7 +83,7 @@ public final class GuiController {
 	public void initialize(AppSettings settings, RenderManager renderMan) {
 		this.jmeDesktop = new JMEDesktop("Swing Desktop",settings.getWidth(),settings.getHeight(),
 				FastMath.nearestPowerOfTwo(settings.getWidth()),FastMath.nearestPowerOfTwo(settings.getHeight()),
-				false/*no mipmap*/,InputController.get().getInputManager(), 
+				false/*no mipmap*/,Singleton.get().getInputController().getInputManager(), 
 				settings /*we pass it in so desktop will rescale on resizing*/, renderMan);
 		jmeDesktop.getJDesktop().setBackground( new Color( 1, 1, 1, 0.0f ) );
 		jmeDesktop.setCullHint( Spatial.CullHint.Never );
@@ -91,7 +94,7 @@ public final class GuiController {
 		jmeDesktop.getJDesktop().repaint();
 		jmeDesktop.getJDesktop().revalidate();
 		
-		SceneManager.get().changeRootNode(jmeDesktop,0);
+		Singleton.get().getSceneManager().changeRootNode(jmeDesktop,0);
 		
 		//add drag n drop support (used by shortcut panel, inventory, etc.)
 		jmeDragAndDrop = new JMEDragAndDrop(jmeDesktop);
@@ -104,9 +107,9 @@ public final class GuiController {
 		final ShortCutPanel pan = new ShortCutPanel();
 
 		ActionButton[] arr = new ActionButton[10];
-		arr[0]=new DnDSlotAction(jmeDesktop, ActionManager.getInstance().getAction(10000));
+		arr[0]=new DnDSlotAction(jmeDesktop, ActionManager.getInstance().getAction(2));
 		arr[1]=new DnDSlotAction(jmeDesktop, ActionManager.getInstance().getAction(10002));
-		arr[2]=new DnDSlotAction(jmeDesktop, ActionManager.getInstance().getAction(10003));
+		arr[2]=new DnDSlotAction(jmeDesktop, ActionManager.getInstance().getAction(5));
 		for(int i=3;i<10;i++){
 			arr[i]=new DnDSlotAction(jmeDesktop, null);
 		}
@@ -122,15 +125,97 @@ public final class GuiController {
 		desktopPane.add(internalFrame);
 		
 		ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
-		acts.add(ActionManager.getInstance().getAction(10000));
+		acts.add(ActionManager.getInstance().getAction(2));
 		acts.add(ActionManager.getInstance().getAction(10002));
-		acts.add(ActionManager.getInstance().getAction(10003));
+		acts.add(ActionManager.getInstance().getAction(5));
 		wireInputSwitch(acts, pan);
 		
 		desktopPane.repaint();
 		desktopPane.revalidate();
 		return pan;
 	}
+	
+	/**
+	 * Creates a Shortcut panel consisting of 10 slots
+	 * @param map	Actions to be placed in the slots, can be null for empty slots
+	 * @return			the final panel
+	 */
+	public ShortCutPanel displayShortCutPanel(HashMap<Integer, BaseUsable> map){
+		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
+		final JInternalFrame internalFrame = new TransparentInternalFrame();
+		final ShortCutPanel pan = new ShortCutPanel();
+
+		ActionButton[] arr = new ActionButton[10];
+		ArrayList<BaseUsable> used = new ArrayList<BaseUsable>();
+		for(int i=0;i<arr.length;i++){
+			BaseUsable b = map.get(i);
+			arr[i]=new DnDSlotAction(jmeDesktop, b/*yes, can be null (empty slot)*/);
+			if(b != null)//these one not null only used ones
+				used.add(b);
+		}
+		
+		pan.setSlots(arr);
+		pan.validate();
+		
+		internalFrame.add(pan);
+		internalFrame.setVisible(true);
+		internalFrame.pack();
+		internalFrame.setLocation(desktopPane.getWidth()-internalFrame.getWidth(),desktopPane.getHeight()-internalFrame.getHeight());
+
+		desktopPane.add(internalFrame);
+		
+		wireInputSwitch(used, pan);
+		
+		desktopPane.repaint();
+		desktopPane.revalidate();
+		return pan;
+	}
+	
+	public SkillAndActionsJPanel displaySkillAndActionsPanel(final HashMap<Integer, BaseUsable> map){
+		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
+		final JInternalFrame internalFrame = new TransparentInternalFrame();
+		final SkillAndActionsJPanel pan = new SkillAndActionsJPanel();
+
+		pan.validate();
+		pan.addUsable(map.values().toArray(new BaseUsable[0]), jmeDesktop);
+		internalFrame.add(pan);
+		internalFrame.setVisible(true);
+		internalFrame.pack();
+		internalFrame.setLocation(desktopPane.getWidth()
+				- internalFrame.getWidth(), 20);
+
+		ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
+		acts.add(new SkillAndActionsPanelToggel(-10, "SkillAndActionsPanelToggel") {
+			@Override
+			public void onAction(String name, boolean isPressed, float tpf) {
+				//only on release
+				if (!isPressed) {
+				if (internalFrame.isVisible()) {
+					internalFrame.setVisible(false);
+					desktopPane.remove(internalFrame);
+					desktopPane.repaint();
+					desktopPane.revalidate();
+				} else {
+					internalFrame.setVisible(true);
+					desktopPane.add(internalFrame);
+					desktopPane.repaint();
+					desktopPane.revalidate();
+				}
+				}
+			}
+		});
+		Singleton.get().getInputController().addInput(acts);
+
+		wireInputSwitch(acts, pan);
+		MoveByBackgroundListener mover = new MoveByBackgroundListener(pan, internalFrame);
+		pan.addMouseListener(mover);
+		pan.addMouseMotionListener(mover);
+		
+		internalFrame.setVisible(false);
+
+		return pan;
+	}
+	
 	
 	public SkillAndActionsJPanel displaySkillAndActionsPanel(){
 		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
@@ -148,7 +233,9 @@ public final class GuiController {
 		ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
 		acts.add(new SkillAndActionsPanelToggel(-10, "SkillAndActionsPanelToggel") {
 			@Override
-			public void onAnalog(String name, float value, float tpf) {
+			public void onAction(String name, boolean isPressed, float tpf) {
+				//only on release
+				if (!isPressed) {
 				if (internalFrame.isVisible()) {
 					internalFrame.setVisible(false);
 					desktopPane.remove(internalFrame);
@@ -160,9 +247,10 @@ public final class GuiController {
 					desktopPane.repaint();
 					desktopPane.revalidate();
 				}
+				}
 			}
 		});
-		InputController.get().addInput(acts);
+		Singleton.get().getInputController().addInput(acts);
 
 		wireInputSwitch(acts, pan);
 		MoveByBackgroundListener mover = new MoveByBackgroundListener(pan, internalFrame);
@@ -237,7 +325,7 @@ public final class GuiController {
 //				desktopPane.remove(pan);
 //			}
 //		});
-
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
 		pan.setVisible(true);
 		desktopPane.add(pan);
 		
@@ -259,7 +347,7 @@ public final class GuiController {
 
 		final JInternalFrame internalFrame = new TransparentInternalFrame();
 
-		internalFrame.setLocation(300, 50);
+		internalFrame.setLocation(desktopPane.getWidth()/2-200, desktopPane.getHeight()/2-150);
 		final GameServerJPanel pan = new GameServerJPanel(serverInfos);
 		internalFrame.add(pan);
 		
@@ -269,7 +357,7 @@ public final class GuiController {
 
 		desktopPane.add(internalFrame);
 		
-//		wireInputSwitch(input, pan);
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
 		
 		 // standard swing action:
 		pan.addCancelActionListener(new ActionListener() {
@@ -289,6 +377,43 @@ public final class GuiController {
 			}
 		});
 
+		desktopPane.repaint();
+		desktopPane.revalidate();
+		return pan;
+	}
+	
+	public RevivePanel displayReviveJPanel(int options, String itemtext){
+
+		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
+		desktopPane.removeAll();
+
+		final JInternalFrame internalFrame = new TransparentInternalFrame();
+
+		internalFrame.setLocation(desktopPane.getWidth()/2-100, desktopPane.getHeight()/2-90);
+		final RevivePanel pan = new RevivePanel();
+		pan.setButtonOptions(options, itemtext);
+		internalFrame.add(pan, 0);
+		jmeDesktop.setModalComponent(internalFrame);
+		internalFrame.setVisible(true);
+		internalFrame.setSize(new java.awt.Dimension(200, 180));
+		internalFrame.pack();
+
+		desktopPane.add(internalFrame);
+		
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
+		
+		 // standard swing action:
+		pan.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// this gets executed in swing thread
+				// alter swing components only in swing thread!
+				jmeDesktop.setModalComponent(null);		
+				internalFrame.setVisible(false);
+				desktopPane.remove(internalFrame);
+				Singleton.get().getClientFacade().sendGamePacket(new RequestRestartPoint(e.getID()));
+			}
+		});
+		
 		desktopPane.repaint();
 		desktopPane.revalidate();
 		return pan;
@@ -354,7 +479,7 @@ public final class GuiController {
 
 		desktopPane.add(internalFrame);
 		
-//		wireInputSwitch(input, pan);
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
 		
 		 // standard swing action:
 		pan.addCancelActionListener(new ActionListener() {
@@ -389,36 +514,7 @@ public final class GuiController {
 	 * @param messageText the error message to be displayed
 	 */
 	public void showErrorDialog(final String messageText) {
-		SwingUtilities.invokeLater(new Runnable() {
-
-			public void run() {
-				final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
-				final JInternalFrame modalDialog = new JInternalFrame("Error");
-
-				JOptionPane optionPane = new JOptionPane(messageText, JOptionPane.ERROR_MESSAGE);
-				modalDialog.getContentPane().add(optionPane);
-				jmeDesktop.setModalComponent(modalDialog);
-				desktopPane.add(modalDialog, 0);
-				modalDialog.setVisible(true);
-				modalDialog.setSize(modalDialog.getPreferredSize());
-				modalDialog
-						.setLocation((desktopPane.getWidth() - modalDialog
-								.getWidth()) / 2,
-								(desktopPane.getHeight() - modalDialog
-										.getHeight()) / 2);
-				jmeDesktop.setFocusOwner(optionPane);
-
-				optionPane.addPropertyChangeListener(
-						JOptionPane.VALUE_PROPERTY,
-						new PropertyChangeListener() {
-							public void propertyChange(PropertyChangeEvent evt) {
-								modalDialog.setVisible(false);
-								jmeDesktop.setModalComponent(null);
-								desktopPane.remove(modalDialog);
-							}
-						});
-			}
-		});
+		showOneButtonDialog(messageText, JOptionPane.ERROR_MESSAGE);
     }
 
 	/**
@@ -435,23 +531,18 @@ public final class GuiController {
 		});
 	}
 	
-	/**
-	 * Convenience functionality to be able to display a modal info Dialog based on a JOptionPane.
-	 * The dialog will be removed automatically on close, calls SwingUtilities.invokeLater by itself
-	 * @param messageText the info message to be displayed
-	 */
-	//TODO could be refactored to be one code with showErrorDialog
-	public void showInfoDialog(final String messageText) {
+	private void showOneButtonDialog(final String messageText, final int type/*JOptionPane*/) {
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
 				final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
 				final JInternalFrame modalDialog = new JInternalFrame("Info");
 
-				JOptionPane optionPane = new JOptionPane(messageText, JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane optionPane = new JOptionPane(messageText, type);
 				modalDialog.getContentPane().add(optionPane);
 				jmeDesktop.setModalComponent(modalDialog);
 				desktopPane.add(modalDialog, 0);
+				wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, optionPane);
 				modalDialog.setVisible(true);
 				modalDialog.setSize(modalDialog.getPreferredSize());
 				modalDialog
@@ -472,6 +563,15 @@ public final class GuiController {
 						});
 			}
 		});
+	}
+	
+	/**
+	 * Convenience functionality to be able to display a modal info Dialog based on a JOptionPane.
+	 * The dialog will be removed automatically on close, calls SwingUtilities.invokeLater by itself
+	 * @param messageText the info message to be displayed
+	 */
+	public void showInfoDialog(final String messageText) {
+		showOneButtonDialog(messageText, JOptionPane.INFORMATION_MESSAGE);
     }
 
 	/**
@@ -479,8 +579,12 @@ public final class GuiController {
 	 * @param name
 	 * @return
 	 */
-	public JButton displayButton(String name) {
+	public JButton displayButton(String name, int width, int height, int x, int y){//, int dx, int dy, int lx, int ly) {
 		final JButton b = new JButton(name);
+		Dimension dim = new Dimension(width, height);
+		b.setSize( dim );
+		b.setPreferredSize( dim );
+		b.setBounds(x, y, width, height);
 		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
 		desktopPane.add(b);
 		b.setVisible(true);
@@ -509,7 +613,7 @@ public final class GuiController {
 	
 	private void wireInputSwitch(final ArrayList<BaseUsable> actions, Component comp){
 		comp.addMouseListener(new MouseListener() {
-
+			private ArrayList<BaseUsable> acts = actions;
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				//this stuff is needed so we remember what to do if a drag & drop happened
@@ -538,14 +642,14 @@ public final class GuiController {
 //						pushOrPop++;
 //					else
 				if(actions != null)
-					InputController.get().popInput();
+					Singleton.get().getInputController().popInput();
 //					if(jmeDragAndDrop.isDragging()){
 //						pushOrPop = 1;
 //						CharacterController.getInstance().setInputEnabled(false);
 //					}
 					if(jmeDragAndDrop.isDragging()){
 						rewire=true;
-						CharacterController.getInstance().setInputEnabled(false);
+						Singleton.get().getCharController().setInputEnabled(false);
 					}
 			}
 			
@@ -555,7 +659,7 @@ public final class GuiController {
 //					pushOrPop--;
 //				else
 				if(actions != null)
-					InputController.get().pushInput(actions);
+					Singleton.get().getInputController().pushInput(acts);
 //					if(jmeDragAndDrop.isDragging())
 //						pushOrPop = 0;
 					if(jmeDragAndDrop.isDragging())
@@ -574,8 +678,17 @@ public final class GuiController {
 	
 	public void rewire(){
 		if(rewire){
-			CharacterController.getInstance().setInputEnabled(true);
+			Singleton.get().getCharController().setInputEnabled(true);
 			rewire = false;
+		}
+	}
+
+	public void finit() {
+		if(jmeDesktop != null){
+			Singleton.get().getSceneManager().changeRootNode(jmeDesktop,1);
+			jmeDesktop.dispose();
+			jmeDragAndDrop = null;
+			jmeDesktop = null;
 		}
 	}
 	

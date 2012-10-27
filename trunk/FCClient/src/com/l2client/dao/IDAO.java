@@ -13,6 +13,15 @@ import com.l2client.gui.actions.BaseUsable;
  *
  */
 public interface IDAO {
+	
+	/**
+	 * Fetch the short description of an item
+	 * 
+	 * @param itemId	id of the item 
+	 * @return			String representing the short item description
+	 */
+	public abstract String getItemDescription(int itemId);
+	
 	/**
 	 * Fetch names from npc table based on template id
 	 * 
@@ -42,4 +51,11 @@ public interface IDAO {
 	 * do any needed cleanup here
 	 */
 	public abstract void finit();
+
+	/**
+	 * Get the system message string
+	 * @param id
+	 * @return
+	 */
+	public abstract String getSystemMessage(int id);
 }

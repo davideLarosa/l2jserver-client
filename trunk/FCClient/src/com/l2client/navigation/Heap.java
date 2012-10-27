@@ -1,6 +1,5 @@
 package com.l2client.navigation;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.jme3.math.Vector3f;

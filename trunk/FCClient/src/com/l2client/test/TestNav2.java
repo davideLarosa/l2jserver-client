@@ -47,6 +47,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
+import com.l2client.app.Singleton;
 import com.l2client.controller.area.IArea;
 import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavTestHelper;
@@ -70,7 +71,7 @@ public class TestNav2 extends SimpleApplication {
     public void simpleInitApp() {
     	 flyCam.setMoveSpeed(20);
     	assetManager = new DesktopAssetManager(true);
-    	em = EntityNavigationManager.get();
+    	em = Singleton.get().getNavManager();
     	rootNode.attachChild(debugNodes);
     	cam.setLocation(cam.getLocation().add(0, 50, 50));
 

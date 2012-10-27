@@ -43,8 +43,8 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.util.TangentBinormalGenerator;
+import com.l2client.app.Singleton;
 import com.l2client.controller.area.IArea;
-import com.l2client.controller.area.SimpleTerrainManager;
 import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavigationMesh;
 
@@ -66,7 +66,7 @@ public class TestRegion2 extends SimpleApplication {
     	flyCam.setMoveSpeed(50);
 		assetManager = new DesktopAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/l2client/asset/loader.cfg"));
 
-    	em = EntityNavigationManager.get();
+    	em = Singleton.get().getNavManager();
     	rootNode.attachChild(debugNodes);
 
         DirectionalLight light = new DirectionalLight();

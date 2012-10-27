@@ -100,6 +100,10 @@ public class ShortCutPanel extends javax.swing.JPanel {
 		
 	}
 	
+	public JButton[] getSlots(){
+		return slots;
+	}
+	
 	public void addExpandAction(ActionListener l){
 		expand.addActionListener(l);
 	}

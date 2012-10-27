@@ -2,6 +2,7 @@ package com.l2client.controller.handlers;
 
 import java.util.logging.Logger;
 
+import com.l2client.app.Singleton;
 import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.network.game.ClientPackets.Say;
@@ -70,7 +71,7 @@ public class ChatHandler {
 			tgt = msg.substring(0, index);
 		}
 
-		ClientFacade.get().sendPacket(new Say(type, text, tgt));
+		Singleton.get().getClientFacade().sendGamePacket(new Say(type, text, tgt));
 		log.finest("Sending chat message of type:" + type + " text:" + text
 				+ " target:" + tgt);
 	}

@@ -1,11 +1,11 @@
 package com.l2client.app;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.jme3.animation.Skeleton;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -13,12 +13,8 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.l2client.animsystem.jme.JMEAnimationController;
 import com.l2client.asset.Asset;
-import com.l2client.asset.AssetManager;
 import com.l2client.model.PartSet;
 import com.l2client.model.WeaponSet;
-import com.l2client.util.AnimationManager;
-import com.l2client.util.PartSetManager;
-import com.l2client.util.SkeletonManger;
 
 
 public class Assembler2 {
@@ -29,12 +25,20 @@ public class Assembler2 {
 	//skeletonmanager get an instance of an skeleton
 	//partsetmanager get an instance of animpartset 
 	public static Node getModel(String template){
-		Node n = getModelInternal(JMEAnimationController.class, template);
+		Node n = getModelInternal(JMEAnimationController.class, template, false, false);
 		return n;
 	}
 
 	public static Node getModel3(String template){
-		Node n = getModelInternal(JMEAnimationController.class, template);
+		Node n = getModelInternal(JMEAnimationController.class, template, false, false);
+		n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+		n.updateGeometricState();
+		
+		return n;
+	}
+	
+	public static Node getModel4(String template, boolean optimized, boolean hwSkinning){
+		Node n = getModelInternal(JMEAnimationController.class, template, optimized, hwSkinning);
 		n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
 		n.updateGeometricState();
 		
@@ -54,7 +58,7 @@ public class Assembler2 {
 //	}
 	
 	public static PartSet getTopPart(String id){
-		PartSet ret = PartSetManager.get().getPart("entity");
+		PartSet ret = Singleton.get().getPartManager().getPart("entity");
 		if(ret != null)
 			return ret.getPart(id);
 		else return null;
@@ -72,7 +76,7 @@ public class Assembler2 {
 		for( PartSet m : det.getParts()){
 			String next = m.getNext();
 			Asset a = new Asset(next,m.getName());
-			AssetManager.getInstance().loadAsset(a, false);
+			Singleton.get().getAssetManager().loadAsset(a, false);
 			materials.put(m.getName(),a);
 		}
 		} //FIXME else log waring!!!
@@ -91,7 +95,7 @@ public class Assembler2 {
 //				continue;
 //			String next = oSet.getNext();
 //			Asset a = new Asset(next,name);
-//			AssetManager.getInstance().loadAsset(a, false);
+//			Singleton.get().getAssetManager().loadAsset(a, false);
 //			meshArray.add(a);
 //		}
 //		
@@ -120,7 +124,7 @@ public class Assembler2 {
 		//next mesh 
 					String next = matSet.getNext();
 					Asset a = new Asset(next,name);
-					AssetManager.getInstance().loadAsset(a, false);
+					Singleton.get().getAssetManager().loadAsset(a, false);
 					meshArray.put(a,mat);
 			}
 		}
@@ -142,7 +146,7 @@ public class Assembler2 {
 			}
 			if(hair != null && !"".equals(hair)){
 				ret = new Asset(hair,"hair");
-				AssetManager.getInstance().loadAsset(ret, false);
+				Singleton.get().getAssetManager().loadAsset(ret, false);
 			}
 		}
 		return ret;
@@ -160,7 +164,7 @@ public class Assembler2 {
 		String weaponSets = det.getNext();
 //		String weaponSet = det.getPart(weaponSets).getNext();
 		Asset ws = new Asset(weaponSets,det.getName());
-		AssetManager.getInstance().loadAsset(ws, true);
+		Singleton.get().getAssetManager().loadAsset(ws, true);
 		//add weaponset meshes
 		return (WeaponSet)ws.getBaseAsset();
 		} else
@@ -181,13 +185,13 @@ public class Assembler2 {
 			return null;
 		String s = p.getNext();
 		Asset prim = new Asset(s,p.getName());
-		AssetManager.getInstance().loadAsset(prim, false);
+		Singleton.get().getAssetManager().loadAsset(prim, false);
 		p = det.getPart(weapons.getOffhand());
 		//FIXME optionality not done here so far
 		if(p != null){
 			s = p.getNext();
 			Asset secnd = new Asset(s,p.getName());
-			AssetManager.getInstance().loadAsset(secnd, false);
+			Singleton.get().getAssetManager().loadAsset(secnd, false);
 			return new Asset[]{prim,secnd};
 		} else 
 			return new Asset []{prim};
@@ -208,8 +212,8 @@ public class Assembler2 {
 			}
 			String mat = p.getNext();
 			for(PartSet set : p.getParts()) {
-			Asset prim = new Asset(set.getNext(), set.getName());
-			AssetManager.getInstance().loadAsset(prim, false);
+			Asset prim = new Asset(set.getNext(), p.getName());
+			Singleton.get().getAssetManager().loadAsset(prim, false);
 			ret.put(prim, mat);
 			}
 			p = det.getPart(weapons.getOffhand());
@@ -217,8 +221,8 @@ public class Assembler2 {
 			if (p != null) {
 				mat = p.getNext();
 				for(PartSet set : p.getParts()) {
-				Asset prim = new Asset(set.getNext(), set.getName());
-				AssetManager.getInstance().loadAsset(prim, false);
+				Asset prim = new Asset(set.getNext(), p.getName());
+				Singleton.get().getAssetManager().loadAsset(prim, false);
 				ret.put(prim, mat);
 				}
 			}
@@ -230,19 +234,19 @@ public class Assembler2 {
 
 	public static HashMap<String, PartSet> getAnimations(/*PartSet top, */String animSet, String defaultSet) {
 		HashMap<String, PartSet> animParts = new HashMap<String, PartSet>();
-		PartSet parts = PartSetManager.get().getPart("anim");
+		PartSet parts = Singleton.get().getPartManager().getPart("anim");
 		if(parts == null)
 			return animParts;
 		PartSet det = parts.getPart(animSet);
 		if( det != null )
 //			for(PartSet e : det.getParts()){
-				animParts = AnimationManager.get().precacheAnimations(det);
+				animParts = Singleton.get().getAnimManager().precacheAnimations(det);
 //			}
 		if(defaultSet != null){
 			det = parts.getPart(defaultSet);
 			if(det != null){
-				AnimationManager.get().setDefault(animSet, defaultSet);
-				AnimationManager.get().precacheAnimations(det);
+				Singleton.get().getAnimManager().setDefault(animSet, defaultSet);
+				Singleton.get().getAnimManager().precacheAnimations(det);
 			}
 		}
 			
@@ -253,10 +257,10 @@ public class Assembler2 {
 		//get skeleton
 		PartSet det = top.getPart("skel");
 		//FIXME always the 1.0 or is this deprecated?
-		return SkeletonManger.get().getSkeleton(det.getNext(), 1.0f);
+		return Singleton.get().getSkeletonManager().getSkeleton(det.getNext(), 1.0f);
 	}
 
-	private static Node getModelInternal(Class<?> controller, String template){
+	private static Node getModelInternal(Class<?> controller, String template, boolean optimized, boolean hwSkinning){
 
 		PartSet top = getTopPart(template);
 		//FIMXE error handling
@@ -277,7 +281,7 @@ public class Assembler2 {
 
 		getAnimations(/*top, */weapons.getAnimSet(), weapons.getDefaultSet());
 
-		Node n = assembleModel(template,meshArray,materials,skel,weapons.getAnimSet());
+		Node n = assembleModel(template,meshArray,materials,skel,weapons.getAnimSet(), optimized, hwSkinning);
 				
 		return n;
 	}
@@ -292,10 +296,22 @@ public class Assembler2 {
 
 	private static Node assembleModel(String template,
 			HashMap<Asset, String> meshArray, HashMap<String, Asset> materials,
-			Skeleton skel, 
-			String animSet) {
+			Skeleton skel, String animSet, boolean optimized, boolean hwSkinnig) {
 		Assembler as = new Assembler();
+		as.setUseOptimization(optimized);
+		as.setUseHWSkinning(hwSkinnig);
 		as.setSkeleton(skel);
+		unpackMeshesIntoAssembler(meshArray, materials, as);
+			
+		as.setAnimParts(animSet);
+		Node n = as.getModel();
+		n.setName(template);
+		return n;
+	}
+
+	public static void unpackMeshesIntoAssembler(
+			HashMap<Asset, String> meshArray, HashMap<String, Asset> materials,
+			Assembler assembler) {
 		for(Asset a : meshArray.keySet()){
 			Object n = a.getBaseAsset();
 			if(n != null){
@@ -304,13 +320,16 @@ public class Assembler2 {
 					if(mat != null){
 						Material m = (Material)mat.getBaseAsset();
 						if(m != null){
-							((Geometry)n).setMaterial(m);
+							//prepare rim light shader for selection highlighting
+							m.setColor("RimLighting", ColorRGBA.BlackNoAlpha);//new ColorRGBA(1f, 0f, 0f, 12f));//this was for a test had to set the value to 12 for a really good noticable look
+							//this must be a clone for hardware skinning
+							((Geometry)n).setMaterial(m.clone());
 						} else
 							log.severe("Material "+mat.getLocation()+" not found is missing for "+a.getLocation());
 					}else
 						log.severe("Material is missing for "+a.getLocation());
 					
-					as.addMesh(a.getName(), (Geometry)n , false);
+					assembler.addMesh(a.getName(), (Geometry)n , false);
 				}
 				else 
 					log.severe("Loaded Mesh asset which is not a Mesh but a:"+n.getClass().getName());
@@ -318,10 +337,5 @@ public class Assembler2 {
 			else
 				log.severe("BaseAsset not found:"+a.getName()+", "+a.getLocation());
 		}
-			
-		as.setAnimParts(animSet);
-		Node n = as.getModel();
-		n.setName(template);
-		return n;
 	}
 }

@@ -3,7 +3,6 @@ package com.l2client.gui;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import com.jme3.bounding.BoundingBox;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
@@ -14,12 +13,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.l2client.controller.SceneManager;
+import com.l2client.app.Singleton;
+import com.l2client.component.TargetComponent;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.GotoClickedInputAction;
 import com.l2client.model.jme.NewCharacterModel;
+import com.l2client.model.l2j.ItemInstance;
 import com.l2client.model.network.EntityData;
 
 //TODO refactor with charselecthandler, ev. remove coupling
@@ -39,7 +40,7 @@ public final class CharacterController {
 	private CharacterController() {
 	}
 
-	public static CharacterController getInstance() {
+	public static CharacterController get() {
 		return instance;
 	}
 	
@@ -62,7 +63,7 @@ public final class CharacterController {
 		
         AmbientLight al = new AmbientLight();
         al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-		SceneManager.get().changeRootLight(al,0);
+		Singleton.get().getSceneManager().changeRootLight(al,0);
 
 		pl = new PointLight();
 		pl.setColor(ColorRGBA.White);
@@ -72,30 +73,31 @@ public final class CharacterController {
 		ArrayList<BaseUsable> acts = new ArrayList<BaseUsable>();
 		acts.add(new GotoClickedInputAction(pcHandler, cam));
 
-		InputController.get().pushInput(acts);
+		Singleton.get().getInputController().pushInput(acts);
 		
-		SceneManager.get().removeChar();
-		SceneManager.get().changeCharNode(visible, 0);
+		Singleton.get().getSceneManager().removeChar();
+		Singleton.get().getSceneManager().changeCharNode(visible, 0);
+		Singleton.get().getTerrainManager().addSkyDome();
 
 	}
 
-	//TODO reentrant safe, gamecontroller needed at all?
-	public void initialize(GameController gameController) {
-		chaser.setSpatial(null);
-		InputController.get().popInput();
-		
-		chaser = null;
-	}
+//	//TODO reentrant safe, gamecontroller needed at all?
+//	public void initialize(GameController gameController) {
+//		chaser.setSpatial(null);
+//		Singleton.get().getInputController().popInput();
+//		
+//		chaser = null;
+//	}
 
 	private void setupChaseCamera(Node n, Camera cam) {
 		Vector3f targetOffset = new Vector3f();
-		float ex = ((BoundingBox) n.getWorldBound()).getZExtent();
-		targetOffset.y = ex+ex + 0.2f;
+//		float ex = ((BoundingBox) n.getWorldBound()).getYExtent();
+		targetOffset.y = 5.2f;
 //		cam.setAxes(Vector3f.UNIT_X, Vector3f.UNIT_Z, Vector3f.UNIT_Y.mult(-1f));
-		chaser = new ChaseCamera(cam, n, InputController.get().getInputManager());
+		chaser = new ChaseCamera(cam, n, Singleton.get().getInputController().getInputManager());
 //		chaser.setUpVector(Vector3f.UNIT_Z);
-		  //Comment this to disable smooth camera motion
-//		chaser.setSmoothMotion(true);
+//		  Comment this to disable smooth camera motion
+		chaser.setSmoothMotion(true);
         
         //Uncomment this to disable trailing of the camera 
         //WARNING, trailing only works with smooth motion enabled and is the default behavior
@@ -108,8 +110,9 @@ public final class CharacterController {
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
 		chaser.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-		chaser.setMaxDistance(10f);
-		chaser.setMinDistance(2f);
+		chaser.setMaxDistance(20f);
+		chaser.setMinDistance(4f);
+		chaser.setDefaultDistance(12f);
 	}
 
 	/**
@@ -134,5 +137,29 @@ public final class CharacterController {
 			}
 
 		}
+	}
+
+	public void addInventoryItem(ItemInstance inst) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void addInventoryBlockItem(int itemId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public boolean setPlayerNoTarget(){
+		if(data != null)//this is null when user just closes app while not logged in at all
+	    {	TargetComponent tc = (TargetComponent) Singleton.get().getEntityManager().getComponent(data.getObjectId(), TargetComponent.class);
+	    	if(tc != null){
+	    		if(tc.hasTarget()){
+		    		tc.setTarget(TargetComponent.NO_TARGET);
+		    		logger.info(data.getObjectId()+" Player target set to no target charID:"+data.getCharId());
+		    		return true;
+	    		}
+	    	}
+    	}
+    	return false;
 	}
 }

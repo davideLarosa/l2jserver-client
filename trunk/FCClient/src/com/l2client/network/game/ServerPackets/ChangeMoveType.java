@@ -1,8 +1,8 @@
 package com.l2client.network.game.ServerPackets;
 
+import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
 import com.l2client.component.SimplePositionComponent;
-import com.l2client.controller.entity.EntityManager;
 
 /**
  * 
@@ -16,16 +16,14 @@ public class ChangeMoveType extends GameServerPacket {
 
 	@Override
 	public void handlePacket() {
-		log.fine("Read from Server "
-				+ this.getClass().getSimpleName());
-		
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		int objId = readD();
 		int run = readD();
 		readD();
-		SimplePositionComponent com = (SimplePositionComponent) EntityManager.get().getComponent(objId, SimplePositionComponent.class);
+		SimplePositionComponent com = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(objId, SimplePositionComponent.class);
 		if(com != null){
 			com.running = run>0?true:false;
-			EnvironmentComponent env = (EnvironmentComponent) EntityManager.get().getComponent(objId, EnvironmentComponent.class);
+			EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(objId, EnvironmentComponent.class);
 			if(env != null){
 				env.changed = true;
 			} else

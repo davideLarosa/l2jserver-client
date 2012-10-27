@@ -25,4 +25,7 @@ public class IdentityComponent implements Component {
 		return entity;
 	}
 	
+	public String toString(){
+		return "id:"+id+" entity:"+entity;
+	}
 }

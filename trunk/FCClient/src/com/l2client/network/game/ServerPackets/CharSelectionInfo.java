@@ -1,6 +1,6 @@
 package com.l2client.network.game.ServerPackets;
 
-import com.l2client.gui.GameController;
+import com.l2client.app.Singleton;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.EntityData;
 
@@ -14,9 +14,7 @@ public class CharSelectionInfo extends GameServerPacket {
 
 	@Override
 	public void handlePacket() {
-		log.fine("Read from Server "
-				+ this.getClass().getSimpleName());
-
+		log.fine("Read from Server "+this.getClass().getSimpleName());
 		// Number of characters available
 		int size = readD();// writeD(size);
 
@@ -32,8 +30,8 @@ public class CharSelectionInfo extends GameServerPacket {
 			ch.setCharId(readD());
 			readS();
 			int id = readD();
-			if (id != getClientFacade().sessionId)
-				getClientFacade().sessionId = id;
+			if (id != _client.sessionId)
+				_client.sessionId = id;
 			ch.setClanId(readD());
 			readD();
 
@@ -43,7 +41,7 @@ public class CharSelectionInfo extends GameServerPacket {
 			ch.setClassId(readD());
 
 			// active ??
-			readD();
+			readD();//always 1
 			
 			int x = readD();
 			int y = readD();
@@ -53,8 +51,8 @@ public class CharSelectionInfo extends GameServerPacket {
 			ch.setY(ServerValues.getClientCoord(z));
 			ch.setZ(ServerValues.getClientCoord(y));
 
-			ch.setCurrentHp(readF());
-			ch.setCurrentMp(readF());
+			ch.setCurrentHp((int)readF());
+			ch.setCurrentMp((int)readF());
 
 			ch.setSp(readD());
 			ch.setExp(readQ());
@@ -104,13 +102,13 @@ public class CharSelectionInfo extends GameServerPacket {
 			ch.setHairStyle(readD());
 			ch.setHairColor(readD());
 			ch.setFace(readD());
-			ch.setMaxHp(readF());
-			ch.setMaxMp(readF());
-			ch.setDeleteTimer(readD());
+			ch.setMaxHp((int)readF());
+			ch.setMaxMp((int)readF());
+			ch.setDeleteTimer(readD());//days left before char is deleted
 			readD();
 
 			// FIXME active
-			readD();
+			readD();//last used char?
 			readC();
 			readH();
 			readH();
@@ -127,9 +125,9 @@ public class CharSelectionInfo extends GameServerPacket {
 			// High Five by Vistall:
 			readD();	// H5 Vitality
 
-			getClientFacade().getCharHandler().addChar(ch);
+			_client.getCharHandler().addChar(ch);
 		}
-		GameController.getInstance().doCharSelection();
+		Singleton.get().getGameController().doCharSelection();
 
 	}
 

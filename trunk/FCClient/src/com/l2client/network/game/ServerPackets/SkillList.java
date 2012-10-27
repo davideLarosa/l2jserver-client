@@ -13,7 +13,6 @@ public class SkillList extends GameServerPacket
 	public  void handlePacket()
 	{
 		log.fine("Read from Server "+this.getClass().getSimpleName());
-
 		int skills = readD();//# of skills following
 		ArrayList<Skill> sList = new ArrayList<Skill>();
 		for(int i=0;i<skills;i++){
