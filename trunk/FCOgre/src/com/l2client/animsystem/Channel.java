@@ -43,15 +43,15 @@ public final class Channel {
 			if (bindingTime != 0.0f && boundAnimation != null) {
 				bindingTime = 0.0f;
 				if (nextAnimation != null) {
-					log.fine("found next animation:" + nextAnimation.getName());
+					log.finest(hashCode()+" found next animation:" + nextAnimation.getName());
 					setAnimation(nextAnimation, null);
 				} else {
-//					log.fine("Bind time elapsed setting bindingLevel to 0");
+					log.fine(hashCode()+" Bind time elapsed setting bindingLevel to 0");
 					bindingLevel = 0;
 				}
 			} else {
 				if(bindingLevel != 0)
-					log.fine("Bind time is 0.0f level now at "+bindingLevel);
+					log.fine(hashCode()+" Bind time is 0.0f level now at "+bindingLevel);
 			}
 		}
 	}
@@ -62,7 +62,7 @@ public final class Channel {
 		if (level > bindingLevel) {
 			bindingLevel = level;
 			bindingTime = 0.1f;
-//			log.finest("SetLock to:" + level);
+			log.finest(hashCode()+" SetLock to:" + level);
 			return true;
 		} else {
 			return false;
@@ -75,10 +75,10 @@ public final class Channel {
 		if (level >= bindingLevel) {
 			bindingLevel = level;
 			bindingTime = 0.1f;
-			log.finest("ForceLock to:" + level);
+			log.finest(hashCode()+" ForceLock to:" + level);
 			return true;
 		} else {
-			log.finest("ForceLock to:" + level +" failed");
+			log.fine(hashCode()+" ForceLock to:" + level +" failed");
 			return false;
 		}
 	}
@@ -97,12 +97,18 @@ public final class Channel {
 				this.boundAnimation = anim;
 				this.nextAnimation = null;
 			}
+			if(boundAnimation.getBlendTime() <= 0f) {
+				log.warning(hashCode()+"anim blend time <= 0 on animation "+boundAnimation.getName()+" will be set to 0.05f, to prevent glitches with basepose, check your Actions to set a blendtime");
+				boundAnimation.setBlendTime(0.05f);
+			}
+			
 			this.boundAnimation.setInternalAnimation();
 			this.bindingLevel = boundAnimation.getLevel();
 			this.bindingTime = boundAnimation.getAnimationLength();
-			if(bindingTime <= 0f)
+			if(bindingTime <= 0f) {
+				log.warning(hashCode()+"anim length <= 0 on animation "+boundAnimation.getName());
 				bindingTime = 0.01f;
-			
+			}
 			log.fine(hashCode()+" setAnimation to:" + boundAnimation.getName() + " length:"
 					+ boundAnimation.getAnimationLength() + " blend:"
 					+ boundAnimation.getBlendTime() + " bindingTime:"+bindingTime);

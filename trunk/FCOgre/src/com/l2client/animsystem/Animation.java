@@ -14,9 +14,9 @@ public abstract class Animation {
 	private String name = "";
 	
 	/**
-	 * blend time in seconds to blend between animations, default 0 (no blend)
+	 * blend time in seconds to blend between animations, default 0.05f to prevent glitches with the basepose in jme code
 	 */
-	private float blendTime = 0.0f;
+	private float blendTime = 0.05f;
 	/**
 	 * animation playback rate used as multiplier to playback speed of animation, default 1.0
 	 */
@@ -26,10 +26,10 @@ public abstract class Animation {
 	 */
 	private boolean looping = true; 
 	/**
-	 * binding time of channel, expressd as multiple of playback length, default 0 which means no time, 
-	 * but one frame guaranteed
+	 * binding time of channel, expressd as multiple of playback length, default 1 which means animation length. 0 would be no time, 
+	 * but one frame is guaranteed
 	 */
-	private float keep = 0.0f;
+	private float keep = 1f;
 
 	/**
 	 * channel this animation should be played on
