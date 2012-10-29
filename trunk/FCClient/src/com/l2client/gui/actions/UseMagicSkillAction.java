@@ -32,7 +32,7 @@ public class UseMagicSkillAction extends Action {
 	@Override
 	public void onAction(String name, boolean isPressed, float tpf) {
 		// only execute on button/key release
-		if (!isPressed) {
+//		if (!isPressed) {
 			ClientFacade f = Singleton.get().getClientFacade();
 			TargetComponent com = (TargetComponent) Singleton.get().getEntityManager().getComponent(f.getCharHandler().getSelectedObjectId(), TargetComponent.class);
 			if(com != null){
@@ -40,6 +40,6 @@ public class UseMagicSkillAction extends Action {
 				GameClientPacket p = new RequestMagicSkillUse(id, false, false);
 				f.sendGamePacket(p);		
 			}
-		}
+//		}
 	}
 }
