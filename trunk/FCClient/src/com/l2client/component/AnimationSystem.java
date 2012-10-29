@@ -89,7 +89,7 @@ public class AnimationSystem extends ComponentSystem {
 					EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(entityId,
 									EnvironmentComponent.class);
 					if (env != null) {
-						log.severe(e.getId()+" callAction "+a);
+						log.fine(e.getId()+" callAction "+a);
 						con.callAction(a.toString(), getInputFrom(env, e));
 					}
 				}
