@@ -92,7 +92,7 @@ public final class CharacterController {
 	private void setupChaseCamera(Node n, Camera cam) {
 		Vector3f targetOffset = new Vector3f();
 //		float ex = ((BoundingBox) n.getWorldBound()).getYExtent();
-		targetOffset.y = 5.2f;
+		targetOffset.y = 2.2f;
 //		cam.setAxes(Vector3f.UNIT_X, Vector3f.UNIT_Z, Vector3f.UNIT_Y.mult(-1f));
 		chaser = new ChaseCamera(cam, n, Singleton.get().getInputController().getInputManager());
 //		chaser.setUpVector(Vector3f.UNIT_Z);
@@ -105,14 +105,15 @@ public final class CharacterController {
 
 //		chaser.set
         //Uncomment this to look 3 world units above the target
-//		chaser.setLookAtOffset(Vector3f.UNIT_Z.mult(targetOffset));
+		chaser.setLookAtOffset( targetOffset);//Vector3f.UNIT_Z.mult(targetOffset));
 
         //Uncomment this to enable rotation when the middle mouse button is pressed (like Blender)
         //WARNING : setting this trigger disable the rotation on right and left mouse button click
 		chaser.setToggleRotationTrigger(new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 		chaser.setMaxDistance(20f);
-		chaser.setMinDistance(4f);
+		chaser.setMinDistance(5f);
 		chaser.setDefaultDistance(12f);
+		chaser.setZoomSensitivity(0.1f);
 	}
 
 	/**
