@@ -50,7 +50,6 @@ public class DefaultAttack extends Action {
 			case Low_RightLeft:
 			case Low_Front:{ret.setName(getMidLowResult(i.getInput(AttackVector.class))+ending);break;}
 			}
-			ret.setName("at_mid_c_slashlr_v0_success");
 			log.info("DefaultAttack:->"+ret.getName());
 			return ret;
 		}

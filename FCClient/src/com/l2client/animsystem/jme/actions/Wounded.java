@@ -10,125 +10,125 @@ import com.l2client.animsystem.jme.input.HurtVector;
 
 /**
  * wounded at level 4, should be highest prio
- *
+ * 
  */
 public class Wounded extends Action {
 	@Override
-	protected Animation evaluate(Mediator med){
+	protected Animation evaluate(Mediator med) {
 		Animation ret = null;
-		if(med.forceLockCheck(Channels.AllChannels,4)){
+		if (med.forceLockCheck(Channels.AllChannels, 4)) {
 			ret = med.getAnimation();
 			ret.setChannel(med.getChannel(Channels.AllChannels));
 			ret.setLevel(4);
 			ret.setBlendTime(0.05f);
 			ret.setLooping(false);
 			InputProvider i = med.getInput();
-			switch(i.getInput(Hurt.class)){
+			switch (i.getInput(Hurt.class)) {
 			case None:
 				ret.setName("ready");
 				break;
-			case Light:{
+			case Light: {
 				int j = rand.nextInt(10);
-				String name; 
-				if(rand.nextInt(10)>7){
+				String name;
+				if (rand.nextInt(10) > 7) {
 					name = "knockback_";
 				} else {
-					name = "knockback_move_";			
+					name = "knockback_move_";
 				}
 
-				switch(i.getInput(HurtVector.class)){
+				switch (i.getInput(HurtVector.class)) {
 				case None:
 				case Front:
-					switch(j){
+					switch (j) {
 					case 0:
 					case 1:
 					case 2:
 					case 3:
 					case 4:
-					case 5:	
-						ret.setName(name+"from_front");
+					case 5:
+						ret.setName(name + "from_front");
 						break;
 					case 6:
 					case 7:
-						ret.setName(name+"from_left");
+						ret.setName(name + "from_left");
 						break;
 					case 8:
 					case 9:
-						ret.setName(name+"from_right");
+						ret.setName(name + "from_right");
 						break;
 					}
 					break;
 				case Back:
-					switch(j){
+					switch (j) {
 					case 0:
 					case 1:
 					case 2:
 					case 3:
 					case 4:
-					case 5:	
-						ret.setName(name+"from_back");
+					case 5:
+						ret.setName(name + "from_back");
 						break;
 					case 6:
 					case 7:
-						ret.setName(name+"from_left");
+						ret.setName(name + "from_left");
 						break;
 					case 8:
 					case 9:
-						ret.setName(name+"from_right");
+						ret.setName(name + "from_right");
 						break;
 					}
 					break;
 				case Left:
-					switch(j){
+					switch (j) {
 					case 0:
 					case 1:
 					case 2:
 					case 3:
 					case 4:
-					case 5:	
-						ret.setName(name+"from_left");
+					case 5:
+						ret.setName(name + "from_left");
 						break;
 					case 6:
 					case 7:
-						ret.setName(name+"from_front");
+						ret.setName(name + "from_front");
 						break;
 					case 8:
 					case 9:
-						ret.setName(name+"from_back");
+						ret.setName(name + "from_back");
 						break;
 					}
 					break;
 				case Right:
-					switch(j){
+					switch (j) {
 					case 0:
 					case 1:
 					case 2:
 					case 3:
 					case 4:
-					case 5:	
-						ret.setName(name+"from_right");
+					case 5:
+						ret.setName(name + "from_right");
 						break;
 					case 6:
 					case 7:
-						ret.setName(name+"from_front");
+						ret.setName(name + "from_front");
 						break;
 					case 8:
 					case 9:
-						ret.setName(name+"from_back");
+						ret.setName(name + "from_back");
 						break;
 					}
-				}				
-				
+				}
+
 				break;
 			}
-			case Severe:{
+			case Severe: {
 				ret.setLooping(false);
 				ret.setKeep(1.0f);
-				switch(i.getInput(HurtVector.class)){
+				switch (i.getInput(HurtVector.class)) {
 				case None:
 				case Left:
 				case Right:
-					if(rand.nextInt(1)>0)
+					if (rand.nextInt(1) > 0)
 						ret.setName("knockdown_backward_launch");
 					else
 						ret.setName("knockdown_forward_launch");
@@ -141,12 +141,12 @@ public class Wounded extends Action {
 					break;
 
 				}
-				break;				
+				break;
 			}
-			case Deadly:{
+			case Deadly: {
 				ret.setLooping(false);
 				ret.setKeep(1.0f);
-				switch(i.getInput(HurtVector.class)){
+				switch (i.getInput(HurtVector.class)) {
 				case None:
 				case Front:
 					ret.setName("die_backward");
@@ -164,11 +164,9 @@ public class Wounded extends Action {
 				break;
 			}
 			}
-//			return ret;
+
 		}
-		ret.setName("knockback_move_from_left");
-		log.info("Wounded:->"+ret.getName());
-		
+		log.info("Wounded:->" + ret.getName());
 		return ret;
 	}
 }
