@@ -112,8 +112,8 @@ public class Assembler {
             model.addControl(new JMEAnimationController(c,animSet));
             SkeletonControl skeletonControl = new SkeletonControl(skel);
             model.addControl(skeletonControl);
-            if(useHWSkinning)
-            	skeletonControl.setUseHwSkinning(useHWSkinning);
+            skeletonControl.setUseHwSkinning(useHWSkinning);
+
             BoundsUpdateControl bc = new BoundsUpdateControl();
             bc.setSkeleton(skel);
             model.addControl(bc);
