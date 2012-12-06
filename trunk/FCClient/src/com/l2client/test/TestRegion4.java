@@ -70,6 +70,7 @@ public class TestRegion4 extends SimpleApplication {
 	private EntityManager em;
 	private JmeUpdateSystem js;
 	private PositioningComponent pc;
+	private Singleton sin = Singleton.get();
     public static void main(String[] args){
         TestRegion4 app = new TestRegion4();
         app.start();
@@ -77,19 +78,21 @@ public class TestRegion4 extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+    	sin.init();
     	cam.setLocation(new Vector3f(390f,10f,10f));
     	cam.setFrustumFar(1000f);
     	cam.setFrustumNear(1f);
     	cam.lookAt(new Vector3f(256f,0,0), Vector3f.UNIT_Y);
     	flyCam.setMoveSpeed(50f);
     	
-		assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
-    	enm = Singleton.get().getNavManager();
-    	em = Singleton.get().getEntityManager();
+		assetManager = sin.getAssetManager().getJmeAssetMan();
+    	enm = sin.getNavManager();
+    	enm.USE_OPTIMZED_PATH = true;
+    	em = sin.getEntityManager();
     	am = AreaTerrainManager.get();
-    	sm = Singleton.get().getSceneManager();
+    	sm = sin.getSceneManager();
     	js = JmeUpdateSystem.get();
-    	ps = Singleton.get().getPosSystem();
+    	ps = sin.getPosSystem();
 		am.update(cam.getLocation());
     	rootNode.attachChild(debugNodes);
 

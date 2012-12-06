@@ -46,8 +46,11 @@ public class Area {
 			if(baseAsset != null && baseAsset instanceof Spatial){
 				//FIXME just for dummy tests
 				Spatial n = (Spatial)baseAsset;
-				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
-		        mat.setColor("Color", ColorRGBA.randomColor());
+//				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
+//		        mat.setColor("Color", ColorRGBA.randomColor());
+			    Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Light/Lighting.j3md");
+			    mat.setBoolean("UseMaterialColors",true);    
+			    mat.setColor("Diffuse",ColorRGBA.randomColor());
 		        n.setMaterial(mat);
 		        n.updateModelBound();
 				Singleton.get().getSceneManager().changeTerrainNode(n,0);
