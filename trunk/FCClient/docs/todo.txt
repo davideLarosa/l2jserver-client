@@ -43,20 +43,23 @@ group
 distribution
   repackaging of jars for local client
   webstart version
-  static database as a jar file		started
+  static database as a jar file		replaced with csv files 
   local database for game settings
   
 BUGS:
 Investigate missing materials though material is peresent in data.jar
 Feb 14, 2012 4:24:42 PM com.l2client.asset.AssetManager$1 call
 Schwerwiegend: requested mats/pdwarfmwarrior/dwarfwarriorattachment.j3m was not found
+DONE: reason was jme ogre loader has some issues with material loading on models
 
 Investigate missing ent positioningcomponen, is it a concurrency situation? creation and move in very short milis?!?!
 Feb 14, 2012 4:25:05 PM com.l2client.network.game.ServerPackets.MoveToLocation handlePacket
 Schwerwiegend: No SimplePositioningComonent found with entity id 268465869, perhaps just create one?
+ANALYSIS: timing problem, creation of entity has to be done early, so when a move packet comes everything is already created.
 
 Troll model is different:
 ERROR no JMEAnimationController on Model
+
 
 A strange packet sequence with a 0 sized packet ?!?!?
 Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
@@ -77,11 +80,16 @@ Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
 Warnung: Unknown optcode:fffffffe
 Feb 14, 2012 4:25:06 PM com.l2client.network.game.GameHandler handlePacket
 Warnung: Packet with no data ?? size:2:0
+ANALYSIS: GameHandler and LoginHanlder should be more modular, and state reentrant, currently not all errors are reported, this has to done more thoroughly
 
 
 GUI BUG: pressing L inGame causes the list of abilities to flicker must press several times until visible or invisible.
+DONE: if action and button released, (button released was missing)
 GUI BUG: drop down boxes do not work properly, sometimes they loose focus when used with mouse.
 
+
 name tags are not centered above the models
+DONE
 
 pelfmwarrior has also wood elf stuff on it (so a bow is additionally displayed)
+TODO: replaced models, now the elf warrior is a dark elf warrior, switch back to raider and check again
