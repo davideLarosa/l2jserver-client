@@ -13,11 +13,10 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.l2client.app.Singleton;
-import com.l2client.controller.area.SimpleTerrainManager;
+import com.l2client.controller.area.IArea;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.model.l2j.ServerValues;
-import com.l2client.model.network.ClientFacade;
 
 /**
  * Action for triggering the movement of the player. Just an example.
@@ -82,6 +81,7 @@ public class GotoClickedInputAction extends Action {
 				for (CollisionResult res : results) {
 					geom = res.getGeometry();
 					if (geom != null) {
+						log.fine("picked " + geom.getName());
 						Integer id = geom.getUserData(Entity.ENTITY_ID);
 						if (id != null) {
 							//Just create a target component rest is done in the jmeupdatesystem
@@ -93,7 +93,7 @@ public class GotoClickedInputAction extends Action {
 							results.clear();
 							return;
 						} else if (res.getGeometry().getName()
-								.startsWith(SimpleTerrainManager.TILE_PREFIX)) {
+								.startsWith(IArea.TILE_PREFIX)) {//FIXME click on anything, check nav, then send request
 							// this is the one
 							Vector3f location = res.getContactPoint();
 							log.fine("new loc:" + location
@@ -109,7 +109,8 @@ public class GotoClickedInputAction extends Action {
 
 				}
 				results.clear();
-			}
+			} else 
+				log.warning("picked nothing");
 		}
 	}
 
