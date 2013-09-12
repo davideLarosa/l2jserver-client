@@ -15,6 +15,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -25,13 +26,13 @@ import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Line;
 import com.l2client.app.Assembler2;
 import com.l2client.app.ExtendedApplication;
-import com.l2client.controller.SceneManager;
+import com.l2client.app.Singleton;
 import com.l2client.util.PartSetManager;
 
 
 public class TestEndlessModelsOpt extends ExtendedApplication implements ActionListener {
 
-	PartSetManager man = PartSetManager.get();
+	PartSetManager man;
 	
 	ArrayList<Node> nodes = new ArrayList<Node>() ;
 
@@ -51,6 +52,7 @@ public class TestEndlessModelsOpt extends ExtendedApplication implements ActionL
 	private Material matBones;
 	
     public void simpleInitApp() {
+    	Singleton.get().init(null);
         matBones = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matBones.getAdditionalRenderState().setWireframe(true);
         matBones.setColor("Color", ColorRGBA.Red);
@@ -59,7 +61,7 @@ public class TestEndlessModelsOpt extends ExtendedApplication implements ActionL
         matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWireframe.setColor("Color", ColorRGBA.Green);
         matWireframe.getAdditionalRenderState().setWireframe(true);
-    
+        man = Singleton.get().getPartManager();
     	man.loadParts("megaset.csv");
     	templates = man.getTemplates();
 
@@ -166,11 +168,16 @@ public class TestEndlessModelsOpt extends ExtendedApplication implements ActionL
 				if(a==null)return;
 				BoundingVolume bound = ((Geometry) s).getModelBound();
 				if(bound instanceof BoundingBox) {
-				WireBox b = new WireBox(((BoundingBox) bound).getXExtent(), ((BoundingBox) bound).getYExtent(), ((BoundingBox) bound).getZExtent());
-				Geometry g = new Geometry(null, b);
-				g.setLocalTransform(s.getWorldTransform());
-				g.setMaterial(matWireframe);
-				bboxes.attachChild(g);
+					BoundingBox bb = ((BoundingBox) bound);
+					WireBox b = new WireBox(bb.getXExtent(), bb.getYExtent(), bb.getZExtent());
+					Geometry g = new Geometry(null, b);
+					Transform t = s.getWorldTransform().clone();
+//					Vector3f pos = t.getTranslation();
+//					pos.addLocal(bb.getCenter());
+//					t.setTranslation(pos);
+					g.getLocalTransform().set(t);
+					g.setMaterial(matWireframe);
+					bboxes.attachChild(g);
 				}
 			}
 			if(s instanceof Node) {
