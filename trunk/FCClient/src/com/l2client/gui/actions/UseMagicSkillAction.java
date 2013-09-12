@@ -6,7 +6,6 @@ import com.jme3.input.controls.KeyTrigger;
 import com.l2client.app.Singleton;
 import com.l2client.component.TargetComponent;
 import com.l2client.model.network.ClientFacade;
-import com.l2client.network.game.ClientPackets.AttackRequest;
 import com.l2client.network.game.ClientPackets.GameClientPacket;
 import com.l2client.network.game.ClientPackets.RequestMagicSkillUse;
 
