@@ -27,6 +27,7 @@ import com.jme3.system.AppSettings;
 import com.l2client.app.Singleton;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.SkillAndActionsPanelToggel;
+import com.l2client.gui.dialogs.AdminTeleportJPanel;
 import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.gui.dialogs.GameServerJPanel;
@@ -377,6 +378,48 @@ public final class GuiController {
 			}
 		});
 
+		desktopPane.repaint();
+		desktopPane.revalidate();
+		return pan;
+	}
+	
+	public AdminTeleportJPanel displayAdminTelePanel(){
+
+		final JDesktopPane desktopPane = jmeDesktop.getJDesktop();
+		desktopPane.removeAll();
+
+		final JInternalFrame internalFrame = new TransparentInternalFrame();
+
+		//internalFrame.setLocation(desktopPane.getWidth()/2-100, desktopPane.getHeight()/2-90);
+		final AdminTeleportJPanel pan = new AdminTeleportJPanel();
+		pan.validate();
+		
+		internalFrame.add(pan);
+		internalFrame.setSize(new java.awt.Dimension(240, 110));
+		internalFrame.setVisible(true);
+		internalFrame.pack();
+		internalFrame.setLocation(0,0);
+
+		desktopPane.add(internalFrame);
+
+		wireInputSwitch(new ArrayList<BaseUsable>()/*must pass empty otherwise not overriden*/, pan);
+		
+		pan.addToTestAreaActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// this gets executed in swing thread
+				// alter swing components only in swing thread!
+				Singleton.get().getCharController().teleportToTestArea();
+			}
+		});
+		
+		pan.addFromTestAreaActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// this gets executed in swing thread
+				// alter swing components only in swing thread!
+				Singleton.get().getCharController().teleportFromTestArea();
+			}
+		});
+		
 		desktopPane.repaint();
 		desktopPane.revalidate();
 		return pan;
