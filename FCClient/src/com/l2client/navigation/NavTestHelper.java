@@ -218,7 +218,7 @@ public class NavTestHelper {
 		root.attachChild(geom);		
 	}
 	
-	public static void debugShowMesh(AssetManager assetMan, com.jme3.scene.Node root, NavigationMesh mesh) {
+	public static void debugShowMesh(AssetManager assetMan, com.jme3.scene.Node root, TiledNavMesh mesh) {
 		int cnt = mesh.m_CellArray.size();
 		Material mat = new Material(assetMan, "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", ColorRGBA.White);
@@ -266,7 +266,7 @@ public class NavTestHelper {
         return label;
     }
 
-	public static void areCellLinksWithinRange(NavigationMesh m, float maxDist) {
+	public static void areCellLinksWithinRange(TiledNavMesh m, float maxDist) {
 		for(int i=0;i<m.m_CellArray.size();i++){
 			Cell c = m.m_CellArray.get(i);
 			for(int j=0;j<3;j++){
