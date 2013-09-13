@@ -12,6 +12,7 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 /**
  * A simple height map which supports arbitrary sized maps
  */
+@Deprecated //no longer used, prepare for removal
 public class SimpleHeightMap extends AbstractHeightMap {
 
 	private String filename ="";

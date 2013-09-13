@@ -7,6 +7,9 @@ import com.l2client.app.Assembler2;
 import com.l2client.app.Singleton;
 import com.l2client.model.network.NewCharSummary;
 
+/**
+ * Representation of a 3d model based on l2j npc information found in the npcs client database
+ */
 public class NPCModel extends VisibleModel {
 
 	public NPCModel(NewCharSummary sel) {
