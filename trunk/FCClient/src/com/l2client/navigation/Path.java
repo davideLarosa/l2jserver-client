@@ -19,7 +19,7 @@ public class Path {
 	public class WAYPOINT {
 		public Vector3f Position; // 3D position of waypoint
 		public Cell Cell; // The cell which owns the waypoint
-		public Mesh mesh; // the mesh the cell belongs to
+		public NavMesh mesh; // the mesh the cell belongs to
 		boolean borderCell;
 
 		@Override
@@ -46,7 +46,7 @@ public class Path {
 	// complete the list
 	//
 	// -------------------------------------------------------------------------------------://
-	void Setup(Mesh Parent, Vector3f StartPoint, Cell StartCell){//,
+	void Setup(NavMesh Parent, Vector3f StartPoint, Cell StartCell){//,
 //	}
 //			Vector3f EndPoint, Cell EndCell) {
 		m_WaypointList.clear();
@@ -71,7 +71,7 @@ public class Path {
 	// Adds a new waypoint to the end of the list
 	//
 	// -------------------------------------------------------------------------------------://
-	void AddWayPoint(Vector3f Point, Cell Cell, Mesh mesh) {
+	void AddWayPoint(Vector3f Point, Cell Cell, NavMesh mesh) {
 		WAYPOINT NewPoint = new WAYPOINT();
 
 		NewPoint.Position = Point;

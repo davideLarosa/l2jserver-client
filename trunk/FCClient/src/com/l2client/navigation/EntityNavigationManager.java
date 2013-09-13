@@ -1,5 +1,6 @@
 package com.l2client.navigation;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -7,6 +8,7 @@ import java.util.logging.Logger;
 import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
+import com.l2client.component.PositioningSystem;
 import com.l2client.controller.area.IArea;
 import com.l2client.controller.entity.ISpatialPointing;
 import com.l2client.navigation.Path.WAYPOINT;
@@ -14,7 +16,7 @@ import com.l2client.navigation.Path.WAYPOINT;
 
 
 /**
- * manages entites and queries around them
+ * manages entites and queries around them, runtime storage backend for the entity component system
  *
  */
 public class EntityNavigationManager {
@@ -28,7 +30,7 @@ public class EntityNavigationManager {
 
 	private static EntityNavigationManager singleton = null;
 	
-	private volatile Set<NavigationMesh>meshes = new HashSet<NavigationMesh>();
+	private volatile Set<TiledNavMesh>meshes = new HashSet<TiledNavMesh>();
 	
 	private EntityNavigationManager() {
 		singleton = this;
@@ -53,31 +55,34 @@ public class EntityNavigationManager {
 	 * @param pos
 	 * @return
 	 */
-	public Mesh getMesh(Vector3f pos) {
-		for(NavigationMesh mesh : meshes)
+	public NavMesh getMesh(Vector3f pos) {
+		for(TiledNavMesh mesh : meshes)
 			if(mesh.isPointInTile(pos.x,pos.z))
 				return mesh;
 		
 		return null;
 	}
 
-	public void detachMesh(NavigationMesh m) {
+	public void detachMesh(TiledNavMesh m) {
 			meshes.remove(m);
 	}
 
-	public void attachMesh(NavigationMesh m) {
+	public void attachMesh(TiledNavMesh m) {
 			meshes.add(m);
+			log.info("Added NavMesh at "+m.getPosition().x+"/"+m.getPosition().z);
 
-		if(meshes.size()>25)
-			log.warning("NavigationManager attachMesh has more meshes than expected (> 25) , is a remove leak present?");
+		if(meshes.size()>26)//25 5x5 @see ITileManager and one more from a precache for teleport..
+			log.warning("NavigationManager attachMesh has more meshes than expected ("+meshes.size()+"> 26) , is a remove leak present?");
 
 		ISpatialPointing [] ents = Singleton.get().getPosSystem().getEntitiesAt(m.getPosition().x, m.getPosition().z, IArea.TERRAIN_SIZE_HALF);
-		if(ents != null && ents.length>0)
+		if(ents != null && ents.length>0) {
+			log.info("Found "+ents.length+" entities within "+IArea.TERRAIN_SIZE_HALF+" radius of "+m.getPosition().x+"/"+m.getPosition().z+", will position them on navmesh");
 			positionEntitiesOnMesh(ents, m);
+		}
 	}
 	
 	private void positionEntitiesOnMesh(ISpatialPointing[] ents,
-			NavigationMesh m) {
+			TiledNavMesh m) {
 		PositioningComponent com = null;
 		for(int i=0;i <ents.length;i++){
 			com = (PositioningComponent) ents[i];
@@ -87,31 +92,39 @@ public class EntityNavigationManager {
 	}
 
 	public Cell FindClosestCell(Vector3f Point, boolean mustBeBorderCell) {
-		NavigationMesh na = getNavMesh(Point);
+		TiledNavMesh na = getNavMesh(Point);
 		Cell c = null;
 		if(na != null){
 			c = na.FindClosestCell(Point);
 			if(c != null){
 				if(mustBeBorderCell && !na.isBorderCell(c)){
 					c = null;
-					log.info("NavigationManager FindClosestCell has no border cell for coordinates "+Point);
+					log.finest("NavigationManager FindClosestCell has no border cell for coordinates "+Point);
 				} else {
-					log.info("NavigationManager FindClosestCell found borderCell:"+c);
+					log.finest("NavigationManager FindClosestCell found borderCell:"+c);
 					return c;
 				}
 			}
 		} else
 			log.warning("NavigationManager FindClosestCell has no NavigationMesh for coordinates "+Point);
-		log.warning("NavigationManager FindClosestCell has no mesh for coordinates "+Point);
+		log.severe("NavigationManager FindClosestCell has no mesh for coordinates "+Point);
 		return c;
 	}
 
-	public NavigationMesh getNavMesh(Vector3f worldPos) {
-		for(NavigationMesh mesh : meshes)
+	public TiledNavMesh getNavMesh(Vector3f worldPos) {
+		for(TiledNavMesh mesh : meshes)
 			if(mesh.isPointInTile(worldPos.x,worldPos.z))
 				return mesh;
 		
 		return null;
+	}
+	
+	/**
+	 * Juts for debug use
+	 * @return
+	 */
+	public Collection<TiledNavMesh> getNavMeshes(){
+		return meshes;
 	}
 	
 	
@@ -124,9 +137,10 @@ public class EntityNavigationManager {
 						//one after current
 						if(c != null){
 							comp.cell = p.Cell;
-							comp.mesh = (NavigationMesh) p.mesh;
+							comp.mesh = (TiledNavMesh) p.mesh;
 							comp.nextWayPoint = p;
 							endPos.set(c.Position);
+							comp.targetHeading = PositioningSystem.getHeading(comp.position, c.Position);
 							return;
 						}
 						//find current
@@ -138,9 +152,10 @@ public class EntityNavigationManager {
 						//one after current
 						if(c != null){
 							comp.cell = p.Cell;
-							comp.mesh = (NavigationMesh) p.mesh;
+							comp.mesh = (TiledNavMesh) p.mesh;
 							comp.nextWayPoint = p;
 							endPos.set(c.Position);
+							comp.targetHeading = PositioningSystem.getHeading(comp.position, c.Position);
 							return;
 						}
 						//find current
@@ -163,29 +178,29 @@ public class EntityNavigationManager {
 		return buildNavigationPath(navPath, getNavMesh(startPos), startPos, getNavMesh(endPos), endPos);
 	}
 
-	private boolean buildNavigationPath(Path navPath, NavigationMesh startMesh,
-			Vector3f startPos, NavigationMesh endMesh, Vector3f endPos) {
+	private boolean buildNavigationPath(Path navPath, TiledNavMesh startMesh,
+			Vector3f startPos, TiledNavMesh endMesh, Vector3f endPos) {
 		//check params, as we can be fed from the outside
 		if(navPath != null){
 			if(startMesh!= null && endMesh != null){
 				if(startMesh != endMesh){
-					log.fine(" Building - path between borders ? "+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+					log.finer(" Building - path between borders ? "+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 					//check for neighboring path
 					if(startMesh.isNeighbourOf(endMesh))
 					{
-						log.fine(" - path for neighbors :"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+						log.finer(" - path for neighbors :"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 						navPath.WaypointList().clear();
 						if(startMesh.buildNavigationPathToBorder(navPath, null, startPos, endPos)){
 							Path endPath = new Path();
 							if(USE_OPTIMZED_PATH)
 								navPath.optimize();
-							log.fine(" - path part 1 to border found :"+startPos+" to:"+endPos+" with crossing at:"+navPath.EndPoint().Position);
+							log.finer(" - path part 1 to border found :"+startPos+" to:"+endPos+" with crossing at:"+navPath.EndPoint().Position);
 							//FIXME this one is direction dependant, so we have to invert search direction
 							if(endMesh.buildNavigationPathToBorder(endPath, null, endPos, navPath.EndPoint().Position)){
 								log.fine(" - path part 2 to border found :"+navPath.EndPoint().Position+" to:"+endPos);
 								//do the crossing points match ?
 								if(!(navPath.EndPoint().Position.distanceSquared(endPath.EndPoint().Position)< 0.0000001f)){
-									log.fine("NO PATH - no path between border crosses:"+startMesh+"-"+navPath.EndPoint().Position+" to:"+endMesh+"-"+endPath.EndPoint().Position);
+									log.finer("NO PATH - no path between border crosses:"+startMesh+"-"+navPath.EndPoint().Position+" to:"+endMesh+"-"+endPath.EndPoint().Position);
 									navPath.WaypointList().clear();
 									return false;
 								}
@@ -207,10 +222,10 @@ public class EntityNavigationManager {
 								return true;
 							} else {
 								navPath.WaypointList().clear();
-								log.fine("NO PATH - no path between borders:"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
+								log.finer("NO PATH - no path between borders:"+startMesh+"-"+startPos+" to:"+endMesh+"-"+endPos);
 							}
-						}log.fine("NO PATH - no path to border:"+startMesh+"-"+endPos);
-					} else log.fine("NO PATH - Path for non neighbors requested:"+startMesh+" to:"+endMesh);
+						}log.finer("NO PATH - no path to border:"+startMesh+"-"+endPos);
+					} else log.finer("NO PATH - Path for non neighbors requested:"+startMesh+" to:"+endMesh);
 				} else {
 					if(startMesh.buildNavigationPath(navPath, startPos, endPos)){
 						if(USE_OPTIMZED_PATH)
@@ -221,8 +236,10 @@ public class EntityNavigationManager {
 					}else 
 						return false;
 				}
-			} else log.severe("NO PATH - start or end param missing:"+startMesh+" to:"+endMesh);
-		} else log.severe("NO PATH - Path param missing");
+			} else 
+				log.finer("NO PATH - start or end param missing:"+startMesh+" to:"+endMesh);
+		} else 
+			log.finer("NO PATH - Path param missing");
 		return false;
 	}
 	
@@ -230,7 +247,7 @@ public class EntityNavigationManager {
 	public String toString(){
 		StringBuilder str = new StringBuilder(this.getClass().getSimpleName());
 		str.append(" Meshes total:").append(meshes.size());
-		for(NavigationMesh n : meshes)
+		for(TiledNavMesh n : meshes)
 			str.append('\n').append(n.toString());
 		
 		return str.toString();
@@ -246,12 +263,17 @@ public class EntityNavigationManager {
 			c.MapVectorHeightToCell(p);
 	}
 	
-	private void snapToGround(PositioningComponent com){
-		Cell c = FindClosestCell(com.position, false);
+	public void snapToGround(PositioningComponent com){
+		int id = Singleton.get().getEntityManager().getEntityId(com);
+		log.fine("Snap to Ground for "+id+" at "+com.position);
+		Cell c = FindClosestCell(com.goalPos, false);
 		if(c != null){
-			c.MapVectorHeightToCell(com.position);
+			c.MapVectorHeightToCell(com.goalPos);
 			com.cell = c;
-		}
+			com.teleport = true;//needed for real positioning on ground @see PositioningSystem.initTeleportTo()
+			log.fine("Snap to Ground succeeded for"+id+" from "+com.position+ " to "+com.goalPos);
+		}else
+			log.fine("Snap to Ground FAILED for"+id+" around "+com.position);
 	}
 
 }

@@ -21,10 +21,12 @@ import com.l2client.navigation.Cell.ClassifyResult;
  * 
  * Portions Copyright (C) Greg Snook, 2000
  * 
- * @author TR
+ * All coordinates used are world coordinates
+ * 
+ * @author tmi
  * 
  */
-public class Mesh implements Savable{
+public class NavMesh implements Savable{
 
 	ArrayList<Cell> m_CellArray = new ArrayList<Cell>(); // the cells that make
 															// up this mesh
@@ -37,10 +39,6 @@ public class Mesh implements Savable{
 		Cell cell = null;
 		Vector3f pos = null;
 	};
-
-//	public void Clear() {
-//		m_CellArray.clear();
-//	}
 
 
 	/**

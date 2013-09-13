@@ -2,6 +2,7 @@ package com.l2client.navigation;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Mesh.Mode;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.util.BufferUtils;
@@ -22,15 +25,14 @@ import com.l2client.controller.area.IArea;
 import com.l2client.navigation.Line2D.LINE_CLASSIFICATION;
 
 /**
- * A navigation.Mesh wrapper containing the nav mesh in world coordinates
+ * A navigation.NavMesh wrapper with functionality for tiled navmeshes.
  * 
  * @author tmi
  * 
  */
-public class NavigationMesh extends Mesh {
+public class TiledNavMesh extends NavMesh {
 
-	private static Logger log = Logger.getLogger(NavigationMesh.class.getName());
-	private static final long serialVersionUID = 1L;
+	private static Logger log = Logger.getLogger(TiledNavMesh.class.getName());
 	//BOUNDS hit flag for bitwise flagging on more than one bounds hit
 	private static final int BOUNDS_LEFT = 1;
 	private static final int BOUNDS_RIGHT = 2;
@@ -62,7 +64,7 @@ public class NavigationMesh extends Mesh {
 	//FIXME initialization
 	private ArrayList<HashSet<Cell>> allBorders = new ArrayList<HashSet<Cell>>(8);
 	
-	public NavigationMesh(){
+	public TiledNavMesh(){
 		for(int i=0;i<8;i++)
 			allBorders.add(new HashSet<Cell>());	
 	}
@@ -109,6 +111,8 @@ public class NavigationMesh extends Mesh {
 		bottom = (Line2D) capsule.readSavable("bottom", null);
 		left = (Line2D) capsule.readSavable("left", null);
 		worldTranslation = (Vector3f) capsule.readSavable("worldpos", null);
+		if(worldTranslation != null)
+			log.fine("TiledNavMesh loaded at:"+worldTranslation);
 		//FIXME loading and storing of border information
 		int[] bKeys = capsule.readIntArray("borders_keys",null);
 		int[] vKeys = capsule.readIntArray("borders_values",null);
@@ -130,19 +134,22 @@ public class NavigationMesh extends Mesh {
 	//TODO testcase needed for translated trimesh
 	public void loadFromGeom(Geometry geom) {
 		com.jme3.scene.Mesh tri = geom.getMesh();
-		loadFromMesh(tri, geom.getWorldTranslation());
+		loadFromMesh(tri, geom.getWorldTranslation(), false);
 	}
 	
 	/**
 	 * call before attaching or anything
-	 * @param positions
-	 * @param indices
-	 * @param worldtrans
+	 * @param positions		Array of Vector3f positions in local coordinates
+	 * @param indices		Array of indices to triangles in the positions array
+	 * @param worldtrans	The final world translation of the tile center
 	 */
     public void loadFromData(Vector3f[] positions, short[][] indices, Vector3f worldtrans){
 
-		this.worldTranslation = worldtrans;
-			
+		this.worldTranslation = worldtrans.clone();
+        Vector3f offset = Vector3f.ZERO;
+        int down = 0;
+        int total = 0;
+        
 		clearBorderPoints();
 		createBounds();
 		
@@ -155,6 +162,7 @@ public class NavigationMesh extends Mesh {
         Vector3f vertC = null;
         Cell c = null;
         for (int i = 0; i < indices.length; i++) {
+        	total++;
             vertA = positions[indices[i][0]];
             vertB = positions[indices[i][1]];
             vertC = positions[indices[i][2]];
@@ -162,13 +170,13 @@ public class NavigationMesh extends Mesh {
             Plane p = new Plane();
             p.setPlanePoints(vertA, vertB, vertC);
             if (up.pseudoDistance(p.getNormal()) <= 0.0f) {
-                log.warning("Warning, normal of the plane faces downward!!!");
+                down++;
                 continue;
             }
             
-            borderCorrection(vertA);
-            borderCorrection(vertB);
-            borderCorrection(vertC);
+			borderCorrection(vertA, offset);
+            borderCorrection(vertB, offset);
+            borderCorrection(vertC, offset);
             
             vertA = vertA.add(worldtrans);
             vertB = vertB.add(worldtrans);
@@ -179,10 +187,26 @@ public class NavigationMesh extends Mesh {
         }
 
         LinkCells();
+        log.warning("Ignored "+down+" of "+total+" faces facing downward in the mesh");
     }
-	
-    public void loadFromMesh(com.jme3.scene.Mesh mesh, Vector3f worldtrans) {
-    	worldTranslation = worldtrans;
+ 	
+    /**
+     * 
+     * @param mesh				A mesh
+     * @param worldtrans		The final center of the tile used for border creation
+     * @param isRelative		true if the mesh is in local coordinates, false if already translated to worldtrans
+     */
+    public void loadFromMesh(com.jme3.scene.Mesh mesh, Vector3f worldtrans, boolean isRelative) {
+    	worldTranslation = worldtrans.clone();
+		Vector3f offset;
+		
+		int down = 0;
+		int total = 0;
+		
+		if(isRelative)
+			offset = Vector3f.ZERO;
+		else
+			offset = worldtrans;
 		
 		clearBorderPoints();
 		createBounds();
@@ -195,6 +219,7 @@ public class NavigationMesh extends Mesh {
         FloatBuffer pb = mesh.getFloatBuffer(Type.Position);
         pb.clear();
         for (int i = 0; i < mesh.getTriangleCount()*3; i+=3){
+        	total++;
             int i1 = ib.get(i+0);
             int i2 = ib.get(i+1);
             int i3 = ib.get(i+2);
@@ -205,20 +230,20 @@ public class NavigationMesh extends Mesh {
             BufferUtils.populateFromBuffer(b, pb, i2);
             BufferUtils.populateFromBuffer(c, pb, i3);
             
-            borderCorrection(a);
-            borderCorrection(b);
-            borderCorrection(c);
-            
+            borderCorrection(a, offset);
+            borderCorrection(b, offset);
+            borderCorrection(c, offset);
+        
+            if(isRelative){
             a=a.add(worldtrans);
             b=b.add(worldtrans);
             c=c.add(worldtrans);
+            }
             
-
-
             Plane p = new Plane();
             p.setPlanePoints(a, b, c);
             if (up.pseudoDistance(p.getNormal()) <= 0.0f) {
-            	log.warning("Warning, normal of the plane faces downward!!!");
+            	down++;
                 continue;
             }
 
@@ -226,6 +251,7 @@ public class NavigationMesh extends Mesh {
         }
 
         LinkCells();
+        log.warning("Ignored "+down+" of "+total+" faces facing downward in the mesh");
     }
 	
 
@@ -234,25 +260,26 @@ public class NavigationMesh extends Mesh {
 	 * border. Input values are expected to be in local coordinates (before translating to the final world position)
 	 * @param v vertex who's values should be checked and corrected, the values can change
 	 */
-	private void borderCorrection(Vector3f v) {
+	private void borderCorrection(Vector3f v, Vector3f offset) {
 		float borderDelta = 0.001f;// if within this range to a border it will
 									// be clamped to the border
-		v.x = clampToBorder(v.x, borderDelta);
-		v.y = clampToBorder(v.y, borderDelta);
-		v.z = clampToBorder(v.z, borderDelta);
+		v.x = clampToBorder(v.x, borderDelta, offset.x);
+		//hey, only in x and z , dont clamp the height !?!
+//		v.y = clampToBorder(v.y, borderDelta, offset.y);
+		v.z = clampToBorder(v.z, borderDelta, offset.z);
 	}
 
 	/**
 	 * clamp a value to the border if it is within the specified delta away from the border side
-	 * @param x value whcih possibly is near a border, in local coordinates
+	 * @param x value which possibly is near a border, in local coordinates
 	 * @param borderDelta
 	 * @return
 	 */
-	private float clampToBorder(float x, float borderDelta) {
-		if (FastMath.abs(x - IArea.TERRAIN_SIZE_HALF) <= borderDelta)
-			return IArea.TERRAIN_SIZE_HALF;
-		if (FastMath.abs(x + IArea.TERRAIN_SIZE_HALF) <= borderDelta)
-			return -IArea.TERRAIN_SIZE_HALF;
+	private float clampToBorder(float x, float borderDelta, float offset) {
+		if (FastMath.abs(x - IArea.TERRAIN_SIZE_HALF - offset) <= borderDelta)
+			return IArea.TERRAIN_SIZE_HALF + offset;
+		if (FastMath.abs(x + IArea.TERRAIN_SIZE_HALF - offset) <= borderDelta)
+			return -IArea.TERRAIN_SIZE_HALF + offset;
 		return x;
 	}
 
@@ -428,7 +455,7 @@ public class NavigationMesh extends Mesh {
 	}
 
 	//distance between must be within SimpleTerrainManger.TERRAIN_SIZE
-	public boolean isNeighbourOf(NavigationMesh endMesh) {
+	public boolean isNeighbourOf(TiledNavMesh endMesh) {
 		Vector3f dist = worldTranslation.subtract(endMesh.worldTranslation);
 		if(FastMath.abs(dist.x)>IArea.TERRAIN_SIZE || 
 				FastMath.abs(dist.x)>IArea.TERRAIN_SIZE)
@@ -451,7 +478,7 @@ public class NavigationMesh extends Mesh {
 	 */
 	//FIXME move over to navmanager
 	//the points are on this mesh for sure
-	boolean buildNavigationPath(Path NavPath, Vector3f StartPos, Vector3f EndPos) {
+	synchronized boolean buildNavigationPath(Path NavPath, Vector3f StartPos, Vector3f EndPos) {
 		return BuildNavigationPath(NavPath, FindClosestCell(StartPos), StartPos, FindClosestCell(EndPos), EndPos);	
 	}
 
@@ -564,5 +591,31 @@ public class NavigationMesh extends Mesh {
 	 */
 	public Vector3f getPosition() {
 		return worldTranslation.clone();
+	}
+	
+	public Geometry getDebugMesh(){
+		Mesh m = new Mesh();
+		m.setMode(Mode.Triangles);
+		IntBuffer ib = BufferUtils.createIntBuffer(this.m_CellArray.size()*3*3);
+		FloatBuffer vb = BufferUtils.createFloatBuffer(this.m_CellArray.size()*3*3);
+        vb.rewind();
+        int i=0;
+        for(Cell c : m_CellArray){
+        	for(int v= 0;v<3;v++){
+        		vb.put(c.m_Vertex[v].x);
+        		vb.put(c.m_Vertex[v].y);
+        		vb.put(c.m_Vertex[v].z);
+        		ib.put(i++);
+        		ib.put(i++);
+        		ib.put(i++);
+        	}
+        }
+		m.setBuffer(Type.Position, 3, vb);
+		m.setBuffer(Type.Index, 3, ib);
+		m.updateBound();
+		
+		Geometry g = new Geometry("Debug_NavMesh_"+this.toString(),m);
+		g.updateModelBound();
+		return g;
 	}
 }
