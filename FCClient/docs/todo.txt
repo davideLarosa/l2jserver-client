@@ -4,25 +4,25 @@ navmesh
   ispointonmesh					done
   heap rewrite to generics			done
   mesh crossing (tiles) 			done
-  client & server use navmesh
+  client & server use navmesh		client done
   new: direct paths & no more crossing on middlepoint	done
 
 terrain 
   texturing						done
-  shader in jme integrated		-> use existing shader or integrate own
-  ogre pagedgeometry for trees and grass -> use androlos forester
+  shader in jme integrated		splat4x done
+  ogre pagedgeometry for trees and grass -> grass done, meshes todo
 
-asset tool
-  terrain material import		->
-  navmesh import					done
-  terrain mesh import				done
+asset tool						use jmonkey sdk for asset creation, especially tiles
+  terrain material import		nothing fancy
+  navmesh import				done
+  terrain mesh import			done
   asset import					done
 
 compiler
-  textures must be copied to target	done
+  textures must be copied to target		done
   material save after copy of textures	done
-  create megaset					done
-  create data.jar					done
+  create megaset						done
+  create data.jar						done
   split data.jar 
   primhand							done
   offhand							done
@@ -34,8 +34,8 @@ assembler
 
 
 
-group 
-  flocking algorithm				done
+group 							not really needed for l2jserver
+  flocking algorithm			done
   group navigation				done
   group orders
   group planing
@@ -56,6 +56,9 @@ Investigate missing ent positioningcomponen, is it a concurrency situation? crea
 Feb 14, 2012 4:25:05 PM com.l2client.network.game.ServerPackets.MoveToLocation handlePacket
 Schwerwiegend: No SimplePositioningComonent found with entity id 268465869, perhaps just create one?
 ANALYSIS: timing problem, creation of entity has to be done early, so when a move packet comes everything is already created.
+DONE: While receiving npc information on startup server can send also already move instructions for npcs around which are not send
+      to the client, this is is mitigated by queuing moved if the positioning component is not registered so far and later on registration 
+      moves are issued 
 
 Troll model is different:
 ERROR no JMEAnimationController on Model

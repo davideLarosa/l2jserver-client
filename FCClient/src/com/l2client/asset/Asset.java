@@ -19,11 +19,6 @@ import com.jme3.scene.Node;
  */
 public class Asset extends Node{
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	private String location = "";
 	
 	protected transient Object baseAsset = null;

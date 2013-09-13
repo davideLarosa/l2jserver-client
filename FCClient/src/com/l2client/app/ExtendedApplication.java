@@ -12,6 +12,8 @@ public class ExtendedApplication extends SimpleApplication {
 	public ExtendedApplication(){
 		showSettings = false;
 		this.assetManager = AssetManager.get().getJmeAssetMan();
+		//jme3 only displaying the jme settings screen eats heap
+		System.gc();
 	}
 
 	@Override
