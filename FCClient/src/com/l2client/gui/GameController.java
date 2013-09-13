@@ -19,7 +19,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
@@ -119,6 +118,7 @@ public final class GameController {
 		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
 				0.32999992f, 0.6059958f);
 		fpp.addFilter(ssaoFilter);
+		logger.severe("Adding SSAO");
 		Singleton.get().getSceneManager().changePostProcessor(fpp, 0);
 	}
 	
@@ -131,6 +131,9 @@ public final class GameController {
 
 			@Override
 			public void run() {
+				
+				Singleton.get().getGuiController().displayAdminTelePanel();
+				
 				final ChatPanel pan = Singleton.get().getGuiController().displayChatJPanel();
 				clientInfo.getChatHandler().setChatPanel(pan);
 				pan.addChatListener(new KeyListener() {

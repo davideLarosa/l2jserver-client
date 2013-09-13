@@ -14,6 +14,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.l2client.app.Singleton;
+import com.l2client.component.PositioningComponent;
 import com.l2client.component.TargetComponent;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
@@ -21,7 +22,9 @@ import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.GotoClickedInputAction;
 import com.l2client.model.jme.NewCharacterModel;
 import com.l2client.model.l2j.ItemInstance;
+import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.EntityData;
+import com.l2client.network.game.ClientPackets.RequestBypassToServer;
 
 //TODO refactor with charselecthandler, ev. remove coupling
 //FIXME too much hard coded here
@@ -36,6 +39,7 @@ public final class CharacterController {
 	private Entity visible = null;
 	private Camera cam;
 	private Spatial target;
+	private Vector3f originalLocation = null;
 
 	private CharacterController() {
 	}
@@ -163,4 +167,46 @@ public final class CharacterController {
     	}
     	return false;
 	}
+
+	/**
+	 * Teleport the player from the test area to the location he started at log in time
+	 */
+	public void teleportFromTestArea() {
+		if(originalLocation != null){
+			//x y z in jme but send it x z y to l2j
+			Singleton.get().getClientFacade().sendGamePacket(
+				new RequestBypassToServer("admin_move_to "+
+						(int)ServerValues.getServerCoord(originalLocation.x)+" "+
+						(int)ServerValues.getServerCoord(originalLocation.z)+" "+
+						(int)ServerValues.getServerCoord(originalLocation.y)));
+		} else {
+			Singleton.get().getGuiController().showInfoDialog("No origin found, no teleport done.");
+		}
+	}
+
+	/**
+	 * Teleport the player to the test area
+	 */
+	public void teleportToTestArea() {
+		try{
+			if(originalLocation == null){
+				EntityData e = Singleton.get().getClientFacade().getCharHandler().getSelectedChar();
+				PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(e.getObjectId(), PositioningComponent.class);
+				originalLocation = pos.position.clone();
+			}
+			Singleton.get().getClientFacade().sendGamePacket(
+				// top left edge of 15_22 + 10 cells further in wards (10*16)
+				//	(-9890.341, 14.228922, 8302.891) on tile 121, 177
+				//x y z in jme but send it x z y to l2j
+				new RequestBypassToServer("admin_move_to "+
+						(int)ServerValues.getServerCoord(-9890f)+" "+
+						(int)ServerValues.getServerCoord(8302f)+" "+
+						(int)ServerValues.getServerCoord(14.3f)));
+		} catch(Exception e){
+			logger.severe(e.getMessage());
+			Singleton.get().getGuiController().showInfoDialog("Failed to teleport, see at the logs why.");
+		}
+	
+	}
+
 }

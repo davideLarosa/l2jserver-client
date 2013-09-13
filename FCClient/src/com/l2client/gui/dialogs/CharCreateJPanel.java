@@ -205,7 +205,7 @@ public class CharCreateJPanel extends javax.swing.JPanel {
 		ch.name = nameField.getText();
 		ch.race = raceBox.getSelectedIndex();
 		ch.sex = genderBox.getSelectedIndex();
-		ch.classId = fixClassID(Race.values()[ch.race], classBox.getSelectedItem().toString());
+		ch.classId = fixClassID(Race.values()[ch.race], classBox.getSelectedItem().toString(), ch.sex);
 		ch.hair = hair;
 		return ch;
 	}
@@ -227,7 +227,8 @@ public class CharCreateJPanel extends javax.swing.JPanel {
 		this.hairButton.addActionListener(l);
 	}
 	
-	private int fixClassID(Race r, String classString){
+	private int fixClassID(Race r, String classString, int sex){
+		//FIXME read this in from char_templates
 		switch(r){
 		case Human:
 			if(FIGHTER.equals(classString))
@@ -253,9 +254,9 @@ public class CharCreateJPanel extends javax.swing.JPanel {
 			if(FIGHTER.equals(classString))
 				return 0x35;
 		case Kamael:
-			if(FIGHTER.equals(classString))
+			if(sex != 1)
 				return 0x7b;
-			else if(WIZARD.equals(classString))
+			else 
 				return 0x7c;
 		}
 		return -1;
