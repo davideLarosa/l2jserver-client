@@ -5,7 +5,7 @@ import com.l2client.component.AnimationSystem;
 import com.l2client.component.JmeUpdateSystem;
 import com.l2client.component.PositioningSystem;
 import com.l2client.controller.SceneManager;
-import com.l2client.controller.area.SimpleTerrainManager;
+import com.l2client.controller.area.ITileManager;
 import com.l2client.controller.entity.EntityManager;
 import com.l2client.dao.IDAO;
 import com.l2client.dao.csv.CSVDatastoreDAO;
@@ -31,7 +31,7 @@ public class Singleton {
 	//FIXME only one openal allowed, so now paulscode and jme3 are rivals for the openal device
 //	public SoundController soundCon;
 	private GuiController guiController;
-	private SimpleTerrainManager terrainManager;
+	private ITileManager terrainManager;
 	private AnimationManager animManager;
 	private EntityNavigationManager navManager;
 	private EntityManager entityManager;
@@ -54,7 +54,7 @@ public class Singleton {
 		return SingletonHolder.instance;
 	}
 	
-	public void init(){
+	public void init(ITileManager tm){
     	assetManager = AssetManager.get();//this one goes first
 		charController = CharacterController.get();
 		dataManager = CSVDatastoreDAO.get();//DatastoreDAO.get();
@@ -65,8 +65,9 @@ public class Singleton {
 		guiController = GuiController.get();
 		gameController = GameController.get();
 //		soundCon = SoundController.getInstance();
-		terrainManager = SimpleTerrainManager.get();
-		terrainManager.initialize();
+		terrainManager = tm;
+		if(tm != null)
+			terrainManager.initialize();
 		animManager = AnimationManager.get();
 		
     	navManager = EntityNavigationManager.get();
@@ -148,7 +149,7 @@ public class Singleton {
 	/**
 	 * @return the terrainManager
 	 */
-	public SimpleTerrainManager getTerrainManager() {
+	public ITileManager getTerrainManager() {
 		return terrainManager;
 	}
 
