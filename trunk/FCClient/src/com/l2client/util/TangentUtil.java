@@ -21,7 +21,7 @@ import com.jme3.util.BufferUtils;
  * LICENSE file or at <http://www.ardor3d.com/LICENSE>.
  */
 
-
+//TODO check used at all? if not remove it
 public class TangentUtil {
 	
     private static interface IndexWrapper {

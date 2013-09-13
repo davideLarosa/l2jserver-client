@@ -9,12 +9,12 @@ Serverpackets to be implemented some with a prio in front (not complete just fro
 1 CharInfo				5% done, position & basic stats
 5 ExBrExtraUserInfo		50% done, not very much besides haircut id
   SendMacroList
-1 ItemList
+1 ItemList				50% done list is received, nothing done with it, build inventory
   GameGuardQuery
   ExGetBookMarkInfoPacket
   ShortCutInit			80% done, received and usable, more tabs needed though, add gui button for more tabs
   ExBasicActionList
-  SkillList
+  SkillList				50% done loaded, but not used
   HennaInfo
   TutorialShowQuestionMark
   PlaySound
@@ -27,6 +27,6 @@ Serverpackets to be implemented some with a prio in front (not complete just fro
 2 SystemMessage
 2 CreatureSay
   SkillcoolTime
-1 DeleteObject
+1 DeleteObject			100% done
 1 MoveToLocation		100% done
-1 SocialAction
+1 SocialAction			20% done receiving, but only doing replacemnets celebrate and taunt

@@ -5,7 +5,6 @@ import com.l2client.animsystem.Animation;
 import com.l2client.animsystem.Channel.Channels;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.Mediator;
-import com.l2client.animsystem.jme.input.AttackVector;
 import com.l2client.animsystem.jme.input.HurtVector;
 
 /**

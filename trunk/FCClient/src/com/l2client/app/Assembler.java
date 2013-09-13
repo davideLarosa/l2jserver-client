@@ -12,9 +12,19 @@ import com.jme3.material.Material;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.VertexBuffer.Usage;
 import com.l2client.animsystem.jme.BoundsUpdateControl;
 import com.l2client.animsystem.jme.JMEAnimationController;
 
+/**
+ * A low level 3d model assembler. Add up meshes for body parts, a skeleton and the 
+ * animation partset provider and assembles the final jme animated model.
+ * 
+ * Used to have several base meshes and create permutations thereof 
+ */
 public class Assembler {
 
 	Node model = new Node();
@@ -94,6 +104,7 @@ public class Assembler {
             // This includes the shared geoemtry itself actually
             for (int i = 0; i < geoms.length; i++) {
             	meshes[i] = geoms[i].getMesh().cloneForAnim();
+
             	Geometry g = new Geometry(geoms[i].getName(), meshes[i]);
             	Material m = geoms[i].getMaterial();
             	g.setMaterial(m);
@@ -101,8 +112,11 @@ public class Assembler {
                 model.attachChild(g);
             } 
 
-            if(useOptimization)
+            if(useOptimization) {
             	model = GeometryBatchFactory.optimize(model, false);
+            	//fix for bug in batchfactory removing empty hw buffers
+            	fixHWModels(model);
+            }
             
             Skeleton skel = new Skeleton(skeleton);
         	//TODO move this out into AnimationManger
@@ -112,7 +126,8 @@ public class Assembler {
             model.addControl(new JMEAnimationController(c,animSet));
             SkeletonControl skeletonControl = new SkeletonControl(skel);
             model.addControl(skeletonControl);
-            skeletonControl.setUseHwSkinning(useHWSkinning);
+
+            skeletonControl.setHardwareSkinningPreferred(useHWSkinning);
 
             BoundsUpdateControl bc = new BoundsUpdateControl();
             bc.setSkeleton(skel);
@@ -121,6 +136,42 @@ public class Assembler {
         }
         return model;
     }
+
+	private void fixHWModels(Spatial model) {
+		if(model instanceof Geometry){
+			fixHWSkinningBuffers(((Geometry)model).getMesh());
+			return;
+		} else {
+			if(model instanceof Node){
+				Node n = (Node) model;
+				for(Spatial c : n.getChildren())
+					fixHWModels(c);
+			}
+		}
+	}
+
+
+	//FIXME for old mesh format create empty HWSkinning buffers
+	private void fixHWSkinningBuffers(Mesh mesh) {
+        //creating empty buffers for HW skinning 
+        //the buffers will be setup if ever used.
+		//setting usage to cpuOnly so that the buffer is not send empty to the GPU  
+		VertexBuffer indicesHW = mesh.getBuffer(Type.HWBoneIndex);
+		if(indicesHW == null){
+			indicesHW = new VertexBuffer(Type.HWBoneIndex);
+			indicesHW.setUsage(Usage.CpuOnly);
+			mesh.setBuffer(indicesHW);
+		}
+
+        VertexBuffer weightsHW = mesh.getBuffer(Type.HWBoneWeight);
+        if(weightsHW == null) {
+        	weightsHW = new VertexBuffer(Type.HWBoneWeight);
+            weightsHW.setUsage(Usage.CpuOnly);
+            mesh.setBuffer(weightsHW);
+        }
+       
+              
+	}
 
 
 	public Node getModel() {

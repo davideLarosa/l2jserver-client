@@ -150,10 +150,6 @@ MaterialDef Terrain Lighting Parallax {
         }
     }
 
-    Technique FixedFunc {
-        LightMode FixedPipeline
-    }
-
     Technique Glow {
 
         VertexShader GLSL100:   Common/MatDefs/Misc/SimpleTextured.vert

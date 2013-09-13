@@ -17,18 +17,40 @@ import com.l2client.model.PartSet;
 import com.l2client.model.WeaponSet;
 
 
+/**
+ * A high level 3d model assembler, based on the @see PartSetManager model configuration.
+ * Templates for 3d models are named uniquely then all parts are looked up, from which the
+ * next possible permutation is chosen. The parts of this model are passed over to the
+ * low level assembler @see Assembler to finally create a jme3 3d model. 
+ * 
+ * models are invoked by calling the different getModel() methods.
+ */
 public class Assembler2 {
 	
 	private static Logger log = Logger.getLogger(Assembler2.class.getName());
 
-	//give me the model defined by an array of partsets
-	//skeletonmanager get an instance of an skeleton
-	//partsetmanager get an instance of animpartset 
+	/**
+	 * returns a possible model identified by the template name. no batching and no 
+	 * hw skinning is used. The model AnimationController is based on the l2client
+	 * FCOgre Animation controller @see JMEAnimationController.
+	 * 
+	 * @param template	name of the model template from the partset configuration
+	 * @return a @see Node below which the 3d model and the animation controller is present
+	 */
 	public static Node getModel(String template){
 		Node n = getModelInternal(JMEAnimationController.class, template, false, false);
 		return n;
 	}
 
+	/**
+	 * returns a possible model identified by the template name. no batching and no 
+	 * hw skinning is used. The model AnimationController is based on the l2client
+	 * FCOgre Animation controller @see JMEAnimationController.
+	 * The model is rotated by - PI/2 around the x-axis
+	 * 
+	 * @param template	name of the model template from the partset configuration
+	 * @return a @see Node below which the 3d model and the animation controller is present
+	 */
 	public static Node getModel3(String template){
 		Node n = getModelInternal(JMEAnimationController.class, template, false, false);
 		n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
@@ -37,6 +59,17 @@ public class Assembler2 {
 		return n;
 	}
 	
+	/**
+	 * returns a possible model identified by the template name. no batching and no 
+	 * hw skinning is used. The model AnimationController is based on the l2client
+	 * FCOgre Animation controller @see JMEAnimationController.
+	 * The model is rotated by - PI/2 around the x-axis
+	 * 
+	 * @param template	name of the model template from the partset configuration
+	 * @param optimized combine all mesh parts into one mesh using batch factory (should use same material)
+	 * @param hwSkinning hwSkinning desired or not
+	 * @return a @see Node below which the 3d model and the animation controller is present
+	 */
 	public static Node getModel4(String template, boolean optimized, boolean hwSkinning){
 		Node n = getModelInternal(JMEAnimationController.class, template, optimized, hwSkinning);
 		n.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
@@ -57,6 +90,11 @@ public class Assembler2 {
 //            model.addControl(skeletonControl);
 //	}
 	
+	/**
+	 * Top of the template partset containing all sub parts
+	 * @param id
+	 * @return
+	 */
 	public static PartSet getTopPart(String id){
 		PartSet ret = Singleton.get().getPartManager().getPart("entity");
 		if(ret != null)
@@ -132,6 +170,12 @@ public class Assembler2 {
 		return meshArray;
 	}
 	
+	/**
+	 * Special handling of hair for player for example.
+	 * @param top the top partset 
+	 * @param i	  the nth hair style to chose
+	 * @return	the asset representing the desired hairstyle
+	 */
 	public static Asset getHair(PartSet top, int i){
 		Asset ret = null;
 		PartSet det = top.getPart("mesh");
@@ -260,6 +304,15 @@ public class Assembler2 {
 		return Singleton.get().getSkeletonManager().getSkeleton(det.getNext(), 1.0f);
 	}
 
+	/**
+	 * internal orchestration of model parts lookup and assembly
+	 * 
+	 * @param controller
+	 * @param template
+	 * @param optimized
+	 * @param hwSkinning
+	 * @return
+	 */
 	private static Node getModelInternal(Class<?> controller, String template, boolean optimized, boolean hwSkinning){
 
 		PartSet top = getTopPart(template);
@@ -294,6 +347,17 @@ public class Assembler2 {
 
 
 
+	/** pass it all over to the low level assebler
+	 * 
+	 * @param template
+	 * @param meshArray
+	 * @param materials
+	 * @param skel
+	 * @param animSet
+	 * @param optimized
+	 * @param hwSkinnig
+	 * @return
+	 */
 	private static Node assembleModel(String template,
 			HashMap<Asset, String> meshArray, HashMap<String, Asset> materials,
 			Skeleton skel, String animSet, boolean optimized, boolean hwSkinnig) {
