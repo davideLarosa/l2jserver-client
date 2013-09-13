@@ -12,7 +12,9 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.WireBox;
+import com.l2client.controller.area.TileTerrainManager;
 import com.l2client.dao.UserPropertiesDAO;
+import com.l2client.navigation.TiledNavMesh;
 
 /**
  * L2J uses z as up
@@ -24,6 +26,7 @@ public class L2JClient extends ExtendedApplication {
 	
 	
 	Node bboxes = new Node("debug bboxes");
+	Node navs = new Node("debug navs");
 	private Material matWireframe;
 
 	/**
@@ -50,13 +53,18 @@ public class L2JClient extends ExtendedApplication {
 	@Override
 	public void simpleInitApp() {
 		setPauseOnLostFocus(false);
-		singles.init();
+		TileTerrainManager tm = TileTerrainManager.get();
+		tm.setLoadedAtOrigin(true);
+		singles.getNavManager().USE_OPTIMZED_PATH = true;
+		singles.init(tm);
 		this.initGui();
+		
 		
         matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWireframe.setColor("Color", ColorRGBA.Green);
         matWireframe.getAdditionalRenderState().setWireframe(true);
         rootNode.attachChild(bboxes);
+        rootNode.attachChild(navs);
 	}
 	
 
@@ -85,18 +93,22 @@ public class L2JClient extends ExtendedApplication {
 					System.out.println("Camera loc:"+cam.getLocation()+", dir:"+cam.getDirection());
 				} else if(name.equals("print_bboxes") && !isPressed){
 					toggelBBoxes();
+				} else if(name.equals("toggle_navmesh") && !isPressed){
+					toggelNavMeshes();
 				}
 			}
-		},  "print_scenegraph", "print_bboxes");
+		},  "print_scenegraph", "print_bboxes", "toggle_navmesh");
         
         inputManager.addMapping("print_scenegraph", new KeyTrigger(KeyInput.KEY_F6));
         inputManager.addMapping("print_bboxes", new KeyTrigger(KeyInput.KEY_F7));
+        inputManager.addMapping("toggle_navmesh", new KeyTrigger(KeyInput.KEY_F8));
 	}
 
 	@Override
 	public void simpleUpdate(float tpf) {
 ////		if(GameController.getInstance().isFinished())
 ////			stop();
+		//ITileManager updated via charcontrol
 		singles.getPosSystem().update(tpf);
 		singles.getAnimSystem().update(tpf);
 		singles.getJmeSystem().update(tpf);
@@ -137,7 +149,16 @@ public class L2JClient extends ExtendedApplication {
     	}
     }
     
-    private void removeBBoxesFromRoot() {
+    private void toggelNavMeshes(){
+    	if(navs.getChildren().size()<=0){
+    		addNavs(rootNode);
+    	}
+    	else if (navs.getChildren().size()>0){
+    		removeNavs();
+    	}
+    }
+
+	private void removeBBoxesFromRoot() {
 		bboxes.detachAllChildren();
 	}
 
@@ -160,5 +181,18 @@ public class L2JClient extends ExtendedApplication {
 				addBBoxes((Node) s);
 			}
 		}
+	}
+	
+	private void addNavs(Node n) {
+		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+		for(TiledNavMesh t : array){
+			Geometry g = t.getDebugMesh();
+			g.setMaterial(matWireframe);
+			navs.attachChild(g);
+		}
+	}
+	
+    private void removeNavs() {
+		navs.detachAllChildren();
 	}
 }
