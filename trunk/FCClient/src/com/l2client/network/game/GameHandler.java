@@ -16,6 +16,7 @@ import com.l2client.network.game.ServerPackets.CharInfo;
 import com.l2client.network.game.ServerPackets.CharSelected;
 import com.l2client.network.game.ServerPackets.CharSelectionInfo;
 import com.l2client.network.game.ServerPackets.CreatureSay;
+import com.l2client.network.game.ServerPackets.DeleteObject;
 import com.l2client.network.game.ServerPackets.Die;
 import com.l2client.network.game.ServerPackets.ExBrExtraUserInfo;
 import com.l2client.network.game.ServerPackets.GameServerPacket;
@@ -115,7 +116,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new BuyList();
 				break;
 			case 0x08:
-//				pa = new DeleteObject();
+				pa = new DeleteObject();
 				break;
 			case 0x0b:
 				pa = new CharSelected();
