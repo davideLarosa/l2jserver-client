@@ -150,9 +150,9 @@ public abstract class ComponentSystem {
 	
 	/**
 	 * remove a component to be removed from this system
+	 * FIXME check this is working correctly, what if we delete one which is currently updated, better queue for removal.
 	 * @param c	the component to be removed
 	 */
-	//TODO currently not called, as we do not handle object destruction
 	public void removeComponentForUpdate(Component c){
 		synchronized (components) {
 			components.remove(c);

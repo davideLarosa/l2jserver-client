@@ -83,16 +83,21 @@ public class AnimationSystem extends ComponentSystem {
 			VisualComponent comp = (VisualComponent) Singleton.get().getEntityManager().getComponent(e.getId(), VisualComponent.class);
 			if(comp != null){
 				//FIXME this can blow up!
-				JMEAnimationController con = ((Node) e.getChild(0)).getChild(0)
-						.getControl(JMEAnimationController.class);
-				if (con != null) {
-					EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(entityId,
-									EnvironmentComponent.class);
-					if (env != null) {
-						log.fine(e.getId()+" callAction "+a);
-						con.callAction(a.toString(), getInputFrom(env, e));
+				if(e.getChildren().size()>0 && ((Node)e.getChild(0)).getChildren().size()>0 ){
+					JMEAnimationController con = ((Node) e.getChild(0)).getChild(0)
+							.getControl(JMEAnimationController.class);
+					if (con != null) {
+						EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(entityId,
+										EnvironmentComponent.class);
+						if (env != null) {
+							log.finest(e.getId()+" callAction "+a);
+							con.callAction(a.toString(), getInputFrom(env, e));
+						}
 					}
+				} else {
+					log.warning("No proper spatial hierarchy on model "+e.getName());
 				}
+					
 			}
 		}
 
