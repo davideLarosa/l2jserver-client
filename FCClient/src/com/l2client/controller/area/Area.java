@@ -5,7 +5,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
 import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
-import com.l2client.navigation.NavigationMesh;
+import com.l2client.navigation.TiledNavMesh;
 
 public class Area {
 	static final String loadPath = "/area/";
@@ -74,15 +74,15 @@ System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
 		}
 		@Override
 		public void afterLoad(){
-			if(baseAsset != null && baseAsset instanceof NavigationMesh )
-				Singleton.get().getNavManager().attachMesh((NavigationMesh) baseAsset);
+			if(baseAsset != null && baseAsset instanceof TiledNavMesh )
+				Singleton.get().getNavManager().attachMesh((TiledNavMesh) baseAsset);
 //			System.out.println("NavAsset afterLoad of:"+this.name);
 		}
 		
 		@Override
 		public void beforeUnload(){
-			if(baseAsset != null && baseAsset instanceof NavigationMesh ){
-				Singleton.get().getNavManager().detachMesh((NavigationMesh) baseAsset);
+			if(baseAsset != null && baseAsset instanceof TiledNavMesh ){
+				Singleton.get().getNavManager().detachMesh((TiledNavMesh) baseAsset);
 				baseAsset = null;
 //				System.out.println("NavAsset beforeUnload of:"+this.name);
 			}

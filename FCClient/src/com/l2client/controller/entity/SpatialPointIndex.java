@@ -1,11 +1,14 @@
 package com.l2client.controller.entity;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import com.l2client.util.ConcurrentHashSet;
 
 
 public class SpatialPointIndex {
+	
+	private static Logger log = Logger.getLogger(SpatialPointIndex.class.getName());
 
 	int scale = 10;
 	ConcurrentHashMap<Integer, ConcurrentHashSet<ISpatialPointing>> bucketsX = new ConcurrentHashMap<Integer, ConcurrentHashSet<ISpatialPointing>>();
@@ -47,7 +50,7 @@ public class SpatialPointIndex {
 					h=null;
 				}
 			} else {
-				System.out.println("remove in X on null bucket");
+				log.warning("remove in X on null bucket");
 			}
 		}
 		for(int i : getObjectsZ(object.getLastZ(), object.getSize())){
@@ -60,7 +63,7 @@ public class SpatialPointIndex {
 					h=null;
 				}
 			} else {
-				System.out.println("remove in Z on null bucket");
+				log.warning("remove in Z on null bucket");
 			}
 		}
 	}

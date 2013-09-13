@@ -28,6 +28,8 @@ public final class SceneManager {
 
 	private static SceneManager singleton = null;
 	
+	private boolean onlyOneChangePerFrame = true;
+	
 	private class Tuple{
 		/**
 		 * @param t target
@@ -115,6 +117,7 @@ public final class SceneManager {
 	
 	private void postProcessorUpdate(){
 		if(removePostProcessors){
+			log.fine("REMOVING ALL POSTPOROCESSORS");
 			SceneProcessor[] list = viewPort.getProcessors().toArray(new SceneProcessor[0]);
 			for(SceneProcessor p: list)
 				viewPort.removeProcessor(p);
@@ -154,39 +157,57 @@ public final class SceneManager {
 	
 	private void queueUpdate(){
 		Tuple t = null;
-		while((t=queue.poll()) != null){
-			if(t.element != null && t.target != null){
-			switch(t.type){
-			case 0://node
-				if(t.act != 1) {
-					((Node)t.target).attachChild((Spatial)t.element);
-//					((Node)t.target).updateModelBound();
-				}
-				else {
-					((Node)t.target).detachChild((Spatial)t.element);
-//					((Node)t.target).updateModelBound();
-				}
+		int nodes = 0;
+		int controls = 0;
+		int lights = 0;
+		int postprocs = 0;
+		while ((t = queue.poll()) != null) {
+			if (t.element != null && t.target != null) {
+				switch (t.type) {
+				case 0:// node
+					if (t.act != 1) {
+						((Node) t.target).attachChild((Spatial) t.element);
+//						((Node)t.target).updateGeometricState();
+					} else {
+						((Node) t.target).detachChild((Spatial) t.element);
+//						((Node)t.target).updateGeometricState();
+					}
+					nodes++;
 					break;
-			case 1://control
-				if(t.act != 1)
-					((Node)t.target).addControl((AbstractControl)t.element);
-				else
-					((Node)t.target).removeControl((AbstractControl)t.element);
-				break;
-			case 2://light
-				if(t.act != 1)
-					((Node)t.target).addLight((Light)t.element);
-				else
-					((Node)t.target).removeLight((Light)t.element);
-				break;
-			case 3://postprocessor
-				if(t.act != 1)
-					((ViewPort)t.target).addProcessor((SceneProcessor) t.element);
-				else
-					((ViewPort)t.target).removeProcessor((SceneProcessor) t.element);
-				break;
-			}}
+				case 1:// control
+					if (t.act != 1)
+						((Node) t.target)
+								.addControl((AbstractControl) t.element);
+					else
+						((Node) t.target)
+								.removeControl((AbstractControl) t.element);
+					controls++;
+					break;
+				case 2:// light
+					if (t.act != 1)
+						((Node) t.target).addLight((Light) t.element);
+					else
+						((Node) t.target).removeLight((Light) t.element);
+					lights++;
+					break;
+				case 3:// postprocessor
+					if (t.act != 1)
+						((ViewPort) t.target)
+								.addProcessor((SceneProcessor) t.element);
+					else
+						((ViewPort) t.target)
+								.removeProcessor((SceneProcessor) t.element);
+					postprocs++;
+					break;
+				}
+				if(onlyOneChangePerFrame)
+					break;
+			}
 		}
+
+		if (nodes > 0 || controls > 0 || lights > 0 || postprocs > 0)
+			log.info("Updated " + nodes + " nodes, " + controls + " controls, "
+					+ lights + " lights, " + postprocs + " postprocesses");
 	}
 	
 	/**

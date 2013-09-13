@@ -3,25 +3,30 @@ package com.l2client.controller.entity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 import com.l2client.component.Component;
 import com.l2client.component.ComponentSystem;
 import com.l2client.component.IdentityComponent;
-import com.l2client.component.SimplePositionComponent;
 
 /**
- * Singleton which manages entites, components and queries around them.
+ * Singleton which manages entities, components and queries around them.
  * @see ComponentSystem
  */
-// FIXME JUnit test
-// FIXME entity crwation should be done here 
+// FIXME JUnit test of EntityManager, not sure add/remove works without flaws
+// FIXME entity creation should be done here 
 public class EntityManager {
+	
+	private static Logger log = Logger.getLogger(EntityManager.class.getName());
 
 	private static EntityManager singleton = null;
-	// ent:map of components, componenttype:map of entities
+	// entid to component class/components map
 	private HashMap<Integer, HashMap<Class<? extends Component>, Component>> entityComponents;
+	//component class to entid/component s
 	private HashMap<Class<? extends Component>, HashMap<Integer, Component>> components;
+	//component to entity
 	private HashMap<Component, IdentityComponent> entities;
+	//all entities
 	private HashSet<Integer> entityIds;
 	
 	//TODO remove this, just for debug stuff
@@ -87,6 +92,7 @@ public class EntityManager {
 	}
 
 	public void addComponent(int entityId, Component com) {
+		log.finer("Adding component "+com+" to "+entityId);
 		HashMap<Class<? extends Component>, Component> set = entityComponents
 		.get(entityId);
 		if(set == null){
@@ -107,6 +113,7 @@ public class EntityManager {
 	}
 	
 	public void removeComponent(int entityId, Component com) {
+		log.finer("Removing component "+com+" from "+entityId);
 		HashMap<Class<? extends Component>, Component> set = entityComponents
 		.get(entityId);
 		if(set != null){
@@ -117,6 +124,7 @@ public class EntityManager {
 		}
 		entities.remove(com);
 	}
+	
 	private void removeComponents(int entityId, Class<? extends Component> type){
 		HashMap<Integer, Component> comps = components.get(type);
 		if(comps != null){
@@ -128,33 +136,51 @@ public class EntityManager {
 	}
 
 	public void deleteEntity(int entityId){
-		HashMap<Class<? extends Component>, Component> set = entityComponents
-		.get(entityId);
-		if(set != null){
-			{
-				for(Component v : set.values()){
+		if(entityIds.contains(entityId)){
+			HashMap<Class<? extends Component>, Component> set = entityComponents
+			.get(entityId);
+			if(set != null){
+				Component[] arr = set.values().toArray(new Component[set.values().size()]);
+				Component id = null;
+				for(Component v : arr){
 					if(v instanceof IdentityComponent)
-						entities.remove(v);
-					removeComponent(entityId, v);
+						id = v; //remember id component for later removal
+					else
+						removeComponent(entityId, v);
 				}
-
+				if(id != null){//id is the last to remove
+					removeComponent(entityId, id);
+				} else
+					log.severe("No ID component found on "+entityId);
+	
+				set.clear();
 			}
-			set.clear();
+			entityIds.remove(entityId);
+			log.fine("Entity deleted with id "+entityId);
+		} else {
+			log.severe("Delete of not registered entity requested :"+entityId);
 		}
-		entityIds.remove(entityId);
 		
 	}
 
 	public Entity createEntity(int i) {
 		Entity ret = null;
+		IdentityComponent idc = null;
 		if(!entityIds.contains(i)){
+			idc = new IdentityComponent(i, new Entity(i));
 			entityIds.add(i);
-			IdentityComponent idc = new IdentityComponent(i, new Entity(i));
 			addComponent(i, idc);		
 			entities.put(idc, idc);
+			log.fine("Entity created with id "+i);
+		} else {
+			log.severe("Create called but ID "+i+"already used ?!?");
+			idc = (IdentityComponent) getComponent(i, IdentityComponent.class);
+		}
+		if(idc != null){
 			ret = idc.getEntity();
 		} else {
-			System.out.println("Create called but ID "+i+"already used ?!?");
+			log.severe("No entity on ID component for entity "+i+" with id comp "+idc);
+			dumpComponents(i);
 		}
 		return ret;
 	}
@@ -165,11 +191,13 @@ public class EntityManager {
 	
 	public void setPlayerId(int id){
 		playerID = id;
+		log.fine("Player set to "+playerID);
 	}
 	
 	public void dumpComponents(int entityId){
+		System.out.println("DUMP start of "+entityId);
 		for(Component c : getComponents(entityId)){
-			System.out.println("DUMP of"+entityId+":"+c);
+			System.out.println("DUMP of "+entityId+":"+c);
 		}
 	}
 }
