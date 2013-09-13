@@ -1,6 +1,5 @@
 package com.l2client.network.game.ServerPackets;
 
-import com.l2client.app.Singleton;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.EntityData;
 import com.l2client.network.game.ClientPackets.EnterWorld;

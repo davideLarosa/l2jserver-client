@@ -3,6 +3,8 @@ package com.l2client.network.game.ServerPackets;
 import com.jme3.math.ColorRGBA;
 import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
+import com.l2client.component.PositioningComponent;
+import com.l2client.component.PositioningSystem;
 import com.l2client.component.TargetComponent;
 import com.l2client.controller.entity.EntityManager;
 
@@ -18,8 +20,16 @@ public class MyTargetSelected extends GameServerPacket {
 		EntityManager em = Singleton.get().getEntityManager();
 		int pID = _client.getCharHandler().getSelectedObjectId();
 		TargetComponent tc = (TargetComponent) em.getComponent(pID, TargetComponent.class);
-		tc.setTarget(id);
-		tc.color = toColorRGBA(color);
+		if(tc != null){
+			tc.setTarget(id);
+			tc.color = toColorRGBA(color);
+		}
+		PositioningComponent pcpos = (PositioningComponent) em.getComponent(pID, PositioningComponent.class);
+		PositioningComponent npcpos = (PositioningComponent) em.getComponent(id, PositioningComponent.class);
+		if(pcpos != null && npcpos != null){
+			pcpos.targetHeading = PositioningSystem.getHeading(pcpos.position, npcpos.position);
+			//npcpos.targetHeading = PositioningSystem.getHeading(npcpos.position, pcpos.position);
+		}
 		EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(pID, EnvironmentComponent.class);
 		if (env != null){
 			env.changed = true;

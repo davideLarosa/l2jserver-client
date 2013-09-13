@@ -3,6 +3,8 @@ package com.l2client.network.game.ServerPackets;
 import com.l2client.animsystem.jme.actions.CallActions;
 import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
+import com.l2client.component.PositioningComponent;
+import com.l2client.component.PositioningSystem;
 import com.l2client.controller.entity.EntityManager;
 
 public class Attack extends GameServerPacket {
@@ -60,8 +62,6 @@ public class Attack extends GameServerPacket {
 				Singleton.get().getAnimSystem().callAction(CallActions.Wounded, defend);
 			else
 				Singleton.get().getAnimSystem().callAction(CallActions.Defend, defend);
-		}
-		
-		
+		}		
 	}
 }

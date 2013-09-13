@@ -3,6 +3,8 @@ package com.l2client.network.game.ServerPackets;
 import com.jme3.math.ColorRGBA;
 import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
+import com.l2client.component.PositioningComponent;
+import com.l2client.component.PositioningSystem;
 import com.l2client.component.TargetComponent;
 import com.l2client.controller.entity.EntityManager;
 
@@ -19,17 +21,26 @@ public class TargetSelected extends GameServerPacket {
 //		readD();//z
 //		readD();//0x00
 		//player receives an own my target selected in addition so we drop this
-		if(id != _client.getCharHandler().getSelectedObjectId()){
-		//TODO what should we do in this message which just says id starts targeting tgt
-		_client.getChatHandler().receiveMessage(id,0 /*all*/,Integer.toString(id),"I see you baggard! <"+target+">");
-		EntityManager em = Singleton.get().getEntityManager();
-		TargetComponent tc = (TargetComponent) em.getComponent(id, TargetComponent.class);
-		tc.setTarget(target);
-		EnvironmentComponent env = (EnvironmentComponent) em.getComponent(id, EnvironmentComponent.class);
-		if (env != null){
-			env.changed = true;
-		}else
-			log.severe("No EnvironmentComponent found with entity id "+id+", perhaps just create one?");
+		int pID = _client.getCharHandler().getSelectedObjectId();
+		if(id != pID){
+			//TODO what should we do in this message which just says id starts targeting tgt
+			_client.getChatHandler().receiveMessage(id,0 /*all*/,Integer.toString(id),"I see you baggard! <"+target+">");
+			EntityManager em = Singleton.get().getEntityManager();
+			TargetComponent tc = (TargetComponent) em.getComponent(id, TargetComponent.class);
+			if(tc != null){
+				tc.setTarget(target);
+			}
+			PositioningComponent pcpos = (PositioningComponent) em.getComponent(pID, PositioningComponent.class);
+			PositioningComponent npcpos = (PositioningComponent) em.getComponent(id, PositioningComponent.class);
+			if(pcpos != null && npcpos != null){
+				//pcpos.targetHeading = PositioningSystem.getHeading(pcpos.position, npcpos.position);
+				npcpos.targetHeading = PositioningSystem.getHeading(npcpos.position, pcpos.position);
+			}
+			EnvironmentComponent env = (EnvironmentComponent) em.getComponent(id, EnvironmentComponent.class);
+			if (env != null){
+				env.changed = true;
+			}else
+				log.severe("No EnvironmentComponent found with entity id "+id+", perhaps just create one?");
 		}
 	}
 	
