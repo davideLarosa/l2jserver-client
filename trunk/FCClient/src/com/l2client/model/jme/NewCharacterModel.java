@@ -19,6 +19,9 @@ import com.l2client.model.WeaponSet;
 import com.l2client.model.l2j.Race;
 import com.l2client.model.network.NewCharSummary;
 
+/**
+ * Representation of a 3d model based on l2j player information
+ */
 public class NewCharacterModel extends VisibleModel {
 	
 	protected NewCharSummary lastCharSummary = null;
@@ -51,7 +54,6 @@ public class NewCharacterModel extends VisibleModel {
 	 * 
 	 * @return the loaded model on a @see Node
 	 */
-	//FIXME move to a builder, whcih should know what assets to load for which visual (stored in the DB)
 	protected Node createVisuals() {
 		Singleton.get().getSceneManager().changeAnyNode(this,vis, 1);
 		if(assembler != null)
@@ -62,9 +64,8 @@ public class NewCharacterModel extends VisibleModel {
 			JMEAnimationController animControl = (JMEAnimationController) vis
 					.getControl(JMEAnimationController.class);
 			if(animControl != null)
-			animControl.setInput(InputProvider.NOINPUT);
-//			animControl.setCurTime(animControl.getAnimationLength("stand_a_idle")
-//					* FastMath.nextRandomFloat());
+				animControl.setInput(InputProvider.NOINPUT);
+
 			Singleton.get().getSceneManager().changeAnyNode(this,vis, 0);
 		} else
 			logger.severe("Vis animations are missing");

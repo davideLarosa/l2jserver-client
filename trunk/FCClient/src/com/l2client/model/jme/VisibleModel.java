@@ -39,6 +39,7 @@ import com.l2client.model.network.NewCharSummary;
  * 
  * Currently all models are based on the same visual model, a modelcache or AssetManager should be used to speed loading of new models (which should be done by a builder/factory patterns anyway)
  *
+ * The loaded 3d model is based on the troll, which is a standin for an unknown/unconfigured 3d model
  */
 //TODO animation controller, rigging of actions against animations
 public class VisibleModel extends Node {
