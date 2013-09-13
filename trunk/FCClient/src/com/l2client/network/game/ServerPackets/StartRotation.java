@@ -1,7 +1,7 @@
 package com.l2client.network.game.ServerPackets;
 
 import com.l2client.app.Singleton;
-import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.PositioningComponent;
 import com.l2client.model.l2j.ServerValues;
 
 /**
@@ -29,7 +29,7 @@ public class StartRotation extends GameServerPacket {
 		int speed = readD();
 		
 		log.fine("Received StartRotation for "+objId+" deg "+deg+" side "+side);
-		SimplePositionComponent pos = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(objId, SimplePositionComponent.class);
+		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(objId, PositioningComponent.class);
 		if(pos != null){
 			pos.targetHeading = ServerValues.getClientHeading(deg);
 		} else 

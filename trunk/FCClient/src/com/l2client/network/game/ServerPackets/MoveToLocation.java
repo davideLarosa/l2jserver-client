@@ -38,6 +38,9 @@ public final class MoveToLocation extends GameServerPacket
 		if(tX==cX && tY == cY && tZ == cZ)
 			return;
 		
+		log.fine("move " + objId + " from " + cX + "," + cY
+				+ "," + cZ + " to " + tX + "," + tY + "," + tZ);
+		
 		Singleton.get().getPosSystem().initMoveTo(objId, tX, tY, tZ, cX, cY, cZ);
 	}
 }

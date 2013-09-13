@@ -2,7 +2,7 @@ package com.l2client.network.game.ServerPackets;
 
 import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
-import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.PositioningComponent;
 
 /**
  * 
@@ -20,7 +20,7 @@ public class ChangeMoveType extends GameServerPacket {
 		int objId = readD();
 		int run = readD();
 		readD();
-		SimplePositionComponent com = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(objId, SimplePositionComponent.class);
+		PositioningComponent com = (PositioningComponent) Singleton.get().getEntityManager().getComponent(objId, PositioningComponent.class);
 		if(com != null){
 			com.running = run>0?true:false;
 			EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(objId, EnvironmentComponent.class);

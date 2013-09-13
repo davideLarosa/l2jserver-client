@@ -2,7 +2,7 @@ package com.l2client.network.game.ServerPackets;
 
 import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
-import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.PositioningComponent;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.network.game.ClientPackets.ValidatePosition;
 
@@ -31,7 +31,7 @@ public final class ValidateLocation extends GameServerPacket
 		float heading = ServerValues.getClientHeading(readD());
 		log.fine("Coords:"+tPos.x+","+tPos.y+","+tPos.z+" for "+objId);
 
-		SimplePositionComponent pos = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(objId, SimplePositionComponent.class);
+		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(objId, PositioningComponent.class);
 		if (pos != null){
 //			float cHead;
 //			Vector3f cPos = new Vector3f();
@@ -54,14 +54,9 @@ public final class ValidateLocation extends GameServerPacket
 //
 //			cPos.y = savedHeight;
 //			tPos.y = savedHeight;//FIXME we say we are on tgt !?!?!?
-			Singleton.get().getPosSystem().initMoveTo(objId, tPos.x, /*tPos.y*/0f, tPos.z, pos.currentPos.x, pos.currentPos.y, pos.currentPos.z);
+			Singleton.get().getPosSystem().initMoveTo(objId, tPos.x, tPos.y, tPos.z, pos.position.x, pos.position.y, pos.position.z);
 			if(Singleton.get().getEntityManager().isPlayerComponent(pos)){
-				synchronized (pos) {	
-					tPos.x = pos.currentPos.x;
-					tPos.z = pos.currentPos.z;		
-				}
-//				tPos.y = tPos.y;//leave this one
-				ValidatePosition pack = new ValidatePosition(tPos, pos.heading);
+				ValidatePosition pack = new ValidatePosition(pos.position, pos.heading);
 				_client.sendGamePacket(pack);
 			}
 		}
