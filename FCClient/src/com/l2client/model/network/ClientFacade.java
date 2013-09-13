@@ -2,13 +2,11 @@ package com.l2client.model.network;
 
 import java.util.logging.Logger;
 
-import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
-import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.PositioningComponent;
 import com.l2client.controller.handlers.ChatHandler;
 import com.l2client.controller.handlers.NpcHandler;
 import com.l2client.controller.handlers.PlayerCharHandler;
-import com.l2client.model.l2j.ServerValues;
 import com.l2client.network.game.GameHandler;
 import com.l2client.network.game.ClientPackets.AttackRequest;
 import com.l2client.network.game.ClientPackets.GameClientPacket;
@@ -175,25 +173,23 @@ public class ClientFacade {
 	public void sendMoveToAction(float x, float y, float z) {
 		// get current pos
 		EntityData e = getCharHandler().getSelectedChar();
-		SimplePositionComponent pos = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(e.getObjectId(), SimplePositionComponent.class);
+		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(e.getObjectId(), PositioningComponent.class);
 		if(pos != null){
 		//revert jme uses y as up, l2j uses z as up, so we change y and z here
 		Singleton.get().getClientFacade().sendGamePacket(
-				new MoveBackwardToLocation(x, /*put the char a bit above the current height just a fake*/ ServerValues
-						.getClientCoord(e.getServerZ() + 8), z, pos.currentPos.x, pos.currentPos.y, pos.currentPos.z, false));		
+				new MoveBackwardToLocation(x, y, z, pos.position.x, pos.position.y, pos.position.z, false));		
 //						.getClientCoord(e.getServerZ() + 8), e.getX(), e.getY(), e.getZ(), false));
-		log.info("Player "+e.getObjectId()+ " requests to move to:"+x+" "+ServerValues
-						.getClientCoord(e.getServerZ() + 8)+" "+z+" from:"+pos.currentPos.x+" "+pos.currentPos.y+" "+pos.currentPos.z);
+		log.info("Player "+e.getObjectId()+ " requests to move to:"+x+" "+y+" "+z+" from:"+pos.position.x+" "+pos.position.y+" "+pos.position.z);
 		} else {
 			log.severe("Player "+e.getObjectId()+"is missing SimplePositioningComponent!");
 		}
 	}
 	
 
-	public void sendValidatePosition(SimplePositionComponent com) {
+	public void sendValidatePosition(PositioningComponent com) {
 		EntityData e = getCharHandler().getSelectedChar();
 		if(e != null){
-		ValidatePosition v = new ValidatePosition(new Vector3f(com.currentPos.x, e.getServerZ(), com.currentPos.z), com.heading);
+		ValidatePosition v = new ValidatePosition(com.position, com.heading);
 		Singleton.get().getClientFacade().sendGamePacket(v);
 		}
 	}

@@ -7,6 +7,7 @@ import com.jme3.math.Vector3f;
  * used for central coordinates scaling and conversion to the specific
  * game coordinates classes
  * L2J uses z as up
+ * JME uses y as up (this is not shifted here)
  */
 public class ServerCoordinates {
 

@@ -8,6 +8,7 @@ import com.jme3.math.FastMath;
  * used for central coordinates scaling and conversion to the specific
  * game coordinates classes
  * L2J uses z as up
+ * JME uses y as up (this is not shifted here)
  */
 public class ServerValues {
 
@@ -19,8 +20,8 @@ public class ServerValues {
 	
 	/**
 	 * Scale a value to server heading (360 degrees * 182.0444)
-	 * @param f	a float client heading
-	 * @return an int representing server heading
+	 * @param f	a float client heading in radians
+	 * @return an int representing server heading in degrees
 	 */
 	public static int getServerHeading(float f){
 		return (int)(invertHeading*f*FastMath.RAD_TO_DEG);
@@ -29,7 +30,7 @@ public class ServerValues {
 	
 	/**
 	 * Scale a value to client heading in radians
-	 * @param i an int in server heading
+	 * @param i an int in server heading degrees
 	 * @return a float in client heading in radians
 	 */
 	public static float getClientHeading(int i){
@@ -55,5 +56,11 @@ public class ServerValues {
 		return coordFactor*i;
 	}
 	
+	public static String getServerString(float x, float y, float z){
+		return ""+
+		ServerValues.getServerCoord(x) +","+
+		ServerValues.getServerCoord(z) +","+
+		ServerValues.getServerCoord(y);
+	}
 	
 }

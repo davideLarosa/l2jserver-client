@@ -1,7 +1,5 @@
 package com.l2client.model.network;
 
-import com.l2client.animsystem.jme.actions.CallActions;
-import com.l2client.app.Singleton;
 
 /**
  * Central client data model for entity (dynamic, movable objects) data based on the underlying 
@@ -282,10 +280,9 @@ public class EntityData  {
     {
     	return _x;
     }
-  //height will be always 0, we ignore it whatever comes from the server
     public float getY()
     {
-    	return 0f;
+    	return _y;
     }
     public float getZ()
     {
