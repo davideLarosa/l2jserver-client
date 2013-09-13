@@ -48,8 +48,7 @@ public class BoundsUpdateControl extends TimedControl {
 	            extents.y = Math.max(extents.y, FastMath.abs(bonePos.getY()));
 	            extents.z = Math.max(extents.z, FastMath.abs(bonePos.getZ()));
 	        }
-
-	        BoundingBox b = new BoundingBox(new Vector3f(0f, 0f, 0f),extents.x+0.2f, extents.y+0.2f, extents.z);
+	        BoundingBox b = new BoundingBox(new Vector3f(0f,0f,0f), extents.x, extents.y , extents.z);
 	        spatial.setModelBound(b);
 		}
 	}
