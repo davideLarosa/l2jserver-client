@@ -14,13 +14,12 @@ import com.l2client.app.Singleton;
 import com.l2client.component.EnvironmentComponent;
 import com.l2client.component.L2JComponent;
 import com.l2client.component.LoggingComponent;
-import com.l2client.component.SimplePositionComponent;
+import com.l2client.component.PositioningComponent;
 import com.l2client.component.TargetComponent;
 import com.l2client.component.VisualComponent;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
 import com.l2client.model.jme.VisibleModel;
-import com.l2client.model.network.ClientFacade;
 import com.l2client.model.network.EntityData;
 import com.l2client.model.network.NewCharSummary;
 import com.l2client.network.game.ClientPackets.CharacterSelect;
@@ -226,7 +225,7 @@ public class PlayerCharHandler {
 		
 		EntityManager em = Singleton.get().getEntityManager();
 		final Entity ent = em.createEntity(e.getObjectId());
-		SimplePositionComponent pos = new SimplePositionComponent();
+		PositioningComponent pos = new PositioningComponent();
 		L2JComponent l2j = new L2JComponent();
 		VisualComponent vis = new VisualComponent();
 		EnvironmentComponent env = new EnvironmentComponent();
@@ -242,13 +241,14 @@ public class PlayerCharHandler {
 				
 		//done here extra as in update values will be left untouched
 		pos.startPos.set(e.getX(), e.getY(), e.getZ());
-		pos.currentPos.set(pos.startPos);
-		pos.goalPos.set(pos.currentPos);
+		pos.position.set(pos.startPos);
+		pos.goalPos.set(pos.position);
 		pos.walkSpeed = e.getWalkSpeed();
 		pos.runSpeed = e.getRunSpeed();
 		pos.running = e.isRunning();
 		pos.heading = e.getHeading();
 		pos.targetHeading = pos.heading;
+		pos.teleport = true;
 		
 		vis.vis = visible;
 		visible.attachVisuals();
@@ -257,7 +257,7 @@ public class PlayerCharHandler {
 		em.setPlayerId(ent.getId());
 		l2j.l2jEntity = e;
 
-		ent.setLocalTranslation(pos.currentPos);
+		ent.setLocalTranslation(pos.position);
 		ent.setLocalRotation(new Quaternion().fromAngleAxis(e.getHeading(), Vector3f.UNIT_Y));
 		ent.attachChild(visible);
 		

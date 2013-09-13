@@ -23,13 +23,8 @@ import com.l2client.app.Singleton;
  *
  * Used as a singleton by calling SimpleTerrainManager.get()
  */
-public final class SimpleTerrainManager {
+public final class SimpleTerrainManager implements ITileManager {
 	
-	/**
-	 * "tile_" this is used to find nav/ground tiles in the simple example
-	 * @see GotoClickedInputAction.onAnalog()
-	 */
-	public static String TILE_PREFIX = "tile_";
 
 	// private static int count = 99;
 	// TerrainPatch load[] = new TerrainPatch[24];//7x7 -5x5 third ring low
@@ -86,7 +81,7 @@ public final class SimpleTerrainManager {
 	/**
 	 * internal singleton reference
 	 */
-	private final static SimpleTerrainManager singleton = new SimpleTerrainManager();
+	private final static ITileManager singleton = new SimpleTerrainManager();
 	/**
 	 * JME specific material to be used on the terrain tiles (only in simple) 
 	 */
@@ -104,7 +99,7 @@ public final class SimpleTerrainManager {
 	 * Fetch the singleton instance, creating one of it has not happened so far.
 	 * @return
 	 */
-	public static SimpleTerrainManager get() {
+	public static ITileManager get() {
 			return singleton;
 	}
 	
@@ -117,8 +112,7 @@ public final class SimpleTerrainManager {
 	}
 	
 	public void update(Vector3f worldPosition) {
-			setCenter((int) worldPosition.x / IArea.TERRAIN_SIZE,
-					(int) worldPosition.z / IArea.TERRAIN_SIZE);
+			setCenter(getXTile(worldPosition.x), getZTile(worldPosition.z));//-18 as center in l2j is between 17 and 18 in y
 	}
 
 	/**
@@ -130,7 +124,7 @@ public final class SimpleTerrainManager {
 	 * @param x	terrain coordinates in world coords/TERRAIN_SIZE
 	 * @param y terrain coordinates in world coords/TERRAIN_SIZE
 	 */
-	public void setCenter(int x, int y) {
+	private void setCenter(int x, int y) {
 
 		if (center != null && center.x == x && center.y == y)
 			return;
@@ -235,7 +229,7 @@ public final class SimpleTerrainManager {
 		try {
 			Quad q = new Quad(1f * IArea.TERRAIN_SIZE, 1f * IArea.TERRAIN_SIZE);
 			//this is the same as in GotoClickedInputAction
-			Geometry n = new Geometry(TILE_PREFIX + x + " " + y,q);
+			Geometry n = new Geometry(IArea.TILE_PREFIX + x + " " + y,q);
 			n.setMaterial(material);
 			n.setLocalTranslation(x * IArea.TERRAIN_SIZE, 0f,y * IArea.TERRAIN_SIZE);
 			ret.patch = n;
@@ -293,6 +287,19 @@ public final class SimpleTerrainManager {
 	public void removeSkyDome(){
 		if(sky != null)
 			Singleton.get().getSceneManager().changeCharNode(sky,1);
+	}
+
+	@Override
+	public void prepareTeleport(Vector3f worldPos) {
+		addLoadAll(checkLoadPatch(getXTile(worldPos.x), getZTile(worldPos.z)));
+	}
+	
+	public int getXTile(float x){
+		return ((int) x+(20*2048)) / IArea.TERRAIN_SIZE;
+	}
+	
+	public int getZTile(float z){
+		return ((int) z +(18*2048)) / IArea.TERRAIN_SIZE;
 	}
 	
 }

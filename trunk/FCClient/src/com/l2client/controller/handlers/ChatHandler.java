@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import com.l2client.app.Singleton;
 import com.l2client.gui.dialogs.ChatPanel;
-import com.l2client.model.network.ClientFacade;
 import com.l2client.network.game.ClientPackets.Say;
 
 /**
