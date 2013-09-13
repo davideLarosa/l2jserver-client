@@ -58,7 +58,7 @@ public class JmeUpdateSystem extends ComponentSystem {
 						Entity them = e.getEntity();
 						if(them != null && i != null){
 							//update our target positin (ev. used by others), ev. rotation to target in positioning system
-							tgt.pos = them.getLocalTranslation();
+							tgt.pos = them.getLocalTranslation().clone();
 						}
 					}
 				}
@@ -76,17 +76,22 @@ public class JmeUpdateSystem extends ComponentSystem {
 							//get visual and REMOVE selection from it
 							VisualComponent vis = (VisualComponent) em
 								.getComponent(tgt.getLastTarget(), VisualComponent.class);
-							if (vis.vis != null) {
-								((VisibleModel) vis.vis).removeSelectionMarker();
-								log.finest("Player target changed, Selection removed:"+tgt.getLastTarget());
-							} else {
-								log.severe("Player target changed, Selection VIS not found on:"+tgt.getLastTarget());
-							}
-							LoggingComponent l = (LoggingComponent) em.getComponent(tgt.getLastTarget(), LoggingComponent.class);
-							if(l != null) {
-								Singleton.get().getPosSystem().removeComponentForUpdate(l);
-								em.removeComponent(tgt.getLastTarget(), l);
-							}
+							if(vis!=null){
+								if (vis.vis != null) {
+									((VisibleModel) vis.vis).removeSelectionMarker();
+									log.finest("Player target changed, Selection removed:"+tgt.getLastTarget());
+								} else {
+									log.severe("Player target changed, Selection VIS not found on:"+tgt.getLastTarget());
+								}
+							} else 
+								log.severe("Player target changed, Selection NO VIS not found on:"+tgt.getLastTarget());
+
+//FIXME this causes side effects with entity deletion, it seems, l2j deletes dead entities quite fast
+//							LoggingComponent l = (LoggingComponent) em.getComponent(tgt.getLastTarget(), LoggingComponent.class);
+//							if(l != null) {
+//								Singleton.get().getPosSystem().removeComponentForUpdate(l);
+//								em.removeComponent(tgt.getLastTarget(), l);
+//							}
 						}
 						//----------- set current ----------- 
 						if(tgt.hasTarget()){
@@ -101,15 +106,16 @@ public class JmeUpdateSystem extends ComponentSystem {
 							} else {
 								log.severe("Player target changed, Selection VIS not found on on:"+tgt.getCurrentTarget());
 							}
-							
-							LoggingComponent l = (LoggingComponent) em.getComponent(tgt.getCurrentTarget(), LoggingComponent.class);
-							if(l == null){
-								l = new LoggingComponent();
-								em.addComponent(tgt.getCurrentTarget(), l);
-								Singleton.get().getPosSystem().addComponentForUpdate(l);
-							} else {
-								log.severe("Logging comp still on changed ent!!?");
-							}
+
+//FIXME this causes side effects with entity deletion, it seems, l2j deletes dead entities quite fast							
+//							LoggingComponent l = (LoggingComponent) em.getComponent(tgt.getCurrentTarget(), LoggingComponent.class);
+//							if(l == null){
+//								l = new LoggingComponent();
+//								em.addComponent(tgt.getCurrentTarget(), l);
+//								Singleton.get().getPosSystem().addComponentForUpdate(l);
+//							} else {
+//								log.severe("Logging comp still on changed ent!!?");
+//							}
 						} else {
 							//reset target creation by setting old target to current 
 							tgt.setNoTarget();
@@ -170,18 +176,23 @@ public class JmeUpdateSystem extends ComponentSystem {
 				IdentityComponent e = em.getEntity(com);
 				if(e != null)
 				{
-					e.getEntity().setLocalTranslation(com.position.x, com.position.y+com.heightOffset, com.position.z);
-			}
-		}else 
-			if(c instanceof SimplePositionComponent){
-				SimplePositionComponent com = (SimplePositionComponent) c;
-				IdentityComponent e = em.getEntity(com);
-				if(e != null)
-				{
 					Entity ent = e.getEntity();
-					ent.setLocalTranslation(com.currentPos.x, 0f /* currently ignoring height com.currentPos.y */, com.currentPos.z);
+					ent.setLocalTranslation(com.position.x, com.position.y+com.heightOffset, com.position.z);
 					ent.setLocalRotation(new Quaternion().fromAngleNormalAxis(com.heading, Vector3f.UNIT_Y.negate()));
-				}			
+				} else {
+					log.severe("Positioning component without identity component found! comp:"+
+							c+" at "+ com.position.x+ ", "+(com.position.y+com.heightOffset)+", "+com.position.z);
+				}
+//		}else 
+//			if(c instanceof SimplePositionComponent){
+//				SimplePositionComponent com = (SimplePositionComponent) c;
+//				IdentityComponent e = em.getEntity(com);
+//				if(e != null)
+//				{
+//					Entity ent = e.getEntity();
+//					ent.setLocalTranslation(com.currentPos.x, 0f /* currently ignoring height com.currentPos.y */, com.currentPos.z);
+//					ent.setLocalRotation(new Quaternion().fromAngleNormalAxis(com.heading, Vector3f.UNIT_Y.negate()));
+//				}			
 			}
 	}
 }
