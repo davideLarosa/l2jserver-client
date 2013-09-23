@@ -286,13 +286,14 @@ public class NavTestHelper {
 			System.out.println("Found path from " + pa.StartPoint() + " to "
 					+ pa.EndPoint());
 			for (WAYPOINT w : pa.m_WaypointList)
-				System.out.println("  -" + w.Position + " cost:"
-						+ w.Cell.m_ArrivalCost + " cell:" + w.Cell);
+				System.out.println("  -" + w.toString());
 			if(EntityNavigationManager.USE_OPTIMZED_PATH){
 				System.out.println("Optimized paths are used :");
 				for (WAYPOINT w : pa.m_OptimalWaypointList)
-					System.out.println("  -" + w.Position + " cell:" + w.Cell);
+					System.out.println("  -" + w.toString());
+				
 			}
+//			System.out.println("check -- \n"+pa.toString());
 		}
 	}
 }
