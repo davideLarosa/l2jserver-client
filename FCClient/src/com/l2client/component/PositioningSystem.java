@@ -1,13 +1,10 @@
 package com.l2client.component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
-import com.l2client.component.PositioningSystem.QueuedMove;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.ISpatialPointing;
 import com.l2client.controller.entity.SpatialPointIndex;
@@ -451,7 +448,8 @@ public class PositioningSystem extends ComponentSystem {
 					} else {
 						log.severe("Failed to place entity start:"+pos.position+" goal:"+pos.goalPos);
 					}
-					pos.targetHeading = PositioningSystem.getHeading(pos.position, pos.goalPos);
+					if(pos.position.distanceSquared(pos.goalPos) > 0.00001f)//only do this if the two are different, otherwise we get odd results
+						pos.targetHeading = PositioningSystem.getHeading(pos.position, pos.goalPos);
 					pos.maxSpeed = pos.running ? pos.runSpeed : pos.walkSpeed;
 			}
 			EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(objId, EnvironmentComponent.class);

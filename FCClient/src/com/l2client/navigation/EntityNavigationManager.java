@@ -151,8 +151,8 @@ public class EntityNavigationManager {
 						comp.mesh = (TiledNavMesh) p.mesh;
 						comp.nextWayPoint = p;
 						endPos.set(c.Position);
-						if(comp.position.distanceSquared(c.Position) > 0.00001f)
-							comp.targetHeading = PositioningSystem.getHeading(comp.position, c.Position);
+						if(comp.position.distanceSquared(p.Position) > 0.00001f)
+							comp.targetHeading = PositioningSystem.getHeading(comp.position, p.Position);
 						return;
 					}
 					//found current
@@ -196,7 +196,7 @@ public class EntityNavigationManager {
 					TestCell = Result.cell;
 				} else {
 					//FIXME this could also be the case of switching meshes :-< check this !!
-					Cell c = Singleton.get().getNavManager().FindClosestCell(EndPos, true);
+					Cell c = FindClosestCell(EndPos, true);
 					if(c!= null && c != TestCell){
 //System.out.println("Mesh switching");
 							TestCell =c;
@@ -222,7 +222,7 @@ public class EntityNavigationManager {
 			} else if (Result.result == Cell.PATH_RESULT.NO_RELATIONSHIP) {
 //System.out.println("NO RELATION");
 				//FIXME this could also be the case of optimized meshes
-				Cell c =Singleton.get().getNavManager().FindClosestCell(EndPos, true);
+				Cell c = FindClosestCell(EndPos, true);
 				if(c!= null && c != TestCell){
 						TestCell =c;
 				} else {
