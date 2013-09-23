@@ -606,8 +606,6 @@ public class TiledNavMesh extends NavMesh {
         		vb.put(c.m_Vertex[v].y);
         		vb.put(c.m_Vertex[v].z);
         		ib.put(i++);
-        		ib.put(i++);
-        		ib.put(i++);
         	}
         }
 		m.setBuffer(Type.Position, 3, vb);
