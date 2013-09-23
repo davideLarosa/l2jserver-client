@@ -13,10 +13,11 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.l2client.app.Singleton;
-import com.l2client.controller.area.IArea;
+import com.l2client.component.PositioningComponent;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.model.l2j.ServerValues;
+import com.l2client.navigation.Path;
 
 /**
  * Action for triggering the movement of the player. Just an example.
@@ -30,7 +31,6 @@ public class GotoClickedInputAction extends Action {
 	private Camera camera;
 	private InputManager inputManager;
 	private PlayerCharHandler handler;
-	float dt = 0f;
 
 	/**
 	 * constructor of the action
@@ -64,7 +64,7 @@ public class GotoClickedInputAction extends Action {
 	public void onAction(String name, boolean isPressed, float tpf) {
 		// only execute on button/key release
 		if (!isPressed) {
-
+			Singleton sin = Singleton.get();
 			Vector3f origin = camera.getWorldCoordinates(
 					inputManager.getCursorPosition(), 0.0f);
 			Vector3f direction = camera.getWorldCoordinates(
@@ -74,7 +74,7 @@ public class GotoClickedInputAction extends Action {
 			Ray ray = new Ray(origin, direction);
 			CollisionResults results = new CollisionResults();
 
-			Singleton.get().getSceneManager().getRoot().collideWith(ray, results);
+			sin.getSceneManager().getRoot().collideWith(ray, results);
 
 			if (results.size() > 0) {
 				Geometry geom = null;
@@ -89,20 +89,25 @@ public class GotoClickedInputAction extends Action {
 							String na = n.getName();
 							log.fine("picked " + na + " id:"+ id);
 							Vector3f loc = n.getLocalTranslation();
-							Singleton.get().getClientFacade().sendAction(id, loc.x, loc.y, loc.z, false, true);
+							sin.getClientFacade().sendAction(id, loc.x, loc.y, loc.z, false, true);
 							results.clear();
 							return;
-						} else if (res.getGeometry().getName()
-								.startsWith(IArea.TILE_PREFIX)) {//FIXME click on anything, check nav, then send request
+						} else {//FIXME click on anything, check nav, then send request
 							// this is the one
 							Vector3f location = res.getContactPoint();
-							log.fine("new loc:" + location
-									+ " sent:"+ ServerValues.getServerCoord(location.x)
-									+ ","+ ServerValues.getServerCoord(location.y)
-									+ ","+ ServerValues.getServerCoord(location.z));
-							Singleton.get().getClientFacade().sendMoveToAction(location.x, location.y,
-									location.z);
-							results.clear();
+							Path p = new Path();
+							PositioningComponent pos = (PositioningComponent) sin.getEntityManager().getComponent(handler.getSelectedObjectId(), PositioningComponent.class);
+							if(Singleton.get().getNavManager().buildNavigationPath(p, pos.position, location.clone())) {
+								log.fine("new loc:" + location
+										+ " sent:"+ ServerValues.getServerCoord(location.x)
+										+ ","+ ServerValues.getServerCoord(location.y)
+										+ ","+ ServerValues.getServerCoord(location.z));
+								sin.getClientFacade().sendMoveToAction(handler.getSelectedObjectId(), pos.position.x, pos.position.y, pos.position.z, location.x, location.y,
+										location.z);
+								results.clear();
+							} else {
+								log.info("invalid loc on click:" + location);
+							}
 							return;
 						}
 					}
@@ -110,7 +115,7 @@ public class GotoClickedInputAction extends Action {
 				}
 				results.clear();
 			} else 
-				log.warning("picked nothing");
+				log.info("picked nothing");
 		}
 	}
 

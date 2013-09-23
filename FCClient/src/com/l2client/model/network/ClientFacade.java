@@ -166,26 +166,27 @@ public class ClientFacade {
 	
 	/**
 	 * Send a request to move the player to the backend
-	 * @param x
-	 * @param y
-	 * @param z
+	 * @param obj	object id, just for the debug output
+	 * @param sx	start x pos in jme world coordinates
+	 * @param sy	start y pos in jme world coordinates
+	 * @param sz	start z pos in jme world coordinates
+	 * @param x		goal x pos in jme world coordinates
+	 * @param y		goal y pos in jme world coordinates
+	 * @param z		goal z pos in jme world coordinates
 	 */
-	public void sendMoveToAction(float x, float y, float z) {
-		// get current pos
-		EntityData e = getCharHandler().getSelectedChar();
-		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(e.getObjectId(), PositioningComponent.class);
-		if(pos != null){
+	public void sendMoveToAction(int obj, float sx, float sy, float sz, float x, float y, float z) {
+
 		//revert jme uses y as up, l2j uses z as up, so we change y and z here
 		Singleton.get().getClientFacade().sendGamePacket(
-				new MoveBackwardToLocation(x, y, z, pos.position.x, pos.position.y, pos.position.z, false));		
-//						.getClientCoord(e.getServerZ() + 8), e.getX(), e.getY(), e.getZ(), false));
-		log.info("Player "+e.getObjectId()+ " requests to move to:"+x+" "+y+" "+z+" from:"+pos.position.x+" "+pos.position.y+" "+pos.position.z);
-		} else {
-			log.severe("Player "+e.getObjectId()+"is missing SimplePositioningComponent!");
-		}
-	}
-	
+				new MoveBackwardToLocation(x, y, z, sx, sy, sz, false));		
+		log.info("Player "+obj+ " requests to move to:"+x+" "+y+" "+z+" from:"+sx+" "+sy+" "+sz);
 
+	}
+
+	/**
+	 * Sends a validate position message to the server, which checks the player position on the backend
+	 * @param com	player positioning component 
+	 */
 	public void sendValidatePosition(PositioningComponent com) {
 		EntityData e = getCharHandler().getSelectedChar();
 		if(e != null){
