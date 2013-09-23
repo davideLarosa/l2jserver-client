@@ -30,14 +30,14 @@ public class DistanceLodControl extends AbstractControl implements Cloneable {
     /**
      * Returns the distance tolerance for changing LOD.
      */
-    public float getDistTolerance() {
+    public float getDistance() {
         return distance;
     }
 
     /**
      * Specifies the distance tolerance for changing the LOD level on the
      */
-    public void setDistTolerance(float dist) {
+    public void setDistance(float dist) {
         this.distance = dist;
     }
 
