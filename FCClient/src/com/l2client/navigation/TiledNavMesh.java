@@ -580,7 +580,7 @@ public class TiledNavMesh extends NavMesh {
 	@Override
 	public String toString(){
 		StringBuilder str = new StringBuilder(this.getClass().getSimpleName());
-		str.append("x:").append((int)worldTranslation.x/IArea.TERRAIN_SIZE).append(",z:").append((int)worldTranslation.z/IArea.TERRAIN_SIZE).append(" worldPos:").append(worldTranslation).append(" extents:").append(IArea.TERRAIN_SIZE_HALF);
+		str.append(" x:").append((int)worldTranslation.x/IArea.TERRAIN_SIZE).append(", z:").append((int)worldTranslation.z/IArea.TERRAIN_SIZE).append(" worldPos:").append(worldTranslation).append(" extents:").append(IArea.TERRAIN_SIZE_HALF);
 		
 		return str.toString();
 	}
