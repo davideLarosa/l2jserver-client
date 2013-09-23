@@ -17,7 +17,7 @@ import com.l2client.navigation.Line2D.LINE_CLASSIFICATION;
  */
 public class Path {
 	public class WAYPOINT {
-		public Vector3f Position; // 3D position of waypoint
+		public Vector3f Position = new Vector3f(); // 3D position of waypoint
 		public Cell Cell; // The cell which owns the waypoint
 		public NavMesh mesh; // the mesh the cell belongs to
 		boolean borderCell;
@@ -57,7 +57,7 @@ public class Path {
 //		m_EndPoint.Position = EndPoint;
 //		m_EndPoint.Cell = EndCell;
 		WAYPOINT start = new WAYPOINT();
-		start.Position = StartPoint;
+		start.Position.set(StartPoint);
 		start.Cell = StartCell;
 		start.mesh = Parent;
 
@@ -74,7 +74,7 @@ public class Path {
 	void AddWayPoint(Vector3f Point, Cell Cell, NavMesh mesh) {
 		WAYPOINT NewPoint = new WAYPOINT();
 
-		NewPoint.Position = Point;
+		NewPoint.Position.set(Point);
 		NewPoint.Cell = Cell;
 		NewPoint.mesh = mesh;
 
@@ -229,6 +229,20 @@ public class Path {
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append("-- WAYPOINT LIST --\n");
+		for(WAYPOINT p :m_WaypointList)
+			b.append(p.toString()).append("\n");
+		if(m_OptimalWaypointList != null) {
+			b.append("-- OPTIMAL WAYPOINT LIST --\n");
+			for(WAYPOINT p :m_OptimalWaypointList)
+				b.append(p.toString()).append("\n");
+		}
+		return b.toString();
 	}
 	
 }
