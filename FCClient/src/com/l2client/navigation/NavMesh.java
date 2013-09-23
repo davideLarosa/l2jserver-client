@@ -11,7 +11,6 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.export.Savable;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.l2client.app.Singleton;
 import com.l2client.navigation.Cell.ClassifyResult;
 
 /**
@@ -238,6 +237,7 @@ public class NavMesh implements Savable{
 	// Resolve a movement vector on the mesh
 	//
 	// -------------------------------------------------------------------------------------://
+	@Deprecated //Use EntityNavigationManager.revolveMotionNewWay
 	public Cell ResolveMotionOnMesh(Vector3f StartPos, Cell StartCell,	Vector3f EndPos) {
 		// create a 2D motion path from our Start and End positions, tossing out
 		// their Y values to project them
@@ -276,12 +276,12 @@ public class NavMesh implements Savable{
 					TestCell = Result.cell;
 				} else {
 					//FIXME this could also be the case of switching meshes :-< check this !!
-					Cell c = Singleton.get().getNavManager().FindClosestCell(EndPos, true);
-					if(c!= null && c != TestCell){
-//System.out.println("Mesh switching");
-							TestCell =c;
-					}
-					else{
+//					Cell c = Singleton.get().getNavManager().FindClosestCell(EndPos, true);
+//					if(c!= null && c != TestCell){
+////System.out.println("Mesh switching");
+//							TestCell =c;
+//					}
+//					else{
 						//FIXME thid should push the entity more away from a wall than it does at the moment and make it move more perpendicular to the wall
 //System.out.println("Hitting a wall!");
 						// we have hit a solid wall. Resolve the collision and
@@ -297,15 +297,15 @@ public class NavMesh implements Savable{
 						// Direction.mult(0.9f);
 						MotionPath.SetEndPointB(MotionPath.EndPointA().add(
 								Direction));
-					}
+//					}
 				}
 			} else if (Result.result == Cell.PATH_RESULT.NO_RELATIONSHIP) {
 //System.out.println("NO RELATION");
 				//FIXME this could also be the case of optimized meshes
-				Cell c =Singleton.get().getNavManager().FindClosestCell(EndPos, true);
-				if(c!= null && c != TestCell){
-						TestCell =c;
-				} else {
+//				Cell c =Singleton.get().getNavManager().FindClosestCell(EndPos, true);
+//				if(c!= null && c != TestCell){
+//						TestCell =c;
+//				} else {
 				// Although theoretically we should never encounter this case,
 				// we do sometimes find ourselves standing directly on a vertex
 				// of the cell.
@@ -319,7 +319,7 @@ public class NavMesh implements Savable{
 //				MotionPath.SetEndPointA(NewOrigin);
 				//we do not want to iterate we just want them to stop at the wall and not cet out
 				MotionPath.SetEndPointB(NewOrigin);
-				}
+//				}
 			}
 //		}//
 		// Keep testing until we find our ending cell or stop moving due to
