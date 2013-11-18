@@ -1,6 +1,9 @@
 package com.l2client.test;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingBox;
+import com.jme3.bounding.BoundingVolume;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -12,6 +15,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.debug.WireBox;
 import com.jme3.scene.shape.Box;
 import com.l2client.app.Singleton;
 import com.l2client.component.JmeUpdateSystem;
@@ -21,6 +25,7 @@ import com.l2client.controller.SceneManager;
 import com.l2client.controller.area.TileTerrainManager;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
+import com.l2client.model.l2j.ServerValues;
 import com.l2client.navigation.Cell;
 import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.NavTestHelper;
@@ -32,9 +37,12 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 	static float upd = 0;
 	static int run = 0;
 	
+	Node bboxes = new Node("debug bboxes");
+	Node navs = new Node("debug navs");
 	Node debugNodes = new Node("debugs");
 	Node scene = new Node("scene");
 	Node walker = null;
+	private Material matWireframe;
 
 	EntityNavigationManager enm;
 	TileTerrainManager tm;
@@ -72,6 +80,8 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
     	ps = sin.getPosSystem();
 		tm.update(cam.getLocation());
     	rootNode.attachChild(debugNodes);
+        rootNode.attachChild(bboxes);
+        rootNode.attachChild(navs);
 
         DirectionalLight light = new DirectionalLight();
         light.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
@@ -96,6 +106,18 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
     	
     	System.out.println("EntityNavManager finished"); 
     	
+    	Box b2 = new Box(.3f, 1.3f, .3f);
+    	Geometry g2 = new Geometry("tgt", b2);
+    	Material mat2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat2.setColor("Color", ColorRGBA.Green);
+        g2.setMaterial(mat2);
+        Vector3f p = new Vector3f(-9979.581f, 28.097652f, 8380.083f);
+        enm.snapToGround(p);
+        g2.setLocalTranslation(p);
+    	rootNode.attachChild(g2);
+    	System.out.println("Target placed at:"+p); 
+    	
+    	
     	Box b = new Box(.5f,1f,.5f);
     	Geometry walker = new Geometry("wakler", b);
     	Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -103,28 +125,19 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
         walker.setMaterial(mat);
 //        269.5173, -284.07605, 87.175156 to 476.54184, -171.21466, 454.62576
         //Entity e = placeObject(new Vector3f(-9969.057f, 15.097652f, 8429.296f), new Vector3f(-9979.581f, 28.097652f, 8420.083f));
-        Entity e = placeObject(new Vector3f(-9890.341f, 14.610833f, 8302.891f), new Vector3f(-9979.581f, 28.097652f, 8420.083f));
+        Entity e = placeObject(new Vector3f(-9890.341f, 14.610833f, 8302.891f), p.clone());
         if(e != null){
         	e.attachChild(walker);
         	rootNode.attachChild(e);
         	this.walker = e;
         }
-
         System.out.println("Entity placed"); 
         
-    	Box b2 = new Box(.3f, 1.3f, .3f);
-    	Geometry g2 = new Geometry("tgt", b2);
-    	Material mat2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat2.setColor("Color", ColorRGBA.Green);
-        g2.setMaterial(mat2);
-        Vector3f p = new Vector3f(-9979.581f, 28.097652f, 8420.083f);
-        enm.snapToGround(p);
-        g2.setLocalTranslation(p);
-    	rootNode.attachChild(g2);
-    	
-    	System.out.println("Target placed at:"+p); 
-        inputManager.addListener(this, "print_scenegraph");
+        inputManager.addListener(this, "print_scenegraph", "print_cam_location", "print_bboxes", "toggle_navmesh");
         inputManager.addMapping("print_scenegraph", new KeyTrigger(KeyInput.KEY_F6));
+        inputManager.addMapping("print_cam_location", new KeyTrigger(KeyInput.KEY_F1));
+        inputManager.addMapping("print_bboxes", new KeyTrigger(KeyInput.KEY_F7));
+        inputManager.addMapping("toggle_navmesh", new KeyTrigger(KeyInput.KEY_F8));
         
 		if(pc.path != null)
 			NavTestHelper.debugShowPath(assetManager, debugNodes, pc.path);
@@ -133,6 +146,11 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
     	for(TiledNavMesh mesh : enm.getNavMeshes()){
     		NavTestHelper.debugShowBox(assetManager, debugNodes, mesh.getPosition(), ColorRGBA.White, 128f,0.5f,128f);
     	}
+    	
+    	
+        matWireframe = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWireframe.setColor("Color", ColorRGBA.Green);
+        matWireframe.getAdditionalRenderState().setWireframe(true);
 
     }
     
@@ -141,6 +159,12 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 	public void onAction(String name, boolean isPressed, float tpf) {
 		if(name.equals("print_scenegraph") && !isPressed){
 			printHierarchy(rootNode, "");
+		} else if(name.equals("print_cam_location") && !isPressed){
+			System.out.println("Camera loc.:"+cam.getLocation()+ " @ server:"+ServerValues.getServerString(cam.getLocation().x, cam.getLocation().y, cam.getLocation().z));
+		} else if(name.equals("print_bboxes") && !isPressed){
+			toggelBBoxes();
+		} else if(name.equals("toggle_navmesh") && !isPressed){
+			toggelNavMeshes();
 		}
 	}
 	
@@ -237,5 +261,64 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 	    	
 		}
 		return e;
+	}
+	
+    
+    private void toggelBBoxes(){
+    	if(bboxes.getChildren().size()<=0){
+    		addBBoxes(rootNode);
+    	}
+    	else if (bboxes.getChildren().size()>0){
+    		removeBBoxesFromRoot();
+    	}
+    }
+    
+    private void toggelNavMeshes(){
+    	if(navs.getChildren().size()<=0){
+    		addNavs(rootNode);
+    	}
+    	else if (navs.getChildren().size()>0){
+    		removeNavs();
+    	}
+    }
+
+	private void removeBBoxesFromRoot() {
+		bboxes.detachAllChildren();
+	}
+
+
+	private void addBBoxes(Node n) {
+		for(Spatial s : n.getChildren()){
+			if(s instanceof Geometry){
+				Node a = s.getParent();
+				if(a==null)return;
+				BoundingVolume bound = ((Geometry) s).getModelBound();
+				if(bound instanceof BoundingBox) {
+					WireBox b = new WireBox(((BoundingBox) bound).getXExtent(), ((BoundingBox) bound).getYExtent(), ((BoundingBox) bound).getZExtent());
+					Geometry g = new Geometry(null, b);
+					g.setLocalTransform(s.getWorldTransform());
+					g.setMaterial(matWireframe);
+					bboxes.attachChild(g);
+				}
+			}
+			if(s instanceof Node) {
+				addBBoxes((Node) s);
+			}
+		}
+	}
+	
+	private void addNavs(Node n) {
+		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+		for(TiledNavMesh t : array){
+			Geometry g = t.getDebugMesh();
+			g.setMaterial(matWireframe);
+			navs.attachChild(g);
+//			NavTestHelper.debugShowMesh(assetManager, navs,t);
+			NavTestHelper.debugShowCost(assetManager, navs, t, ColorRGBA.White);
+		}
+	}
+	
+    private void removeNavs() {
+		navs.detachAllChildren();
 	}
 }
