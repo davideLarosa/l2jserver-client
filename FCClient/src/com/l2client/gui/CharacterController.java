@@ -16,6 +16,7 @@ import com.jme3.scene.Spatial;
 import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
 import com.l2client.component.TargetComponent;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.gui.actions.BaseUsable;
@@ -67,7 +68,7 @@ public final class CharacterController {
 		
         AmbientLight al = new AmbientLight();
         al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-		Singleton.get().getSceneManager().changeRootLight(al,0);
+		Singleton.get().getSceneManager().changeRootLight(al,Action.ADD);
 
 		pl = new PointLight();
 		pl.setColor(ColorRGBA.White);
@@ -80,7 +81,7 @@ public final class CharacterController {
 		Singleton.get().getInputController().pushInput(acts);
 		
 		Singleton.get().getSceneManager().removeChar();
-		Singleton.get().getSceneManager().changeCharNode(visible, 0);
+		Singleton.get().getSceneManager().changeCharNode(visible, Action.ADD);
 		Singleton.get().getTerrainManager().addSkyDome();
 
 	}
@@ -176,11 +177,11 @@ public final class CharacterController {
 			//x y z in jme but send it x z y to l2j
 			Singleton.get().getClientFacade().sendGamePacket(
 				new RequestBypassToServer("admin_move_to "+
-						(int)ServerValues.getServerCoord(originalLocation.x)+" "+
-						(int)ServerValues.getServerCoord(originalLocation.z)+" "+
-						(int)ServerValues.getServerCoord(originalLocation.y)));
-		} else {
-			Singleton.get().getGuiController().showInfoDialog("No origin found, no teleport done.");
+						(int)ServerValues.getServerCoordX(originalLocation.x)+" "+
+						(int)ServerValues.getServerCoordY(originalLocation.z)+" "+
+						(int)ServerValues.getServerCoordZ(originalLocation.y)));
+//		} else {
+//			Singleton.get().getGuiController().showInfoDialog("No origin found, no teleport done.");
 		}
 	}
 
@@ -192,6 +193,10 @@ public final class CharacterController {
 			if(originalLocation == null){
 				EntityData e = Singleton.get().getClientFacade().getCharHandler().getSelectedChar();
 				PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(e.getObjectId(), PositioningComponent.class);
+				if(pos == null){
+					System.out.println("Was looking for PositioningComponent but got none for Ent:"+e.getObjectId());
+					Singleton.get().getEntityManager().dumpAllComponents();
+				}
 				originalLocation = pos.position.clone();
 			}
 			Singleton.get().getClientFacade().sendGamePacket(
@@ -199,9 +204,10 @@ public final class CharacterController {
 				//	(-9890.341, 14.228922, 8302.891) on tile 121, 177
 				//x y z in jme but send it x z y to l2j
 				new RequestBypassToServer("admin_move_to "+
-						(int)ServerValues.getServerCoord(-9890f)+" "+
-						(int)ServerValues.getServerCoord(8302f)+" "+
-						(int)ServerValues.getServerCoord(14.3f)));
+						(int)ServerValues.getServerCoordX(-9856f)+" "+
+						(int)ServerValues.getServerCoordY(8464f)+" "+
+						(int)ServerValues.getServerCoordZ(17.5f)));
+						//(-9856.284, 17.075874, 8463.943) @ server:-157700,135423,273
 		} catch(Exception e){
 			logger.severe(e.getMessage());
 			Singleton.get().getGuiController().showInfoDialog("Failed to teleport, see at the logs why.");

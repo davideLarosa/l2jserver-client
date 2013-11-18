@@ -23,9 +23,9 @@ public final class AttackRequest extends GameClientPacket {
 			writeC(0x01);
 		
 		writeD(targetID);
-		writeD(ServerValues.getServerCoord(posX));//Switch z and y
-		writeD(ServerValues.getServerCoord(posZ));
-		writeD(ServerValues.getServerCoord(posY));
+		writeD(ServerValues.getServerCoordX(posX));//Switch z and y
+		writeD(ServerValues.getServerCoordY(posZ));
+		writeD(ServerValues.getServerCoordZ(posY));
 		
 		if(shiftClick)
 			writeC(1);

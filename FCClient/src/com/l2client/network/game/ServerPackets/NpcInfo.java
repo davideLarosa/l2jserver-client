@@ -21,14 +21,11 @@ public final class NpcInfo extends GameServerPacket {
 		int x = readD();
 		int y = readD();
 		int z = readD();
-log.finer("NPC at "+x+","+y+","+z+" placed in world at "+
-		(ServerValues.getClientCoord(x)+","+
-		(ServerValues.getClientCoord(z))+","+
-		(ServerValues.getClientCoord(y))));
-		n.setX(ServerValues.getClientCoord(x));
+log.finer("NPC at "+x+","+y+","+z+" placed in world at "+ServerValues.getClientString(x, y, z));
+		n.setX(ServerValues.getClientCoordX(x));
 		//reverted jme uses Y as up
-		n.setY(ServerValues.getClientCoord(z));
-		n.setZ(ServerValues.getClientCoord(y));
+		n.setY(ServerValues.getClientCoordY(z));
+		n.setZ(ServerValues.getClientCoordZ(y));
 		n.setHeading(ServerValues.getClientHeading(readD()));
 		readD();
 		readD();
@@ -47,8 +44,8 @@ log.finer("NPC at "+x+","+y+","+z+" placed in world at "+
 
 		if(mult <0.00001f)
 			mult = 1.0f;
-		n.setWalkSpeed(mult*ServerValues.getClientCoord(nSpeed));
-		n.setRunSpeed(mult*ServerValues.getClientCoord(speed));
+		n.setWalkSpeed(mult*ServerValues.getClientScaled(nSpeed));
+		n.setRunSpeed(mult*ServerValues.getClientScaled(speed));
 		readF();//attack speed multiplier
 		readF();//collision radius
 		readF();//collision height

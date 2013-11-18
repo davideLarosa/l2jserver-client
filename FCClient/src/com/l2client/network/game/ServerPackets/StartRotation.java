@@ -32,6 +32,7 @@ public class StartRotation extends GameServerPacket {
 		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(objId, PositioningComponent.class);
 		if(pos != null){
 			pos.targetHeading = ServerValues.getClientHeading(deg);
+System.out.println("StartRoatation: Set heading for "+objId+" to "+pos.targetHeading);			
 		} else 
 			log.severe("No SimplePositioningComponent found for entity "+objId);
 		

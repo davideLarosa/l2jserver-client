@@ -184,6 +184,15 @@ public class NavTestHelper {
     			root.attachChild(getText(assetMan, s.length()>4?s.substring(0,4):s, c.m_CenterPoint.x, c.m_CenterPoint.y, c.m_CenterPoint.z, 0.1f));
     		}
 	}
+	
+	public static void debugShowCost(AssetManager assetMan, com.jme3.scene.Node root, TiledNavMesh m, ColorRGBA color){
+    	for(Cell c : m.m_CellArray)
+    		if(c.m_ArrivalCost > 0f) { 
+    			System.out.println("  --"+c.m_CenterPoint+" arrivalcost:"+c.m_ArrivalCost+" pathcost:"+c.PathfindingCost());
+    			String s = ""+c.PathfindingCost();
+    			root.attachChild(getText(assetMan, s.length()>4?s.substring(0,4):s, c.m_CenterPoint.x, c.m_CenterPoint.y+0.5f, c.m_CenterPoint.z, 0.5f));
+    		}
+	}
 
 	public static void debugShowPath(AssetManager assetMan, com.jme3.scene.Node root, Path p) {
 		float width = 0.05f;

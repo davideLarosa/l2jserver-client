@@ -81,12 +81,14 @@ public class EntityNavigationManager {
 		if(ents != null && ents.length>0) {
 			log.info("Found "+ents.length+" entities within "+IArea.TERRAIN_SIZE_HALF+" radius of "+m.getPosition().x+"/"+m.getPosition().z+", will position them on navmesh");
 			positionEntitiesOnMesh(ents, m);
-		}
+		} else
+			log.info("No entities within "+IArea.TERRAIN_SIZE_HALF+" radius of "+m.getPosition().x+"/"+m.getPosition().z+", will position them on navmesh");
+
 	}
 	
-	private void positionEntitiesOnMesh(ISpatialPointing[] ents,
-			TiledNavMesh m) {
+	private void positionEntitiesOnMesh(ISpatialPointing[] ents, TiledNavMesh m) {
 		PositioningComponent com = null;
+		log.fine("Positioning Entities on Mesh after Load of NavMesh");
 		for(int i=0;i <ents.length;i++){
 			com = (PositioningComponent) ents[i];
 			snapToGround(com);
@@ -107,7 +109,8 @@ public class EntityNavigationManager {
 					log.finest("NavigationManager FindClosestCell found borderCell:"+c);
 					return c;
 				}
-			}
+			} else
+				log.finest("NavigationManager FindClosestCell has no Cell near:"+Point);
 		} else
 			log.warning("NavigationManager FindClosestCell has no NavigationMesh for coordinates "+Point);
 		log.severe("NavigationManager FindClosestCell has no mesh for coordinates "+Point);
@@ -151,8 +154,10 @@ public class EntityNavigationManager {
 						comp.mesh = (TiledNavMesh) p.mesh;
 						comp.nextWayPoint = p;
 						endPos.set(c.Position);
-						if(comp.position.distanceSquared(p.Position) > 0.00001f)
+						if(comp.position.distanceSquared(p.Position) > 0.00001f) {
 							comp.targetHeading = PositioningSystem.getHeading(comp.position, p.Position);
+							System.out.println("ResolveMotoionOnMesh new Heading "+comp.targetHeading+" for ent "+Singleton.get().getEntityManager().getEntityId(comp));
+						}
 						return;
 					}
 					//found current
@@ -345,9 +350,13 @@ public class EntityNavigationManager {
 	}
 
 	public void snapToGround(Vector3f p) {
+		log.fine("Snap to Ground around "+p);
 		Cell c = FindClosestCell(p, false);
-		if(c != null)
+		if(c != null) {
 			c.MapVectorHeightToCell(p);
+			log.fine("Snap to Ground succeeded at "+p);
+		} else
+			log.fine("Snap to Ground FAILED around "+p);
 	}
 	
 	public void snapToGround(PositioningComponent com){

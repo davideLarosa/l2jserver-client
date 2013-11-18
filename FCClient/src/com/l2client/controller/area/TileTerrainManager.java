@@ -12,6 +12,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.util.SkyFactory;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 
 /**
  * 
@@ -225,7 +226,7 @@ public final class TileTerrainManager implements ITileManager {
 	public void addSkyDome(){
 		if(sky == null)
 			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
-        Singleton.get().getSceneManager().changeCharNode(sky,0);
+        Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
 	}
 	
 	public void addSkyDome(Camera cam ){
@@ -233,12 +234,12 @@ public final class TileTerrainManager implements ITileManager {
 			sky = new Node("Sky");
 			SkyDome skyControl = new SkyDome(Singleton.get().getAssetManager().getJmeAssetMan(), cam);
 			sky.addControl(skyControl);
-			Singleton.get().getSceneManager().changeCharNode(sky,0);
+			Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
 	}
 	
 	public void removeSkyDome(){
 		if(sky != null)
-			Singleton.get().getSceneManager().changeCharNode(sky,1);
+			Singleton.get().getSceneManager().changeCharNode(sky,Action.REMOVE);
 	}
 	
 	/**

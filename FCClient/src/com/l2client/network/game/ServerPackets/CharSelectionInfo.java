@@ -46,10 +46,10 @@ public class CharSelectionInfo extends GameServerPacket {
 			int x = readD();
 			int y = readD();
 			int z = readD();
-			ch.setX(ServerValues.getClientCoord(x));
+			ch.setX(ServerValues.getClientCoordX(x));
 			//reverted jme uses Y as up
-			ch.setY(ServerValues.getClientCoord(z));
-			ch.setZ(ServerValues.getClientCoord(y));
+			ch.setY(ServerValues.getClientCoordY(z));
+			ch.setZ(ServerValues.getClientCoordZ(y));
 
 			ch.setCurrentHp((int)readF());
 			ch.setCurrentMp((int)readF());

@@ -1,23 +1,30 @@
 package com.l2client.app;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.PrintWriter;
+import java.nio.FloatBuffer;
+import java.util.Locale;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.DesktopAssetManager;
 import com.jme3.export.binary.BinaryExporter;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.system.NanoTimer;
 import com.jme3.system.Timer;
 import com.l2client.asset.FullPathFileLocator;
 import com.l2client.navigation.TiledNavMesh;
 
 /**
- * converts all .nav files (simple .obj file with a mesh only) in a directory
- * into a tiled navmesh (.jnv) the name of the .nav file must conform to x_y.nav
+ * converts all .obj files in a directory
+ * into a tiled navmesh (.jnv) the name of the .obj file must conform to x_y.obj
  * naming convention where x and y are the tile numbers in x, y direction l2j's
  * center is in x between region 19 (-32768) and 20 (+32768) and in y between
  * region 18 (+32768) and 17 (-32768) so the upper left corner in 0/0 world
@@ -25,6 +32,8 @@ import com.l2client.navigation.TiledNavMesh;
  * 160 for the 0 tile with the 0 x coordinate
  */
 public class NavConverter {
+	
+	private static String fileEnding = "nav.obj";
 
 	private static AssetManager assetMan = new DesktopAssetManager(Thread
 			.currentThread().getContextClassLoader()
@@ -34,12 +43,31 @@ public class NavConverter {
 
 		@Override
 		public boolean accept(File dir, String name) {
-			if (name.endsWith(".nav"))
+			if (name.endsWith(fileEnding)) {
+//				String[] xy = name.substring(0, name.length()-fileEnding.length()).split("_");
+//				if (xy.length != 2) {
+//					System.out.println("File " + name
+//							+ " does not conform to x_y"+fileEnding+" file name convention");
+//					return false;
+//				}
+				
+//					try {
+//						int i = Integer.parseInt(xy[0]);
+//						i = Integer.parseInt(xy[1]);
+//					} catch (NumberFormatException e) {
+//						System.out.println("File " + name
+//								+ " does not conform to x_y"+fileEnding+" file name convention");
+//					}
 				return true;
+			}
 
 			return false;
 		}
 	};
+	
+	public NavConverter(){
+	}
+
 
 	/**
 	 * @param args
@@ -50,20 +78,24 @@ public class NavConverter {
 	public static void main(String[] args) throws Throwable {
 		if (args != null && args.length != 1) {
 			System.out
-					.println("ERROR: compiler needs a directory to start converting .nav files");
+					.println("ERROR: compiler needs a directory or file to start converting "+fileEnding+" files");
 			// return -10;
 			return;
 		}
 
 		File file = new File(args[0]);
+		
+		assetMan.registerLocator(file.toString(), FullPathFileLocator.class);
 
 		if (!file.isDirectory()) {
-			System.out
-					.println("ERROR: compiler needs a directory for files to convert from");
-			return;// -20;
+			if(navFileFilter.accept(file.getParentFile(), file.getName())){
+				NavConverter3 com = new NavConverter3();
+				com.convertNav(file);
+			} else {
+				System.out.println("ERROR: compiler needs a directory or file for files to convert from");
+				return;// -20;
+			}
 		} else {
-			assetMan.registerLocator(file.toString(), FullPathFileLocator.class);
-
 			NavConverter com = new NavConverter();
 //			com.setMeshRelative(false);
 			com.convert(file);
@@ -107,9 +139,11 @@ public class NavConverter {
 			time = t.getTimeInSeconds();
 			System.out.println("File " + from.getAbsolutePath() + " loaded in "
 					+ time + " seconds");
-			if (n instanceof Geometry)
+			if (n instanceof Geometry) {
 				g = (Geometry) n;
-			else if (n instanceof Node) {
+				n = new Node(g.getName());
+				((Node)n).attachChild(g);
+			} else if (n instanceof Node) {
 				if (((Node) n).getChildren().size() > 1)
 					throw new Throwable(
 							"Mesh with more children detected than one on "
@@ -121,94 +155,121 @@ public class NavConverter {
 			// jme fucked up the model names, and ignores any object name
 			// entries so we fix a bit
 			String fName = from.getName().substring(0,
-					from.getName().length() - 4);// without .nav
+					from.getName().length() - fileEnding.length());// without .nav
 			g.setName(fName.toLowerCase());
 			TiledNavMesh navMesh = new TiledNavMesh();
 
-			String[] xy = fName.split("_");
-			if (xy.length < 2) {
-				System.out.println("File " + from.getAbsolutePath()
-						+ " does not conform to x_y.nav file name convention");
-				return -100;
-			}
+			{
+			String[] xy = from.getParentFile().getName().split("_");
 			// l2j's center is in x between region 19 (-32768) and 20 (+32768)
 			// and in y between region 18 (+32768) and 17 (-32768)
-			int xd = (Integer.parseInt(xy[0]) * 256) - (20 * 2048);// minus
-																	// 20*2048,
-																	// 20
-																	// because
-																	// region
-																	// count
-																	// starts
-																	// with 0_0,
-																	// 2048
-																	// because
-																	// one
-																	// region
-																	// consists
-																	// of 8x8
-																	// tiles
-																	// (each
-																	// 256x256
-																	// long)
-			int yd = (Integer.parseInt(xy[1])) * 256 - (18 * 2048);// minus
-																	// 18*2048
+			
+			// minus 20*2048, 20 because region count starts with 0_0,
+			// 2048 because one region consists of 8x8 tiles (each 256x256 long)
+			int xd = (Integer.parseInt(xy[0]) * 256) - (20 * 2048);
+			// minus 18*2048
+			int yd = (Integer.parseInt(xy[1])) * 256 - (18 * 2048);
+			
 			// center is in top left corner for nav mesh to be consistent with
 			// this for borders move x right, move y up by half size
 			Vector3f offset = new Vector3f(xd + 128, 0, yd - 128);
-			t.reset();
-			navMesh.loadFromMesh(g.getMesh(), offset, isMeshRelative);
+			System.out.println("Offset for "+from.getParentFile().getName()+"/nav2.obj should be at:"+offset);
+			}
+			
+			navMesh.loadFromMesh(g.getMesh(), Vector3f.ZERO, isMeshRelative);
+			
 			time = t.getTimeInSeconds();
 			System.out.println("File " + from.getAbsolutePath()
 					+ " converted in " + time + " seconds");
 			String path = from.getAbsolutePath();
+			String parent = from.getParent();
 			// replace .nav with .jnv
 			t.reset();
 			BinaryExporter.getInstance().save(navMesh,
-					new File(path.substring(0, path.length() - 4) + ".jnv"));
+					new File(parent+"/nav.jnv"));
 			time = t.getTimeInSeconds();
-			System.out.println("File " + from.getAbsolutePath() + " saved in "
-					+ time + " seconds");
-			System.out.println("-------------------------------------------------------");
-			n = null;
-//			// DEBUG try to find the terrain
-//			try {
-//				t.reset();
-//				Spatial s = (Spatial) assetMan.loadModel(from.getAbsolutePath()
-//						.substring(0, from.getAbsolutePath().length() - 4)
-//						+ ".obj");
-//				time = t.getTimeInSeconds();
-//				System.out.println("File " + from.getAbsolutePath()
-//						+ ".obj loaded in " + time + " seconds");
-//				if (s instanceof Geometry)
-//					g = (Geometry) s;
-//				else if (s instanceof Node) {
-//					if (((Node) n).getChildren().size() > 1)
-//						throw new Throwable(
-//								"Mesh with more children detected than one on "
-//										+ from.getName());
-//					g = (Geometry) ((Node) s).getChild(0);
-//				} else
-//					throw new Throwable("Spatial loaded was unexpected type "
-//							+ s.getClass());
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				return -200;
-//			}
-			
-////			// FIXME currently just a dummy terrain
-////			if (isMeshRelative)
-////				g.setLocalTranslation(offset);
+//			System.out.println("File "+parent+"/nav.jnv saved in "
+//					+ time + " seconds");
 //			t.reset();
-//			BinaryExporter.getInstance().save(g,
-//					new File(path.substring(0, path.length() - 4) + ".j3o"));
+//			writeMeshToObjFile(mesh,
+//					new File(parent+"/nav.obj"));
 //			time = t.getTimeInSeconds();
-//			System.out.println("File " + from.getAbsolutePath()
-//					+ ".j3o saved in " + time + " seconds");
+//			System.out.println("File "+parent+"/nav.obj saved in "
+//					+ time + " seconds");
+			n = null;
+			navMesh = null;
+			System.out.println("-------------------------------------------------------");
 		} catch (Exception e) {
+			System.out.println("Failed to create mesh from File "+from);
 			e.printStackTrace();
+			System.out.println("-------------------------------------------------------");
 			return -300;
 		}
 		return 0;
+	}
+
+
+	private void writeMeshToObjFile(Mesh mesh, File file) {
+		try {
+			PrintWriter p = new PrintWriter(file);
+			p.printf(Locale.ENGLISH,"#verts\n");
+			//verts
+			FloatBuffer bu = mesh.getFloatBuffer(Type.Position);
+			bu.rewind();
+			for(int i=0; i<bu.capacity(); i+=3) {
+				p.printf(Locale.ENGLISH,"v %.4f %.4f %.4f\n", bu.get(), bu.get(), bu.get());
+			}
+			// tex
+			bu = mesh.getFloatBuffer(Type.TexCoord);
+			if(bu != null) {
+				bu.rewind();
+				for(int i=0; i<bu.capacity(); i+=3) {
+					p.printf(Locale.ENGLISH,"vt %.4f %.4f %.4f\n", bu.get(), bu.get(), bu.get());
+				}
+			}
+			// norm
+			bu = mesh.getFloatBuffer(Type.Normal);
+			if(bu != null) {
+				bu.rewind();
+				for(int i=0; i<bu.capacity(); i+=3) {
+					p.printf(Locale.ENGLISH,"vn %.4f %.4f %.4f\n", bu.get(), bu.get(), bu.get());
+				}
+			}
+			//indices
+			IndexBuffer ib = mesh.getIndexBuffer();
+			if(ib != null){
+				p.printf(Locale.ENGLISH,"#faces\n");
+				switch(mesh.getMode()){
+				case Triangles: writeTriangleBuffer(ib,p); break;
+				case TriangleStrip:  writeTriangleStripBuffer(ib,p); break;
+//				case TriangleFan:  writeTriangleFanBuffer(ib,p);break;
+				default: throw new RuntimeException("Mesh mode not supported:"+mesh.getMode());
+				}
+			}
+			p.flush();			
+			p.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+	private void writeTriangleStripBuffer(IndexBuffer ib, PrintWriter p) {
+		int x = ib.get(0)+1;
+		int y = ib.get(1)+1;
+		int z = ib.get(2)+1;
+		p.printf("f %d %d %d\n", x, y, z);
+		for(int i=3; i<ib.size();i++) {
+			x=y;y=z;z=ib.get(i)+1;
+			p.printf("f %d %d %d\n", x, y, z);
+		}
+	}
+
+
+	private void writeTriangleBuffer(IndexBuffer ib, PrintWriter p) {
+		for(int i=0; i<ib.size();i+=3) {
+			p.printf("f %d %d %d\n", ib.get(i)+1, ib.get(i+1)+1, ib.get(i+2)+1);
+		}
 	}
 }

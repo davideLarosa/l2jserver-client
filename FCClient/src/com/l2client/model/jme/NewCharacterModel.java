@@ -14,6 +14,7 @@ import com.l2client.app.Assembler;
 import com.l2client.app.Assembler2;
 import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.model.PartSet;
 import com.l2client.model.WeaponSet;
 import com.l2client.model.l2j.Race;
@@ -55,7 +56,7 @@ public class NewCharacterModel extends VisibleModel {
 	 * @return the loaded model on a @see Node
 	 */
 	protected Node createVisuals() {
-		Singleton.get().getSceneManager().changeAnyNode(this,vis, 1);
+		Singleton.get().getSceneManager().changeAnyNode(this,vis, Action.REMOVE);
 		if(assembler != null)
 			createChangedChar();
 		else
@@ -66,7 +67,7 @@ public class NewCharacterModel extends VisibleModel {
 			if(animControl != null)
 				animControl.setInput(InputProvider.NOINPUT);
 
-			Singleton.get().getSceneManager().changeAnyNode(this,vis, 0);
+			Singleton.get().getSceneManager().changeAnyNode(this,vis, Action.ADD);
 		} else
 			logger.severe("Vis animations are missing");
 		

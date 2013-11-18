@@ -30,6 +30,18 @@ public final class SceneManager {
 	
 	private boolean onlyOneChangePerFrame = true;
 	
+	public enum Action {
+		ADD,
+		REMOVE;
+	}
+	
+	public enum Type {
+		NODE,
+		CONTROL,
+		LIGHT, 
+		POSTPROCESSOR;
+	}
+	
 	private class Tuple{
 		/**
 		 * @param t target
@@ -37,11 +49,11 @@ public final class SceneManager {
 		 * @param p element type
 		 * @param a action
 		 */
-		Tuple(Object t, Object e, int p, int a){target=t;element=e;type=p;act=a;}
+		Tuple(Object t, Object e, Type p, Action a){target=t;element=e;type=p;act=a;}
 		public Object target;
 		public Object element;
-		public int type;//0 = Node, 1 = Control, 2 = Light
-		public int act;//0 = add, 1 = remove
+		public Type type;//0 = Node, 1 = Control, 2 = Light
+		public Action act;//0 = add, 1 = remove
 	}
 
 	private volatile ViewPort viewPort = null;
@@ -94,9 +106,9 @@ public final class SceneManager {
 	 */
 	public void setRoot(Node n) {
 		root = n;
-		queue.add(new Tuple(root,chars,0,0));
-		queue.add(new Tuple(root,terrain,0,0));
-		queue.add(new Tuple(root,walker,0,0));
+		queue.add(new Tuple(root,chars,Type.NODE,Action.ADD));
+		queue.add(new Tuple(root,terrain,Type.NODE,Action.ADD));
+		queue.add(new Tuple(root,walker,Type.NODE,Action.ADD));
 	}
 	
 	public Node getRoot(){
@@ -164,8 +176,8 @@ public final class SceneManager {
 		while ((t = queue.poll()) != null) {
 			if (t.element != null && t.target != null) {
 				switch (t.type) {
-				case 0:// node
-					if (t.act != 1) {
+				case NODE:// node
+					if (t.act != Action.REMOVE) {
 						((Node) t.target).attachChild((Spatial) t.element);
 //						((Node)t.target).updateGeometricState();
 					} else {
@@ -174,8 +186,8 @@ public final class SceneManager {
 					}
 					nodes++;
 					break;
-				case 1:// control
-					if (t.act != 1)
+				case CONTROL:// control
+					if (t.act != Action.REMOVE)
 						((Node) t.target)
 								.addControl((AbstractControl) t.element);
 					else
@@ -183,15 +195,15 @@ public final class SceneManager {
 								.removeControl((AbstractControl) t.element);
 					controls++;
 					break;
-				case 2:// light
-					if (t.act != 1)
+				case LIGHT:// light
+					if (t.act != Action.REMOVE)
 						((Node) t.target).addLight((Light) t.element);
 					else
 						((Node) t.target).removeLight((Light) t.element);
 					lights++;
 					break;
-				case 3:// postprocessor
-					if (t.act != 1)
+				case POSTPROCESSOR:// postprocessor
+					if (t.act != Action.REMOVE)
 						((ViewPort) t.target)
 								.addProcessor((SceneProcessor) t.element);
 					else
@@ -215,8 +227,8 @@ public final class SceneManager {
 	 * @param n			node to be queued
 	 * @param action	0 add node, 1 remove node
 	 */
-	public void changeRootNode(Spatial n, int action) {
-		Tuple t = new Tuple(root,n,0, action);
+	public void changeRootNode(Spatial n, Action action) {
+		Tuple t = new Tuple(root,n,Type.NODE, action);
 		queue.add(t);
 	}
 	
@@ -226,8 +238,8 @@ public final class SceneManager {
 	 * @param n			node to be queued
 	 * @param action	0 add node, 1 remove node
 	 */
-	public void changeAnyNode(Spatial tgt, Spatial n, int action) {
-		Tuple t = new Tuple(tgt,n,0, action);
+	public void changeAnyNode(Spatial tgt, Spatial n, Action action) {
+		Tuple t = new Tuple(tgt,n,Type.NODE, action);
 		queue.add(t);
 	}
 	
@@ -236,8 +248,8 @@ public final class SceneManager {
 	 * @param n			node to be queued
 	 * @param action	0 add node, 1 remove node
 	 */
-	public void changeCharNode(Spatial n, int action) {
-		Tuple t = new Tuple(chars,n,0, action);
+	public void changeCharNode(Spatial n, Action action) {
+		Tuple t = new Tuple(chars,n,Type.NODE, action);
 		queue.add(t);
 	}
 	
@@ -246,23 +258,23 @@ public final class SceneManager {
 	 * @param n			node to be queued
 	 * @param action	0 add node, 1 remove node
 	 */
-	public void changeTerrainNode(Spatial n, int action) {
-		Tuple t = new Tuple(terrain,n,0, action);
+	public void changeTerrainNode(Spatial n, Action action) {
+		Tuple t = new Tuple(terrain,n,Type.NODE, action);
 		queue.add(t);
 	}
 	
-	public void changeWalkerNode(Spatial n, int action) {
-		Tuple t = new Tuple(walker,n,0, action);
+	public void changeWalkerNode(Spatial n, Action action) {
+		Tuple t = new Tuple(walker,n,Type.NODE, action);
 		queue.add(t);
 	}
 	
-	public void changeRootLight(Light pLight, int action){
-		Tuple t = new Tuple(root,pLight,2,action);
+	public void changeRootLight(Light pLight, Action action){
+		Tuple t = new Tuple(root,pLight,Type.LIGHT,action);
 		queue.add(t);
 	}
 	
-	public void changeControl(Node tgt, AbstractControl pContr, int action){
-		Tuple t = new Tuple(tgt,pContr,1, action);
+	public void changeControl(Node tgt, AbstractControl pContr, Action action){
+		Tuple t = new Tuple(tgt,pContr, Type.CONTROL, action);
 		queue.add(t);
 	}
 	
@@ -293,8 +305,8 @@ public final class SceneManager {
 		this.removePostProcessors = true;
 	}
 	
-	public void changePostProcessor(FilterPostProcessor fpp, int action){
-		Tuple t = new Tuple(viewPort,fpp,3,action);
+	public void changePostProcessor(FilterPostProcessor fpp, Action action){
+		Tuple t = new Tuple(viewPort,fpp,Type.POSTPROCESSOR,action);
 		queue.add(t);
 	}
 

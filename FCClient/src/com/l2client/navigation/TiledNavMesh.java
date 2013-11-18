@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Logger;
+
+import jme3tools.optimize.GeometryBatchFactory;
 
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -18,10 +21,13 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Mesh.Mode;
+import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.mesh.IndexBuffer;
+import com.jme3.scene.shape.Line;
 import com.jme3.util.BufferUtils;
 import com.l2client.controller.area.IArea;
+import com.l2client.controller.area.Tile;
 import com.l2client.navigation.Line2D.LINE_CLASSIFICATION;
 
 /**
@@ -33,6 +39,7 @@ import com.l2client.navigation.Line2D.LINE_CLASSIFICATION;
 public class TiledNavMesh extends NavMesh {
 
 	private static Logger log = Logger.getLogger(TiledNavMesh.class.getName());
+	private static final float CENTER_OFFSET = 0f;
 	//BOUNDS hit flag for bitwise flagging on more than one bounds hit
 	private static final int BOUNDS_LEFT = 1;
 	private static final int BOUNDS_RIGHT = 2;
@@ -201,7 +208,9 @@ public class TiledNavMesh extends NavMesh {
 		Vector3f offset;
 		
 		int down = 0;
+		int slope = 0;
 		int total = 0;
+		float maxSlope = 48f;
 		
 		if(isRelative)
 			offset = Vector3f.ZERO;
@@ -214,6 +223,7 @@ public class TiledNavMesh extends NavMesh {
         Plane up = new Plane();
         up.setPlanePoints(Vector3f.UNIT_X, Vector3f.ZERO, Vector3f.UNIT_Z);
         up.getNormal();
+        float minNormalY = (float)Math.cos(Math.abs(maxSlope)/180 * Math.PI);
 
         IndexBuffer ib = mesh.getIndexBuffer();
         FloatBuffer pb = mesh.getFloatBuffer(Type.Position);
@@ -235,9 +245,9 @@ public class TiledNavMesh extends NavMesh {
             borderCorrection(c, offset);
         
             if(isRelative){
-            a=a.add(worldtrans);
-            b=b.add(worldtrans);
-            c=c.add(worldtrans);
+	            a=a.add(worldtrans);
+	            b=b.add(worldtrans);
+	            c=c.add(worldtrans);
             }
             
             Plane p = new Plane();
@@ -246,22 +256,25 @@ public class TiledNavMesh extends NavMesh {
             	down++;
                 continue;
             }
+            if (p.getNormal().y < minNormalY){
+            	slope++;
+            	continue;
+            }
 
             storeBorderCell(AddCell(a, b, c));
         }
 
         LinkCells();
-        log.warning("Ignored "+down+" of "+total+" faces facing downward in the mesh");
+        log.warning("Ignored "+down+" faces facing downward and "+slope+" with too high slope of "+total+" faces in the mesh");
     }
-	
 
 	/**
-	 * Vertices being near the border, currently 0.001f away will be clamped to the 
+	 * Vertices being near the border, currently 0.01f away will be clamped to the 
 	 * border. Input values are expected to be in local coordinates (before translating to the final world position)
 	 * @param v vertex who's values should be checked and corrected, the values can change
 	 */
 	private void borderCorrection(Vector3f v, Vector3f offset) {
-		float borderDelta = 0.001f;// if within this range to a border it will
+		float borderDelta = 0.01f;// if within this range to a border it will
 									// be clamped to the border
 		v.x = clampToBorder(v.x, borderDelta, offset.x);
 		//hey, only in x and z , dont clamp the height !?!
@@ -298,15 +311,27 @@ public class TiledNavMesh extends NavMesh {
 	 * Calculates the border lines. Requirement: worldtranslation is set.
 	 */
 	private void createBounds(){
+//		top = new Line2D(
+//				new Vector2f(worldTranslation.x-IArea.TERRAIN_SIZE_HALF, worldTranslation.z-IArea.TERRAIN_SIZE_HALF), 
+//				new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE_HALF, worldTranslation.z-IArea.TERRAIN_SIZE_HALF) 
+//		);
+//		right = new Line2D(top.EndPointB(),
+//				new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE_HALF, worldTranslation.z+IArea.TERRAIN_SIZE_HALF) 
+//		);
+//		bottom = new Line2D(right.EndPointB(), 
+//				new Vector2f(worldTranslation.x-IArea.TERRAIN_SIZE_HALF, worldTranslation.z+IArea.TERRAIN_SIZE_HALF) 
+//		);
+//		left = new Line2D(bottom.EndPointB(),top.EndPointA());
+		//l2j tiles are top left 0/0 and bottom right 256/256
 		top = new Line2D(
-				new Vector2f(worldTranslation.x-IArea.TERRAIN_SIZE_HALF, worldTranslation.z-IArea.TERRAIN_SIZE_HALF), 
-				new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE_HALF, worldTranslation.z-IArea.TERRAIN_SIZE_HALF) 
+		new Vector2f(worldTranslation.x+CENTER_OFFSET, worldTranslation.z+CENTER_OFFSET), 
+		new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE+CENTER_OFFSET, worldTranslation.z+CENTER_OFFSET) 
 		);
 		right = new Line2D(top.EndPointB(),
-				new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE_HALF, worldTranslation.z+IArea.TERRAIN_SIZE_HALF) 
+		new Vector2f(worldTranslation.x+IArea.TERRAIN_SIZE+CENTER_OFFSET, worldTranslation.z+IArea.TERRAIN_SIZE+CENTER_OFFSET) 
 		);
 		bottom = new Line2D(right.EndPointB(), 
-				new Vector2f(worldTranslation.x-IArea.TERRAIN_SIZE_HALF, worldTranslation.z+IArea.TERRAIN_SIZE_HALF) 
+		new Vector2f(worldTranslation.x+CENTER_OFFSET, worldTranslation.z+IArea.TERRAIN_SIZE+CENTER_OFFSET) 
 		);
 		left = new Line2D(bottom.EndPointB(),top.EndPointA());
 		log.finest(this+" top:"+top);
@@ -388,32 +413,53 @@ public class TiledNavMesh extends NavMesh {
 	 */
 	//TODO consider decoupling from TerrainTriMesh 
 	public boolean isPointInTile(float posX, float posZ) {
+//		//would it possibly be inside?
+//		if(posX <=(worldTranslation.x+IArea.TERRAIN_SIZE_HALF) &&
+//			posX >= (worldTranslation.x -IArea.TERRAIN_SIZE_HALF) &&
+//			posZ <=(worldTranslation.z+IArea.TERRAIN_SIZE_HALF) &&
+//			posZ >= (worldTranslation.z -IArea.TERRAIN_SIZE_HALF)) {
+//			return true;
+//		}
+		//l2j tiles are top left 0/0 and bottom right 256/256
 		//would it possibly be inside?
-		if(posX <=(worldTranslation.x+IArea.TERRAIN_SIZE_HALF) &&
-			posX >= (worldTranslation.x -IArea.TERRAIN_SIZE_HALF) &&
-			posZ <=(worldTranslation.z+IArea.TERRAIN_SIZE_HALF) &&
-			posZ >= (worldTranslation.z -IArea.TERRAIN_SIZE_HALF)) {
-			return true;
-		}
+		if(posX >=(worldTranslation.x+CENTER_OFFSET) &&
+		posX <= (worldTranslation.x + IArea.TERRAIN_SIZE + CENTER_OFFSET) &&
+		posZ >=(worldTranslation.z+CENTER_OFFSET) &&
+		posZ <= (worldTranslation.z + IArea.TERRAIN_SIZE+CENTER_OFFSET)) {
+		return true;
+	}
 		return false;
 	}
 	
 	private int getBoundingSide(float x, float z){
 		int bounds = 0;
-//		if (hasBounds()) {
-				//left ?
-				if(x <=(worldTranslation.x-IArea.TERRAIN_SIZE_HALF))
-					bounds |= BOUNDS_LEFT;
-				//right ?
-				if(x >= (worldTranslation.x+IArea.TERRAIN_SIZE_HALF))
-					bounds |= BOUNDS_RIGHT;
-				//top ?
-				if(z <=(worldTranslation.z-IArea.TERRAIN_SIZE_HALF))
-					bounds |= BOUNDS_TOP;
-				//bottom ?
-				if(z >= (worldTranslation.z+IArea.TERRAIN_SIZE_HALF))
-					bounds |= BOUNDS_BOTTOM;
-//		}
+////		if (hasBounds()) {
+//				//left ?
+//				if(x <=(worldTranslation.x-IArea.TERRAIN_SIZE_HALF))
+//					bounds |= BOUNDS_LEFT;
+//				//right ?
+//				if(x >= (worldTranslation.x+IArea.TERRAIN_SIZE_HALF))
+//					bounds |= BOUNDS_RIGHT;
+//				//top ?
+//				if(z <=(worldTranslation.z-IArea.TERRAIN_SIZE_HALF))
+//					bounds |= BOUNDS_TOP;
+//				//bottom ?
+//				if(z >= (worldTranslation.z+IArea.TERRAIN_SIZE_HALF))
+//					bounds |= BOUNDS_BOTTOM;
+////		}
+		//l2j tiles are top left 0/0 and bottom right 256/256
+		//left ?
+		if(x <=(worldTranslation.x+CENTER_OFFSET))
+			bounds |= BOUNDS_LEFT;
+		//right ?
+		if(x >= (worldTranslation.x+IArea.TERRAIN_SIZE+CENTER_OFFSET))
+			bounds |= BOUNDS_RIGHT;
+		//top ?
+		if(z <=(worldTranslation.z+CENTER_OFFSET))
+			bounds |= BOUNDS_TOP;
+		//bottom ?
+		if(z >= (worldTranslation.z+IArea.TERRAIN_SIZE+CENTER_OFFSET))
+			bounds |= BOUNDS_BOTTOM;
 		return bounds;
 	}
 
@@ -458,7 +504,7 @@ public class TiledNavMesh extends NavMesh {
 	public boolean isNeighbourOf(TiledNavMesh endMesh) {
 		Vector3f dist = worldTranslation.subtract(endMesh.worldTranslation);
 		if(FastMath.abs(dist.x)>IArea.TERRAIN_SIZE || 
-				FastMath.abs(dist.x)>IArea.TERRAIN_SIZE)
+				FastMath.abs(dist.y)>IArea.TERRAIN_SIZE)
 			return false;
 		
 		return true;
@@ -488,6 +534,7 @@ public class TiledNavMesh extends NavMesh {
 			// get intersection point of direct route and border lines of tile
 			Line2D l = new Line2D(startPos.x, startPos.z, endPos.x, endPos.z);
 			Vector2f cross = new Vector2f();
+			//FIXME aemhm what if we do not intersect top?!?! 
 			LINE_CLASSIFICATION classi = top.Intersection(l, cross);
 			
 			//check which side we cross
@@ -580,7 +627,7 @@ public class TiledNavMesh extends NavMesh {
 	@Override
 	public String toString(){
 		StringBuilder str = new StringBuilder(this.getClass().getSimpleName());
-		str.append(" x:").append((int)worldTranslation.x/IArea.TERRAIN_SIZE).append(", z:").append((int)worldTranslation.z/IArea.TERRAIN_SIZE).append(" worldPos:").append(worldTranslation).append(" extents:").append(IArea.TERRAIN_SIZE_HALF);
+		str.append(" x:").append(Tile.getTileFromWorldXPosition((int) worldTranslation.x)).append(", z:").append(Tile.getTileFromWorldZPosition((int)worldTranslation.z)).append(" worldPos:").append(worldTranslation).append(" extents:").append(IArea.TERRAIN_SIZE_HALF);
 		
 		return str.toString();
 	}
@@ -593,6 +640,10 @@ public class TiledNavMesh extends NavMesh {
 		return worldTranslation.clone();
 	}
 	
+	/**
+	 * All cells of the navmesh as a renderable Geometry
+	 * @return Geometry containing all cells
+	 */
 	public Geometry getDebugMesh(){
 		Mesh m = new Mesh();
 		m.setMode(Mode.Triangles);
@@ -615,5 +666,102 @@ public class TiledNavMesh extends NavMesh {
 		Geometry g = new Geometry("Debug_NavMesh_"+this.toString(),m);
 		g.updateModelBound();
 		return g;
+	}
+	
+	/**
+	 * Packs all border cells into a renderable mesh
+	 * @return Geometry containing the boder cells
+	 */
+	public Geometry getDebugBorderMesh(){
+		Mesh m = new Mesh();
+		m.setMode(Mode.Triangles);
+		int size = 0;
+		for(HashSet<com.l2client.navigation.Cell>  set : allBorders){
+			size += set.size();
+		}
+		IntBuffer ib = BufferUtils.createIntBuffer(size*3*3);
+		FloatBuffer vb = BufferUtils.createFloatBuffer(size*3*3);
+        vb.rewind();
+        int i=0;
+        for(HashSet<com.l2client.navigation.Cell>  set : allBorders){
+	        for(Cell c : set){
+	        	for(int v= 0;v<3;v++){
+	        		vb.put(c.m_Vertex[v].x);
+	        		vb.put(c.m_Vertex[v].y);
+	        		vb.put(c.m_Vertex[v].z);
+	        		ib.put(i++);
+	        	}
+	        }
+        }
+		m.setBuffer(Type.Position, 3, vb);
+		m.setBuffer(Type.Index, 3, ib);
+		m.updateBound();
+		
+		Geometry g = new Geometry("Debug_NavBorderMesh_"+this.toString(),m);
+		g.updateModelBound();
+		return g;
+	}
+	
+
+	public Geometry getDebugBounds(float y){
+		Collection<Geometry> geometries = new ArrayList<Geometry>();
+		Line l = new Line(new Vector3f(top.EndPointA().x, y, top.EndPointA().y), 
+						  new Vector3f(top.EndPointB().x, y, top.EndPointB().y));
+		geometries.add(new Geometry("top", l));
+
+		
+		l = new Line(new Vector3f(right.EndPointA().x, y, right.EndPointA().y), 
+				  new Vector3f(right.EndPointB().x, y, right.EndPointB().y));
+		geometries.add(new Geometry("right", l));
+		
+		l = new Line(new Vector3f(bottom.EndPointA().x, y, bottom.EndPointA().y), 
+				  new Vector3f(bottom.EndPointB().x, y, bottom.EndPointB().y));
+		geometries.add(new Geometry("bottom", l));
+		
+		l = new Line(new Vector3f(left.EndPointA().x, y, left.EndPointA().y), 
+				  new Vector3f(left.EndPointB().x, y, left.EndPointB().y));
+		geometries.add(new Geometry("left", l));
+
+		Mesh m = new Mesh();
+		GeometryBatchFactory.mergeGeometries(geometries, m);
+		Geometry g = new Geometry("bounds of "+toString(), m);
+		g.updateModelBound();
+		return g;
+
+	}
+	
+	public void setPosition(Vector3f position){
+		//if a position has already been set we do this only by the offset if it is really of any value
+		Vector3f offset = position.subtract(worldTranslation);
+		if(offset.length() > 0.0001f){
+			//update all cells
+			for(Cell c : m_CellArray){
+//				c.Initialize(c.m_Vertex[0].add(offset), c.m_Vertex[1].add(offset), c.m_Vertex[2].add(offset));
+				//update all centers
+				c.m_CenterPoint.addLocal(offset);
+				//update all vertices
+				for(Vector3f v : c.m_Vertex){
+					v.addLocal(offset);
+				}
+				//update the plane
+				c.m_CellPlane.setPlanePoints(c.m_Vertex[0], c.m_Vertex[1], c.m_Vertex[2]);
+				//update the wallmidpoints
+				for(Vector3f v : c.m_WallMidpoint){
+					v.addLocal(offset);
+				}
+				//update all lines, not in a loop as they are created as references to the same 3 vert2 instances
+//				m_Side[SIDE_AB] = new Line2D(Point1, Point2); // line AB
+//				m_Side[SIDE_BC] = new Line2D(Point2, Point3); // line BC
+//				m_Side[SIDE_CA] = new Line2D(Point3, Point1); // line CA
+				c.m_Side[0].EndPointA().addLocal(offset.x, offset.z);//A
+				c.m_Side[0].EndPointB().addLocal(offset.x, offset.z);//B
+				c.m_Side[1].EndPointB().addLocal(offset.x, offset.z);//C
+			}
+//			LinkCells();
+			//all cells updated besides worldtrans
+			worldTranslation = position.clone();
+			//uses world trans to create new border lines
+			createBounds();
+		}
 	}
 }

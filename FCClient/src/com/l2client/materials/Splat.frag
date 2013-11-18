@@ -101,12 +101,15 @@ vec2 computeLighting(in vec3 wvPos, in vec3 wvNorm, in vec3 wvViewDir, in vec3 w
 
   vec4 calculateDiffuseBlend(in vec2 texCoord) {
     vec4 ret = vec4(0,0,0,0);
+	vec4 diffuseColor = texture2D(m_DiffuseMap_0, texCoord * m_DiffuseMap_0_scale);
+    ret = diffuseColor;
+	
+	#ifdef ALPHAMAP
     vec4 a   = texture2D( m_AlphaMap, texCoord.xy );
     float ix = 1.0 - a.x;
     float iy = 1.0 - a.y;
     float iz = 1.0 - a.z;
 
-    vec4 diffuseColor = texture2D(m_DiffuseMap_0, texCoord * m_DiffuseMap_0_scale);
     ret = diffuseColor * ix;
 
     #ifdef DIFFUSEMAP_1
@@ -121,6 +124,7 @@ vec2 computeLighting(in vec3 wvPos, in vec3 wvNorm, in vec3 wvViewDir, in vec3 w
         #endif
       #endif
     #endif
+	#endif
     return ret;
   }
   
@@ -151,8 +155,12 @@ vec2 computeLighting(in vec3 wvPos, in vec3 wvNorm, in vec3 wvViewDir, in vec3 w
     vec4 normalHeight = vec4(0,0,0,0);
     vec3 n = vec3(0,0,0);
 
-    vec4 alphaBlend = texture2D( m_AlphaMap, texCoord.xy );
-
+	#ifdef ALPHAMAP
+		vec4 alphaBlend = texture2D( m_AlphaMap, texCoord.xy );
+	#else
+		vec4 alphaBlend = vec4(1,1,1,1);
+	#endif
+	
     #ifdef NORMALMAP_0
       normalHeight = texture2D(m_NormalMap_0, texCoord * m_DiffuseMap_0_scale);
       n = (normalHeight.xyz * vec3(2.0) - vec3(1.0));

@@ -8,6 +8,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.jme3.util.SkyFactory;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 
 /**
  * A simple terrain manager, storing definitions of terrain tiles, loaded tiles, etc.
@@ -220,7 +221,7 @@ System.out.println("AreaTerrainManager checkLoad found "+x+","+z);
 	public void addSkyDome(){
 		if(sky == null)
 			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
-        Singleton.get().getSceneManager().changeCharNode(sky,0);
+        Singleton.get().getSceneManager().changeCharNode(sky, Action.ADD);
 	}
 	
 	/* (non-Javadoc)
@@ -229,7 +230,7 @@ System.out.println("AreaTerrainManager checkLoad found "+x+","+z);
 	@Override
 	public void removeSkyDome(){
 		if(sky != null)
-			Singleton.get().getSceneManager().changeCharNode(sky,1);
+			Singleton.get().getSceneManager().changeCharNode(sky, Action.REMOVE);
 	}
 
 	@Override

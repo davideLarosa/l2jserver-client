@@ -13,6 +13,7 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.SkyFactory;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 
 /**
  * A simple terrain manager, storing definitions of terrain tiles, loaded tiles, etc.
@@ -194,7 +195,7 @@ public final class SimpleTerrainManager implements ITileManager {
 	 */
 	private PatchInfo addLoadAll(PatchInfo p) {
 		loadedPatches.put(p.hashCode(), p);
-		Singleton.get().getSceneManager().changeTerrainNode(p.patch,0);
+		Singleton.get().getSceneManager().changeTerrainNode(p.patch,Action.ADD);
 		return p;
 	}
 
@@ -281,12 +282,12 @@ public final class SimpleTerrainManager implements ITileManager {
 	public void addSkyDome(){
 		if(sky == null)
 			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
-        Singleton.get().getSceneManager().changeCharNode(sky,0);
+        Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
 	}
 	
 	public void removeSkyDome(){
 		if(sky != null)
-			Singleton.get().getSceneManager().changeCharNode(sky,1);
+			Singleton.get().getSceneManager().changeCharNode(sky,Action.REMOVE);
 	}
 
 	@Override

@@ -223,23 +223,25 @@ public abstract class BaseGameHandler implements Runnable{
 	 * @param raw The byte array to be sent
 	 */
 	public void sendPacket(GameClientPacket packet) {
-		if(connected)
-		try {
-			log.fine("Sending "+packet.getClass().getSimpleName()+" to LoginServer");
-			
-			byte[] raw = packet.getBytes();
-			byte[] h = new byte[raw.length + 2];
-			h[0] = (byte) (h.length % 256);
-			h[1] = (byte) (h.length / 256);
-			System.arraycopy(raw, 0, h, 2, raw.length);
-			crypt.encrypt(h, 2, h.length - 2);
-			outStream.write(h);
-			outStream.flush();
-		} catch (IOException e) {
-			//TODO close client, or at least throw player to login screen
-			log.log(Level.SEVERE, "Exception in sendPacket:", e);
-			connected = false;
-		}
+		if(connected){
+			try {
+				log.fine("Sending "+packet.getClass().getSimpleName()+" to LoginServer");
+				
+				byte[] raw = packet.getBytes();
+				byte[] h = new byte[raw.length + 2];
+				h[0] = (byte) (h.length % 256);
+				h[1] = (byte) (h.length / 256);
+				System.arraycopy(raw, 0, h, 2, raw.length);
+				crypt.encrypt(h, 2, h.length - 2);
+				outStream.write(h);
+				outStream.flush();
+			} catch (IOException e) {
+				//TODO close client, or at least throw player to login screen
+				log.log(Level.SEVERE, "Exception in sendPacket:", e);
+				connected = false;
+			}
+		} else
+			log.severe("Trying to send packet while socket already closed:"+packet.getClass().getSimpleName());
 	}
 
 }

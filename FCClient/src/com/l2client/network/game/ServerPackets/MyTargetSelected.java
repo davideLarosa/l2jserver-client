@@ -29,6 +29,7 @@ public class MyTargetSelected extends GameServerPacket {
 		if(pcpos != null && npcpos != null){
 			pcpos.targetHeading = PositioningSystem.getHeading(pcpos.position, npcpos.position);
 			//npcpos.targetHeading = PositioningSystem.getHeading(npcpos.position, pcpos.position);
+System.out.println("MyTargetSelected: Set targetheading for "+pID+" to "+pcpos.targetHeading+" looking at "+id);			
 		}
 		EnvironmentComponent env = (EnvironmentComponent) Singleton.get().getEntityManager().getComponent(pID, EnvironmentComponent.class);
 		if (env != null){

@@ -9,10 +9,12 @@ import com.jme3.math.Vector3f;
  * L2J uses z as up
  * JME uses y as up (this is not shifted here)
  */
+@Deprecated //not used, will be removed
 public class ServerCoordinates {
 
 	//FIXME scalefactor should be 1/16th or 0.0625 not 0.125 (1/8) as a cell is 16 units, not 8 units
 	private static float scaleFactor = 0.0625f;
+	@Deprecated //not used, will be removed
 	public static Vector3f getJMEVector(float x, float y, float z){
 		return new Vector3f(x*scaleFactor, y*scaleFactor, z*scaleFactor);
 	}
@@ -22,10 +24,11 @@ public class ServerCoordinates {
 	 * A scalefactor of 1/8 th would be 0.125 for f for example.
 	 * @param f
 	 */
+	@Deprecated //not used, will be removed
 	public static void setScaleFactor(float f){
 		scaleFactor = f;
 	}
-	
+	@Deprecated //not used, will be removed
 	public static float getScaleFactor(){
 		return scaleFactor;
 	}

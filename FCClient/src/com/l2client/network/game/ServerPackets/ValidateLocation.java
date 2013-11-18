@@ -1,5 +1,7 @@
 package com.l2client.network.game.ServerPackets;
 
+import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
@@ -20,41 +22,27 @@ public final class ValidateLocation extends GameServerPacket
 	{
 		log.finer("Read from Server "+this.getClass().getSimpleName());
 		int objId = readD();
-		Vector3f tPos = new Vector3f();
+
 		int x = readD();
-		int z = readD();
 		int y = readD();
-		tPos.x = ServerValues.getClientCoord(x);
-		tPos.y = ServerValues.getClientCoord(y);
-		tPos.z = ServerValues.getClientCoord(z);
-//System.out.println("VALIDATE:"+objId+" at:("+x+","+y+","+z+") -> "+tPos);
+		int z = readD();
+		Vector3f tPos = ServerValues.getClientCoords(x, y, z);
+System.out.println("VALIDATE:"+objId+" at:("+x+","+y+","+z+") -> "+tPos);
 		float heading = ServerValues.getClientHeading(readD());
 		log.fine("Coords:"+tPos.x+","+tPos.y+","+tPos.z+" for "+objId);
 
 		PositioningComponent pos = (PositioningComponent) Singleton.get().getEntityManager().getComponent(objId, PositioningComponent.class);
 		if (pos != null){
-//			float cHead;
-//			Vector3f cPos = new Vector3f();
-//			synchronized (pos) {	
-//				cPos.x = pos.currentPos.x;
-//				cPos.y = pos.currentPos.y;
-//				cPos.z = pos.currentPos.z;
-//				cHead = pos.heading;		
-//			}
-//			pos = null;
-//			float savedHeight = tPos.y;//FIXME HEIGHT IGNORE
-//			tPos.y = 0f;
-//
-//			//FIXME also do an adjustmenst to get closer to server loc
-//			if(tPos.distance(cPos)>1f)
-//				log.severe(objId+" positions differ by more than 1 unit cX:"+cPos.x+" cY:"+cPos.y+" cZ:"+cPos.z
-//						+" tX:"+tPos.x+" tY:"+tPos.y+" tZ:"+tPos.z);
-//			if(FastMath.abs(heading-cHead)> FastMath.PI/180f*5f)//difference by more than 5 degrees
-//				log.severe(objId+" heads differ by more than 5 deg cHeading:"+cHead+" tHeading:"+heading);
-//
-//			cPos.y = savedHeight;
-//			tPos.y = savedHeight;//FIXME we say we are on tgt !?!?!?
-			Singleton.get().getPosSystem().initMoveTo(objId, tPos.x, tPos.y, tPos.z, pos.position.x, pos.position.y, pos.position.z);
+			//TODO check heading is really of any relevance
+			if(FastMath.abs(heading-pos.heading)> FastMath.PI/180f*5f)//difference by more than 5 degrees
+				log.severe(objId+" heads differ by more than 5 deg cHeading:"+pos.heading+" tHeading:"+heading);
+			
+			//also do an adjustment to get closer to server location
+			if(new Vector2f(tPos.x, tPos.z).distance(new Vector2f(pos.position.x,pos.position.z)) > 1f) {
+				log.severe(objId+" positions differ in x/z by more than 1f current:"+pos.position+" target:"+tPos);
+
+				Singleton.get().getPosSystem().initMoveTo(objId, tPos.x, tPos.y, tPos.z, pos.position.x, pos.position.y, pos.position.z);
+			}
 			if(Singleton.get().getEntityManager().isPlayerComponent(pos)){
 				ValidatePosition pack = new ValidatePosition(pos.position, pos.heading);
 				_client.sendGamePacket(pack);

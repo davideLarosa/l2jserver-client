@@ -18,18 +18,15 @@ public final class UserInfo extends GameServerPacket {
 		int y = readD();
 		int z = readD();
 
-		p.setX(ServerValues.getClientCoord(x));
+		p.setX(ServerValues.getClientCoordX(x));
 		//reverted jme uses Y as up
-		p.setY(ServerValues.getClientCoord(z));
-		p.setZ(ServerValues.getClientCoord(y));
+		p.setY(ServerValues.getClientCoordY(z));
+		p.setZ(ServerValues.getClientCoordZ(y));
 		p.setServerZ(z);
 
 		readD();// airshipID
 		p.setObjectId(readD());
-		log.finer("User "+p.getObjectId()+" at " + x + "," + z + "," + y + " placed in world at "
-				+ ServerValues.getClientCoord(x) + ","
-				+ ServerValues.getClientCoord(z) + ","
-				+ ServerValues.getClientCoord( y));
+		log.finer("User "+p.getObjectId()+" at " + x + "," + z + "," + y + " placed in world at "+ServerValues.getClientString(x, y, z));
 		p.setName(readS());
 		p.setRace(readD());
 		p.setSex(readD());
@@ -168,8 +165,8 @@ public final class UserInfo extends GameServerPacket {
 		if (mult < 0.00001f)
 			mult = 1.0f;
 		// check mult should it ever be 0 ??
-		p.setWalkSpeed(mult*ServerValues.getClientCoord(nSpeed));
-		p.setRunSpeed(mult*ServerValues.getClientCoord(speed));
+		p.setWalkSpeed(mult*ServerValues.getClientScaled(nSpeed));
+		p.setRunSpeed(mult*ServerValues.getClientScaled(speed));
 
 		readF();// attack speed multiplier
 
