@@ -25,6 +25,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.dao.UserPropertiesDAO;
 import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
@@ -45,7 +46,7 @@ import com.l2client.network.login.LoginHandler;
  * server selection
  * in game
  */
-//FIXME check if jme gamestates could replace this
+//TODO check if jme gamestates could replace this
 public final class GameController {
 
 	private static final String SCENES_CREATE = "scenes/create/create.j3o";
@@ -84,7 +85,6 @@ public final class GameController {
 	}	
 	
 	public void initialize(Camera cam, AppSettings settings /*, ViewPort viewPort*/){
-		//TODO check backdrop is removed properly
 //		sceneRoot = Singleton.get().getSceneManager().getRoot();
 		Singleton.get().getSceneManager().removeAll();
 		camera = cam;
@@ -119,7 +119,7 @@ public final class GameController {
 				0.32999992f, 0.6059958f);
 		fpp.addFilter(ssaoFilter);
 		logger.severe("Adding SSAO");
-		Singleton.get().getSceneManager().changePostProcessor(fpp, 0);
+		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
 	}
 	
 	private void setupGameGUI() {
@@ -155,37 +155,6 @@ public final class GameController {
 				});
 			}
 		});
-		
-//		Removed here done in ShortCutInit packet
-//		// Actions GUI
-//		new Thread(new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//				try {
-//					//FIXME move this out, actions should register themselves 
-//					int runs = 20;//max 20 sec
-//					while(!ActionManager.isLoaded()){
-//						Thread.sleep(1000);
-//						runs--;
-//						logger.finest("waiting for ActionManager to complete for "+runs);
-//						if(runs<=0)
-//							return;
-//					}
-//					SwingUtilities.invokeLater(new Runnable() {
-//
-//						@Override
-//						public void run() {
-//							Singleton.get().getGuiController().displayShortCutPanel();
-//							Singleton.get().getGuiController().displaySkillAndActionsPanel();
-//						}
-//					});
-//				} catch (Exception e) {
-//					logger.log(Level.SEVERE, "Failed in action GUIs creation",e);
-//				}
-//			}
-//		}).start();
-		// System GUI
 	}
 
 	/**
@@ -198,12 +167,13 @@ public final class GameController {
 //		//reset scene
 //		sceneRoot.cleanupScene();
 		Singleton.get().getSceneManager().removeAll();
+		Singleton.get().getGuiController().removeAll();
 
 		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
 		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
 				0.32999992f, 0.6059958f);
 		fpp.addFilter(ssaoFilter);
-		Singleton.get().getSceneManager().changePostProcessor(fpp, 0);
+		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
 
 		//display available chars + gui for creation of new one
 		//if none present go directly for creation of new char
@@ -221,7 +191,7 @@ public final class GameController {
 		try{
 			Spatial n = Singleton.get().getAssetManager().getJmeAssetMan()
 					.loadModel(SCENES_CREATE);
-			Singleton.get().getSceneManager().changeTerrainNode(n, 0);
+			Singleton.get().getSceneManager().changeTerrainNode(n, Action.ADD);
 			
 			//this is needed as the ssao pass will other wise only render 
 			//the shadow of our attached chars as they are on a different 
@@ -230,7 +200,7 @@ public final class GameController {
 				if(l instanceof AmbientLight){
 					n.removeLight(l);
 					l.setColor(new ColorRGBA(0.6f,0.6f,0.8f,1.0f));
-					Singleton.get().getSceneManager().changeRootLight(l, 0);
+					Singleton.get().getSceneManager().changeRootLight(l, Action.ADD);
 				}
 			}
 				
@@ -281,7 +251,7 @@ public final class GameController {
 						charSummary.setNewCharSummary(pan.getNewCharSummary());
 						charSummary.attachVisuals();
 						charSummary.setLocalTranslation(.126f, -0.1224f, 7.76f);
-						Singleton.get().getSceneManager().changeCharNode(charSummary,0);
+						Singleton.get().getSceneManager().changeCharNode(charSummary,Action.ADD);
 						//FIXME end of move this out
 					}
 				});
@@ -304,17 +274,16 @@ public final class GameController {
 	/**
 	 * comparable with the display of the characters in the lobby a player has for entering the world
 	 */
-	private void doCharPresentation() {	
-//		{
-//			// FIXME choose char and not select first, remove in product code
-//			clientInfo.getCharHandler().setSelected(0);
-//			clientInfo.getCharHandler().onCharSelected();
-//			doEnterWorld();
-//			if(true)return;
-//		}
-		
+	private void doCharPresentation() {			
 		//purge root
 		Singleton.get().getSceneManager().removeAll();
+		
+		//FIXME for testcase use first one, remove later
+		{
+			clientInfo.getCharHandler().setSelected(0);
+			clientInfo.getCharHandler().onCharSelected();
+			if(true)return;
+		}
 		
 		//TODO load the hall
 		//load the x representations of the characters into the hall
@@ -324,7 +293,7 @@ public final class GameController {
 
 		AmbientLight al = new AmbientLight();
 	    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-		Singleton.get().getSceneManager().changeRootLight(al,0);
+		Singleton.get().getSceneManager().changeRootLight(al,Action.ADD);
 
 		//setup camera	
 		camera.setLocation(new Vector3f(3f,0f,4f));
@@ -334,7 +303,7 @@ public final class GameController {
 			NewCharacterModel v = new NewCharacterModel(clientInfo.getCharHandler().getCharSummary(i));
 			v.attachVisuals();
 			v.setLocalTranslation(i*1.25f, -1f, -4f);
-			Singleton.get().getSceneManager().changeCharNode(v,0);
+			Singleton.get().getSceneManager().changeCharNode(v,Action.ADD);
 		}
     	
 		SwingUtilities.invokeLater(new Runnable() {
@@ -368,12 +337,12 @@ public final class GameController {
 	}
 
 	public void doLogin(){
-//		if(sceneRoot==null)
-//			return;
-//		
-//		//TODO test settings for fast dev test
-//		initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "127.0.0.1:2106");
-//		if(true)return;
+		
+//		FIXME for testcase use first one, remove later
+		if(!initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "127.0.0.1:2106"))
+			throw new RuntimeException("Failed to init Network");
+		if(true) return;
+		
 		
 	    camera.setLocation(new Vector3f(0,0,0));  
 		
@@ -385,7 +354,7 @@ public final class GameController {
 	    mat.setTexture("ColorMap", Singleton.get().getAssetManager().getJmeAssetMan().loadTexture("start/backdrop.png"));
 	    geom.setMaterial(mat);
 	    geom.setLocalTranslation(-40f, -30f, -90f);	    
-	    Singleton.get().getSceneManager().changeTerrainNode(geom,0);
+	    Singleton.get().getSceneManager().changeTerrainNode(geom,Action.ADD);
 	    
 	    Quad b2 = new Quad(38f,29f);
 	    b2.updateBound();
@@ -396,11 +365,11 @@ public final class GameController {
 	    geom2.setMaterial(mat2);
 	    geom2.setQueueBucket(Bucket.Transparent);
 	    geom2.setLocalTranslation(-39f, -15f, -90f);	
-	    Singleton.get().getSceneManager().changeTerrainNode(geom2,0);
+	    Singleton.get().getSceneManager().changeTerrainNode(geom2,Action.ADD);
 	    
 		AmbientLight al = new AmbientLight();
 	    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-		Singleton.get().getSceneManager().changeRootLight(al,0);
+		Singleton.get().getSceneManager().changeRootLight(al,Action.ADD);
 		//#############################################################
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -444,6 +413,7 @@ public final class GameController {
 								} else {
 									//save port and host to user.home on a successfull login
 									UserPropertiesDAO.saveProperties();
+									Singleton.get().getGuiController().removeAll();
 								}
 							}
 						});
@@ -485,9 +455,9 @@ public final class GameController {
             @Override
             public void onServerListReceived(GameServerInfo[] servers){
             	
-////            	FIXME for testcase use first one, remove later
-//            	requestServerLogin(0);
-//            	if(true) return;
+//            	FIXME for testcase use first one, remove later
+            	requestServerLogin(0);
+            	if(true) return;
             	
             	
             	//game server selection

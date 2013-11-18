@@ -30,11 +30,12 @@ public class TargetSelected extends GameServerPacket {
 			if(tc != null){
 				tc.setTarget(target);
 			}
-			PositioningComponent pcpos = (PositioningComponent) em.getComponent(pID, PositioningComponent.class);
+			PositioningComponent pcpos = (PositioningComponent) em.getComponent(target, PositioningComponent.class);
 			PositioningComponent npcpos = (PositioningComponent) em.getComponent(id, PositioningComponent.class);
 			if(pcpos != null && npcpos != null){
 				//pcpos.targetHeading = PositioningSystem.getHeading(pcpos.position, npcpos.position);
 				npcpos.targetHeading = PositioningSystem.getHeading(npcpos.position, pcpos.position);
+System.out.println("TargetSelected: Set heading for "+id+" to "+npcpos.targetHeading+" looking at "+target);
 			}
 			EnvironmentComponent env = (EnvironmentComponent) em.getComponent(id, EnvironmentComponent.class);
 			if (env != null){

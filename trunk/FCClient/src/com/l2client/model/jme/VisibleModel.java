@@ -26,6 +26,7 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.model.network.NewCharSummary;
 
 /**
@@ -147,7 +148,7 @@ public class VisibleModel extends Node {
 		if(selection == null)
 			selection = createSelectionMarker();
 			
-			Singleton.get().getSceneManager().changeAnyNode(this, selection, 0);
+			Singleton.get().getSceneManager().changeAnyNode(this, selection, Action.ADD);
 			if(vis != null) {
 				ColorRGBA cl;
 				if(color != null)
@@ -162,19 +163,19 @@ public class VisibleModel extends Node {
 		if(healthbar == null) 
 			healthbar = createHealthBar();
 		
-		Singleton.get().getSceneManager().changeAnyNode(this, healthbar, 0);
+		Singleton.get().getSceneManager().changeAnyNode(this, healthbar, Action.ADD);
 //		}
 	}
 	
 	public void removeSelectionMarker(){
 		if(selection != null){
-			Singleton.get().getSceneManager().changeAnyNode(this, selection, 1);
+			Singleton.get().getSceneManager().changeAnyNode(this, selection, Action.REMOVE);
 			if(vis != null)
 				setRimLight(ColorRGBA.BlackNoAlpha, vis);
 			selection = null;
 		}
 		if(healthbar != null){
-			Singleton.get().getSceneManager().changeAnyNode(this, healthbar, 1);
+			Singleton.get().getSceneManager().changeAnyNode(this, healthbar, Action.REMOVE);
 		}
 	}
 	

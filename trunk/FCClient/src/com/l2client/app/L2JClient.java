@@ -8,10 +8,14 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.Light;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.WireBox;
+import com.jme3.scene.shape.Box;
+import com.l2client.component.PositioningComponent;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.controller.area.TileTerrainManager;
 import com.l2client.dao.UserPropertiesDAO;
 import com.l2client.navigation.TiledNavMesh;
@@ -95,13 +99,20 @@ public class L2JClient extends ExtendedApplication {
 					toggelBBoxes();
 				} else if(name.equals("toggle_navmesh") && !isPressed){
 					toggelNavMeshes();
+				} else if(name.equals("drop_a_box") && !isPressed){
+					dropBox();
+				} else if(name.equals("toggle_navbodermesh") && !isPressed){
+					toggelNavBorderMeshes();
 				}
 			}
-		},  "print_scenegraph", "print_bboxes", "toggle_navmesh");
+		},  "print_scenegraph", "print_bboxes", "toggle_navmesh", "drop_a_box", "toggle_navbodermesh");
         
         inputManager.addMapping("print_scenegraph", new KeyTrigger(KeyInput.KEY_F6));
         inputManager.addMapping("print_bboxes", new KeyTrigger(KeyInput.KEY_F7));
         inputManager.addMapping("toggle_navmesh", new KeyTrigger(KeyInput.KEY_F8));
+        //TODO the box does problems with picking, suddenly it has no mesh when dropped !?!?! Thus commented out
+//        inputManager.addMapping("drop_a_box", new KeyTrigger(KeyInput.KEY_F9));
+        inputManager.addMapping("toggle_navbodermesh", new KeyTrigger(KeyInput.KEY_F10));
 	}
 
 	@Override
@@ -119,10 +130,14 @@ public class L2JClient extends ExtendedApplication {
     public void stop() {
     	//FIXME add exit shield (do you really want to quit)
     	//FIXME add ESC as cancel of current action (selected target, menu open -> closes menu)
-    	if(singles.getCharController() != null && singles.getCharController().setPlayerNoTarget())
-    		return;
-    	super.stop();
+    	if(singles.getCharController() != null ) {
+    		if(singles.getCharController().setPlayerNoTarget())
+    			return;
+    		//fallback if still in testarea move back
+    		singles.getCharController().teleportFromTestArea();
+    	}
     	singles.finit();
+    	super.stop();
     }
   
 	
@@ -146,15 +161,6 @@ public class L2JClient extends ExtendedApplication {
     	}
     	else if (bboxes.getChildren().size()>0){
     		removeBBoxesFromRoot();
-    	}
-    }
-    
-    private void toggelNavMeshes(){
-    	if(navs.getChildren().size()<=0){
-    		addNavs(rootNode);
-    	}
-    	else if (navs.getChildren().size()>0){
-    		removeNavs();
     	}
     }
 
@@ -182,17 +188,47 @@ public class L2JClient extends ExtendedApplication {
 			}
 		}
 	}
-	
-	private void addNavs(Node n) {
-		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
-		for(TiledNavMesh t : array){
-			Geometry g = t.getDebugMesh();
-			g.setMaterial(matWireframe);
-			navs.attachChild(g);
-		}
+    
+    private void toggelNavMeshes(){
+    	if(navs.getChild("NavMeshes") != null){
+    		navs.detachChildNamed("NavMeshes");
+    	} else {
+    		Node node = new Node("NavMeshes");
+    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+    		for(TiledNavMesh t : array){
+    			Geometry g = t.getDebugMesh();
+    			g.setMaterial(matWireframe);
+    			node.attachChild(g);
+    		}
+    		navs.attachChild(node);		
+    	}
+    }
+
+
+    
+    private void dropBox() {
+    	Geometry g = new Geometry("Box",new Box());
+    	g.setMaterial(matWireframe);
+    	Vector3f pos = cam.getLocation().clone();
+    	singles.getNavManager().snapToGround(pos);
+    	singles.getSceneManager().changeAnyNode(rootNode, g, Action.ADD);
+    	
 	}
-	
-    private void removeNavs() {
-		navs.detachAllChildren();
-	}
+
+	private void toggelNavBorderMeshes() {
+    	if(navs.getChild("NavBorderMeshes") != null){
+    		navs.detachChildNamed("NavBorderMeshes");
+    	} else {
+    		Node node = new Node("NavBorderMeshes");
+    		Material mat = matWireframe.clone();
+            mat.setColor("Color", ColorRGBA.Blue);
+    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+    		for(TiledNavMesh t : array){
+    			Geometry g = t.getDebugBorderMesh();
+    			g.setMaterial(mat);
+    			node.attachChild(g);
+    		}
+    		navs.attachChild(node);
+    	}
+    }
 }

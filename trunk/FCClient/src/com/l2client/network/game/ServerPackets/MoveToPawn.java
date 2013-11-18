@@ -10,15 +10,15 @@ public class MoveToPawn extends GameServerPacket {
 		log.finer("Read from Server "+this.getClass().getSimpleName());
 		int objId = readD();
 		int tgt = readD();//TODO target id currently not used
-		float distance = ServerValues.getClientCoord(readD());//TODO distance to target currently not used
-		float cX = ServerValues.getClientCoord(readD());
-		float cZ = ServerValues.getClientCoord(readD());
-		float cY = ServerValues.getClientCoord(readD());
+		float distance = ServerValues.getClientScaled(readD());//TODO distance to target currently not used
+		float cX = ServerValues.getClientCoordX(readD());
+		float cZ = ServerValues.getClientCoordZ(readD());
+		float cY = ServerValues.getClientCoordY(readD());
 //		float cY = cZ;
 //		cZ = ct;
-		float tX = ServerValues.getClientCoord(readD());
-		float tZ = ServerValues.getClientCoord(readD());
-		float tY = ServerValues.getClientCoord(readD());
+		float tX = ServerValues.getClientCoordX(readD());
+		float tZ = ServerValues.getClientCoordZ(readD());
+		float tY = ServerValues.getClientCoordY(readD());
 //		float tY = tZ;
 //		tZ = tt;
 

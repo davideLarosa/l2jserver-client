@@ -182,6 +182,12 @@ public class JmeUpdateSystem extends ComponentSystem {
 				} else {
 					log.severe("Positioning component without identity component found! comp:"+
 							c+" at "+ com.position.x+ ", "+(com.position.y+com.heightOffset)+", "+com.position.z);
+					//FIXME this is a workaround, investigate why this can happen! was it added twice? should we better use a hasmap for components
+					dumpComponents();
+					System.out.println("----- now em ----------");
+					em.dumpComponents(em.getEntityId(c));
+					em.dumpAllComponents();
+					removeComponentForUpdate(com);
 				}
 //		}else 
 //			if(c instanceof SimplePositionComponent){

@@ -144,6 +144,10 @@ public abstract class ComponentSystem {
 	 */
 	public void addComponentForUpdate(Component c){
 		synchronized (components) {
+			if(components.contains(c)){
+System.out.println("Component already added "+c);
+//				return;
+			}
 			components.add(c);
 		}
 	}
@@ -156,6 +160,16 @@ public abstract class ComponentSystem {
 	public void removeComponentForUpdate(Component c){
 		synchronized (components) {
 			components.remove(c);
+		}
+	}
+	
+	void dumpComponents(){
+		synchronized (components) {
+			System.out.println("DUMP start");
+			for(Component c: components){
+				System.out.println("DUMP of "+c);
+			}
+			
 		}
 	}
 }

@@ -14,6 +14,7 @@ import com.l2client.component.IdentityComponent;
 import com.l2client.component.L2JComponent;
 import com.l2client.component.PositioningComponent;
 import com.l2client.component.VisualComponent;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
 import com.l2client.model.jme.NPCModel;
@@ -81,6 +82,7 @@ public class NpcHandler {
 //		//update position
 //		SimplePositionComponent pos = (SimplePositionComponent) Singleton.get().getEntityManager().getComponent(id.getId(), SimplePositionComponent.class);
 //		//update l2j
+System.out.println("updateNPC called for Ent "+id.getId());
 		L2JComponent l2j = (L2JComponent) Singleton.get().getEntityManager().getComponent(id.getId(), L2JComponent.class);
 		if(l2j != null){
 			l2j.l2jEntity.updateFrom(e);
@@ -98,6 +100,9 @@ public class NpcHandler {
 
 	private void updateComponents(final NpcData e, final Entity ent, final PositioningComponent pos,
 			L2JComponent l2j, final EnvironmentComponent env, final VisualComponent vis) {
+		if(e.getCharId() > 0)
+			l2j.isPlayer = true;
+		l2j.l2jEntity = e;
 		
 		ent.setLocalTranslation(pos.position);
 		ent.setLocalRotation(new Quaternion().fromAngleAxis(e.getHeading(), Vector3f.UNIT_Y));
@@ -109,15 +114,16 @@ public class NpcHandler {
 		pos.runSpeed = e.getRunSpeed();
 		pos.running = e.isRunning();
 		pos.heading = e.getHeading();
+System.out.println("NpCHandler UpdateComponents: Set heading for "+ent.getId()+" to "+pos.targetHeading);
 		pos.targetHeading = pos.heading;
 		pos.teleport = true;
-		
+System.out.println("createNpc upd pre addTo pos  "+e.getObjectId());
 		Singleton.get().getPosSystem().addComponentForUpdate(pos);
-		
-		if(e.getCharId() > 0)
-			l2j.isPlayer = true;
-		l2j.l2jEntity = e;
-
+System.out.println("createNpc upd pre addTo jme  "+e.getObjectId());		
+		Singleton.get().getJmeSystem().addComponentForUpdate(pos);
+System.out.println("createNpc upd pre addTo anim  "+e.getObjectId());
+		Singleton.get().getAnimSystem().addComponentForUpdate(env);
+System.out.println("createNpc upd post addTo "+e.getObjectId());
 		//this could take a while so let it run async..
 		new Thread(new Runnable() {
 			
@@ -139,10 +145,7 @@ public class NpcHandler {
 				ent.setName(v.getName());
 				ent.attachChild(v);
 				
-				Singleton.get().getSceneManager().changeWalkerNode(ent,0);
-				
-				Singleton.get().getJmeSystem().addComponentForUpdate(pos);
-				Singleton.get().getAnimSystem().addComponentForUpdate(env);
+				Singleton.get().getSceneManager().changeWalkerNode(ent,Action.ADD);
 			}
 		}).start();
 	}
@@ -156,14 +159,20 @@ public class NpcHandler {
 		VisualComponent vis = new VisualComponent();
 		EnvironmentComponent env = new EnvironmentComponent();
 		//FIXME parallel create problems, synchronize creation and essential components or at least create/check of components
+System.out.println("createNpc pre createEntity "+e.getObjectId());
 		Entity ent = em.createEntity(e.getObjectId());
+System.out.println("createNpc post createEntity "+e.getObjectId());
 		em.addComponent(ent.getId(), pos);
+System.out.println("createNpc post Add pos "+e.getObjectId());
 		em.addComponent(ent.getId(), vis);
+		System.out.println("createNpc post Add vis "+e.getObjectId());
 		em.addComponent(ent.getId(), env);
+		System.out.println("createNpc post Add env "+e.getObjectId());
 		em.addComponent(ent.getId(), l2j);
+		System.out.println("createNpc post Add l2j "+e.getObjectId());
 		
 		updateComponents(e, ent, pos, l2j, env, vis);//vis might take some time so we already added pos for updates
-
+		System.out.println("createNpc end  "+e.getObjectId());
 
 	}
 	
@@ -184,16 +193,20 @@ public class NpcHandler {
 		if(id != null){
 			Entity e = id.getEntity();
 			if(e != null)
-				s.getSceneManager().changeWalkerNode(e,1);
-			
+				s.getSceneManager().changeWalkerNode(e,Action.REMOVE);
+System.out.println("Starting to remove comps of "+id);			
 			//FIXME check this is working correctly, what if we delete one which is currently updated, better queue for removal.
 			Component pos = s.getEntityManager().getComponent(obj, PositioningComponent.class);
 			s.getPosSystem().removeComponentForUpdate(pos);
 			s.getJmeSystem().removeComponentForUpdate(pos);
 			Component env = s.getEntityManager().getComponent(obj, EnvironmentComponent.class);
 			s.getAnimSystem().removeComponentForUpdate(env);
+System.out.println("Removed comps of "+id+" pos:"+pos+" env"+env);			
+		} else {
+System.out.println("ERROR!! Remove of "+id+" but no ID comp found!?! NO comps removed :-(");			
 		}
 		s.getEntityManager().deleteEntity(obj);
+System.out.println("REMOVE of "+id+" finished");			
 		
 	}
 }

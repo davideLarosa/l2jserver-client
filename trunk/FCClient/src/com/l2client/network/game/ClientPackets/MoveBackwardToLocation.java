@@ -21,12 +21,12 @@ public class MoveBackwardToLocation extends GameClientPacket
 	public MoveBackwardToLocation(float tx, float ty, float tz, float ox, float oy, float oz, boolean mouse)
 	{
 		writeC(0x0f);
-		writeD(ServerValues.getServerCoord(tx));//_targetX
-		writeD(ServerValues.getServerCoord(tz));//_targetY
-		writeD(ServerValues.getServerCoord(ty));//_targetZ
-		writeD(ServerValues.getServerCoord(ox));//_originX
-		writeD(ServerValues.getServerCoord(oz));//_originY
-		writeD(ServerValues.getServerCoord(oy));//_originZ
+		writeD(ServerValues.getServerCoordX(tx));//_targetX
+		writeD(ServerValues.getServerCoordY(tz));//_targetY
+		writeD(ServerValues.getServerCoordZ(ty));//_targetZ
+		writeD(ServerValues.getServerCoordX(ox));//_originX
+		writeD(ServerValues.getServerCoordY(oz));//_originY
+		writeD(ServerValues.getServerCoordZ(oy));//_originZ
 		writeD(1);//_moveMovement is 0 if cursor keys are used  1 if mouse is used
 
 	}

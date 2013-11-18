@@ -47,9 +47,9 @@ public class AnimationSystem extends ComponentSystem {
 					// com.position.y+com.heightOffset, com.position.z);
 					Entity ent = e.getEntity();
 					// FIXME damn ugly Ent -> NPCModel -> Vis -> Controller WILL BLOW ON PURE VISMODEL
-					JMEAnimationController con = ((Node) ent.getChild(0))
-							.getChild(0).getControl(
-									JMEAnimationController.class);
+					JMEAnimationController con = null;
+					if(ent.getChildren().size() > 0 && ((Node)ent.getChild(0)) != null && ((Node)ent.getChild(0)).getChildren().size() > 0)
+						con = ((Node) ent.getChild(0)).getChild(0).getControl(JMEAnimationController.class);
 					if (con != null) {
 						InputProvider in = getInputFrom(en, ent);
 						con.setInput(in);

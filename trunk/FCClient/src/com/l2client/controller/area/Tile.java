@@ -2,10 +2,13 @@ package com.l2client.controller.area;
 
 import java.util.logging.Logger;
 
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
+import com.l2client.controller.SceneManager.Action;
+import com.l2client.model.l2j.ServerValues;
 import com.l2client.navigation.TiledNavMesh;
 import com.l2client.util.GrassLayerUtil;
 
@@ -50,8 +53,8 @@ public class Tile {
        System.out.println("world x=2048 should be tile 168:"+getTileFromWorldXPosition(2048));
        System.out.println("world x=-2048 should be tile 152:"+getTileFromWorldXPosition(-2048));
        System.out.println("world z=0 should be tile 144:"+getTileFromWorldZPosition(0));
-       System.out.println("world x=256 should be tile 145:"+getTileFromWorldZPosition(256));
-       System.out.println("world x=-256 should be tile 143:"+getTileFromWorldZPosition(-256));
+       System.out.println("world z=256 should be tile 145:"+getTileFromWorldZPosition(256));
+       System.out.println("world z=-256 should be tile 143:"+getTileFromWorldZPosition(-256));
        System.out.println("world z=2048 should be tile 152:"+getTileFromWorldZPosition(2048));
        System.out.println("world z=-2048 should be tile 136:"+getTileFromWorldZPosition(-2048));
        System.out.println("tile x=0 should be world -160*2048:"+getWorldPositionOfXTile(0));
@@ -70,6 +73,19 @@ public class Tile {
        System.out.println("tile x=122 should be world -9728:"+getWorldPositionOfXTile(122));
        System.out.println("tile z=176 should be world 8192:"+getWorldPositionOfZTile(176));
        System.out.println("tile z=177 should be world 8448:"+getWorldPositionOfZTile(177));
+       System.out.println("tile x=143 should be world -4352:"+getWorldPositionOfXTile(143));
+       System.out.println("tile z=207 should be world 16128:"+getWorldPositionOfZTile(207));
+       System.out.println("Client:"+ServerValues.getClientCoordX(-72064)+"/"+ServerValues.getClientCoordZ(257664)+
+    		   " Tile:"+getTileFromWorldXPosition((int) ServerValues.getClientCoordX(-72064))+"/"+
+    		   getTileFromWorldZPosition((int) ServerValues.getClientCoordZ(257664)));
+       System.out.println("Client:"+ServerValues.getClientCoordX(-71536)+"/"+ServerValues.getClientCoordZ(258752)+
+    		   " Tile:"+getTileFromWorldXPosition((int) ServerValues.getClientCoordX(-71536))+"/"+
+    		   getTileFromWorldZPosition((int) ServerValues.getClientCoordZ(258752)));
+       System.out.println("tile x=121 should be world -9984:"+getWorldPositionOfXTile(121));
+       System.out.println("tile z=176 should be world 8192:"+getWorldPositionOfZTile(176));
+       System.out.println("Client:"+ServerValues.getClientCoordX(-9984)+"/"+ServerValues.getClientCoordZ(8192)+
+    		   " Tile:"+getTileFromWorldXPosition((int) ServerValues.getClientCoordX(-9984))+"/"+
+    		   getTileFromWorldZPosition((int) ServerValues.getClientCoordZ(8192)));
     }
 	
 	/** 
@@ -103,19 +119,19 @@ public class Tile {
 		return (zTile-144)<<8;
 	}
 	
-	public static int getXDistanceFromTile(int xWorldPos, int tile){
-		//the center of the tile is in the topleft corner
-		//move left
-		int tileCenter = getWorldPositionOfXTile(tile)-IArea.TERRAIN_SIZE_HALF;
-		return xWorldPos-tileCenter;
-	}
-	
-	public static int getZDistanceFromTile(int zWorldPos, int tile){
-		//the center of the tile is in the topleft corner
-		//move up
-		int tileCenter = getWorldPositionOfZTile(tile)+IArea.TERRAIN_SIZE_HALF;
-		return zWorldPos-tileCenter;
-	}
+//	public static int getXDistanceFromTile(int xWorldPos, int tile){
+//		//the center of the tile is in the topleft corner
+//		//move left
+//		int tileCenter = getWorldPositionOfXTile(tile)-IArea.TERRAIN_SIZE_HALF;
+//		return xWorldPos-tileCenter;
+//	}
+//	
+//	public static int getZDistanceFromTile(int zWorldPos, int tile){
+//		//the center of the tile is in the topleft corner
+//		//move up
+//		int tileCenter = getWorldPositionOfZTile(tile)+IArea.TERRAIN_SIZE_HALF;
+//		return zWorldPos-tileCenter;
+//	}
 	
 	class DeferredTerrainAsset extends Asset{
 		public DeferredTerrainAsset(String loc){
@@ -124,30 +140,29 @@ public class Tile {
 		@Override
 		public void afterLoad(){
 			if(baseAsset != null && baseAsset instanceof Spatial){
-				//FIXME just for dummy tests
+				log.finer("DeferredTerrainAsset afterLoad of:"+this.name);
 				Spatial n = (Spatial)baseAsset;
-////				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
-////		        mat.setColor("Color", ColorRGBA.randomColor());
-//			    Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Light/Lighting.j3md");
-//			    mat.setBoolean("UseMaterialColors",true);    
-//			    mat.setColor("Diffuse",ColorRGBA.randomColor());
 			    if(moveNonNavToOrigin)
-			    	n.setLocalTranslation(Tile.getWorldPositionOfXTile(x)+IArea.TERRAIN_SIZE_HALF, 0f,Tile.getWorldPositionOfZTile(z)-IArea.TERRAIN_SIZE_HALF);
-//		        n.setMaterial(mat);
+			    	n.setLocalTranslation(Tile.getWorldPositionOfXTile(x), 0f,Tile.getWorldPositionOfZTile(z));
 
-//FIXME this is just for demonstration, move this out, should be detail1 or grass1
-log.finer("TerrainTile loaded at:"+n.getWorldTranslation());
-log.finer("DeferredTerrainAsset afterLoad of:"+this.name);
-for(Spatial s: ((Node)n).getChildren()){
-	
-	if(s.getName().startsWith(IArea.TILE_PREFIX)){
-		Node c = GrassLayerUtil.createPatchField(s, Singleton.get().getAssetManager().getJmeAssetMan(), 
-//				"/vegetation/grass/grass/g3.tga", 1.2f, 2.5f, 1f, 1f, 400f, 100f, 0.6f,0,1);
-				"/vegetation/grass/grass_scattered/gs.tga", 1.2f, 4f, 1f, 1.5f, 200f, 75f, 0.6f,0,1);
-		((Node) n).attachChild(c);	
-	}
-}
-				Singleton.get().getSceneManager().changeTerrainNode(n,0);
+////this is just for demonstration, move this out, should be detail1 or grass1
+//log.finer("TerrainTile loaded at:"+n.getWorldTranslation());
+//
+//if(!(n instanceof Node)){
+//	n = new Node(n.getName());
+//	((Node)n).attachChild((Spatial) baseAsset);
+//	baseAsset = n;
+//}
+//for(Spatial s: ((Node)n).getChildren()){
+//	
+//	if(s.getName().startsWith(IArea.TILE_PREFIX)){
+//		Node c = GrassLayerUtil.createPatchField(s, Singleton.get().getAssetManager().getJmeAssetMan(), 
+////				"/vegetation/grass/grass/g3.tga", 1.2f, 2.5f, 1f, 1f, 400f, 100f, 0.6f,0,1);
+//				"/vegetation/grass/grass_scattered/gs.tga", 1.2f, 4f, 1f, 1.5f, 200f, 75f, 0.6f,0,1);
+//		((Node) n).attachChild(c);	
+//	}
+//}
+				Singleton.get().getSceneManager().changeTerrainNode(n,Action.ADD);
 			}
 		}
 		
@@ -155,7 +170,7 @@ for(Spatial s: ((Node)n).getChildren()){
 		public void beforeUnload(){
 			if(baseAsset != null && baseAsset instanceof Spatial){
 				log.finer("DeferredTerrainAsset beforeUnload of:"+this.name);
-				Singleton.get().getSceneManager().changeTerrainNode((Spatial)baseAsset,1);
+				Singleton.get().getSceneManager().changeTerrainNode((Spatial)baseAsset,Action.REMOVE);
 				baseAsset = null;
 			}
 		}
@@ -168,6 +183,16 @@ for(Spatial s: ((Node)n).getChildren()){
 		@Override
 		public void afterLoad(){
 			if(baseAsset != null && baseAsset instanceof TiledNavMesh ){
+				if(moveNonNavToOrigin){
+					TiledNavMesh  n = (TiledNavMesh)baseAsset;
+					// center is in top left corner for nav mesh to be consistent with
+					// this for borders move x right, move y up by half size
+					//Vector3f offset = new Vector3f(xd + 128, 0, yd - 128);
+					//n.setPosition(new Vector3f(Tile.getWorldPositionOfXTile(x)+IArea.TERRAIN_SIZE_HALF, 0f,Tile.getWorldPositionOfZTile(z)-IArea.TERRAIN_SIZE_HALF));
+					n.setPosition(new Vector3f(Tile.getWorldPositionOfXTile(x), 0f,Tile.getWorldPositionOfZTile(z)));
+//					System.out.println(getLocation()+" Navmesh "+n+" moved to:"+n.getPosition());
+					log.fine("Navmesh "+n+" moved to:"+n.getPosition());
+				}
 				Singleton.get().getNavManager().attachMesh((TiledNavMesh) baseAsset);
 			}
 			log.finer("NavAsset afterLoad of:"+this.name);
@@ -184,11 +209,13 @@ for(Spatial s: ((Node)n).getChildren()){
 	}
 	
 	void load(boolean prioLoadNav){
-		nav = new NavAsset(areaPath+x+"_"+z+".jnv");
+//		nav = new NavAsset(areaPath+x+"_"+z+".jnv");
+		nav = new NavAsset(areaPath+"nav.jnv");
 		Singleton.get().getAssetManager().loadAsset(nav, prioLoadNav);
 //		base = new DeferredTerrainAsset(areaPath+x+"_"+z+".j3o");
 		base = new DeferredTerrainAsset(areaPath+"base.j3o");
 		Singleton.get().getAssetManager().loadAsset(base, false);
+		//TODO rework detail loading, moving to correct offest, etc..
 //		detail1 = new DeferredTerrainAsset(areaPath+"detail.j3o");
 //		Singleton.get().getAssetManager().loadAsset(detail1, false);
 		

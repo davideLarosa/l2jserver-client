@@ -232,14 +232,11 @@ public class Cell implements Savable{
 		return (InteriorCount == 3);
 	}
 
-	// : IsPointInCellCollumn
-	// ----------------------------------------------------------------------------------------
-	//
-	// Test to see if a 3D point is within the cell by projecting it down to 2D
-	// and calling
-	// the above method.
-	//
-	// -------------------------------------------------------------------------------------://
+	/**
+	 * Test to see if a 3D point is within the cell by projecting it down to 2D and calling the above method.
+	 * @param TestPoint	Point to test if it would be within this cell
+	 * @return	true if the point would be in that cell, false otherwise
+	 */
 	public boolean IsPointInCellCollumn(Vector3f TestPoint) {
 		return (IsPointInCellCollumn(new Vector2f(TestPoint.x, TestPoint.z)));
 	}

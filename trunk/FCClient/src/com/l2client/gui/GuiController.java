@@ -25,6 +25,7 @@ import com.jme3.swingGui.JMEDesktop;
 import com.jme3.swingGui.dnd.JMEDragAndDrop;
 import com.jme3.system.AppSettings;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.gui.actions.BaseUsable;
 import com.l2client.gui.actions.SkillAndActionsPanelToggel;
 import com.l2client.gui.dialogs.AdminTeleportJPanel;
@@ -95,7 +96,7 @@ public final class GuiController {
 		jmeDesktop.getJDesktop().repaint();
 		jmeDesktop.getJDesktop().revalidate();
 		
-		Singleton.get().getSceneManager().changeRootNode(jmeDesktop,0);
+		Singleton.get().getSceneManager().changeRootNode(jmeDesktop,Action.ADD);
 		
 		//add drag n drop support (used by shortcut panel, inventory, etc.)
 		jmeDragAndDrop = new JMEDragAndDrop(jmeDesktop);
@@ -728,7 +729,7 @@ public final class GuiController {
 
 	public void finit() {
 		if(jmeDesktop != null){
-			Singleton.get().getSceneManager().changeRootNode(jmeDesktop,1);
+			Singleton.get().getSceneManager().changeRootNode(jmeDesktop,Action.REMOVE);
 			jmeDesktop.dispose();
 			jmeDragAndDrop = null;
 			jmeDesktop = null;

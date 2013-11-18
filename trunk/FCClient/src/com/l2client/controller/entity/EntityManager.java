@@ -200,4 +200,31 @@ public class EntityManager {
 			System.out.println("DUMP of "+entityId+":"+c);
 		}
 	}
+
+	public void dumpAllComponents() {
+		synchronized(this){
+			System.out.println("DUMP start by entityIDs -------------------------------");
+			for(int i : entityIds){
+				dumpComponents(i);
+			}
+			System.out.println("DUMP start by entities -------------------------------");
+			for(Component c : entities.keySet()){
+				System.out.println("DUMP of "+c+" on idc "+entities.get(c));
+			}
+			System.out.println("DUMP start by components -------------------------------");
+			for( Class<? extends Component> cl : components.keySet() ){
+				System.out.println("   class :"+cl);
+				HashMap<Integer, Component> comps = components.get(cl);
+				for(int i : comps.keySet())
+					System.out.println("DUMP of "+i+" comp "+comps.get(i));
+			}
+			System.out.println("DUMP start by entityComponents -------------------------------");
+			for(int i : entityComponents.keySet()){
+				HashMap<Class<? extends Component>, Component> c = entityComponents.get(i);
+				for(Component com : c.values()){
+					System.out.println("DUMP of "+i+" comp "+com);
+				}
+			}
+		}
+	}
 }

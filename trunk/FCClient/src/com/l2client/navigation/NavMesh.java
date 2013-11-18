@@ -98,11 +98,11 @@ public class NavMesh implements Savable{
 //
 //		return (SnapPointToCell(CellOut, PointOut));
 //	}
-
+	
 	/**
 	 * Find the closest cell on the mesh to the given point
 	 */
-	public Cell FindClosestCell(Vector3f Point) {
+	public Cell FindClosestCellBelow(Vector3f Point, boolean anyNearest) {
 		float ClosestDistance = 3.4E+38f;
 		float ClosestHeight = 3.4E+38f;
 		boolean FoundHomeCell = false;
@@ -113,18 +113,19 @@ public class NavMesh implements Savable{
 			if (pCell.IsPointInCellCollumn(Point)) {
 				Vector3f NewPosition = new Vector3f(Point);
 				pCell.MapVectorHeightToCell(NewPosition);
-
-				ThisDistance = Math.abs(NewPosition.y - Point.y);
-
-				if (FoundHomeCell) {
-					if (ThisDistance < ClosestHeight) {
+				if(NewPosition.y <= Point.y || anyNearest){
+					ThisDistance = Math.abs(NewPosition.y - Point.y);
+	
+					if (FoundHomeCell) {
+						if (ThisDistance < ClosestHeight) {
+							ClosestCell = pCell;
+							ClosestHeight = ThisDistance;
+						}
+					} else {
 						ClosestCell = pCell;
 						ClosestHeight = ThisDistance;
+						FoundHomeCell = true;
 					}
-				} else {
-					ClosestCell = pCell;
-					ClosestHeight = ThisDistance;
-					FoundHomeCell = true;
 				}
 			}
 			
@@ -156,6 +157,72 @@ public class NavMesh implements Savable{
 		return (ClosestCell);	
 	}
 
+	/**
+	 * Find the closest cell on the mesh to the given point
+	 */
+	public Cell FindClosestCell(Vector3f Point) {
+		float ClosestDistance = 3.4E+38f;
+		float ClosestHeight = 3.4E+38f;
+		boolean FoundHomeCell = false;
+		float ThisDistance;
+		Cell ClosestCell = null;
+		Cell ClosestBelow = null;
+		float ClosestBelowHeight = ClosestHeight;
+
+		for (Cell pCell : m_CellArray) {
+			if (pCell.IsPointInCellCollumn(Point)) {
+				Vector3f NewPosition = new Vector3f(Point);
+				pCell.MapVectorHeightToCell(NewPosition);
+
+				ThisDistance = Math.abs(NewPosition.y - Point.y);
+
+				if (FoundHomeCell) {
+					if (ThisDistance < ClosestHeight) {
+						ClosestCell = pCell;
+						ClosestHeight = ThisDistance;
+					}
+				} else {
+					ClosestCell = pCell;
+					ClosestHeight = ThisDistance;
+					FoundHomeCell = true;
+				}
+				
+				if(NewPosition.y <= Point.y){
+					if(ThisDistance < ClosestBelowHeight){
+						ClosestBelow = pCell;
+						ClosestBelowHeight = ThisDistance;
+					}
+				}
+			}
+			
+//			if (!FoundHomeCell) {
+//				Vector2f Start = new Vector2f(pCell.CenterPoint().x, pCell
+//						.CenterPoint().z);
+//				Vector2f End = new Vector2f(Point.x, Point.z);
+//				Line2D MotionPath = new Line2D(Start, End);
+//
+//				ClassifyResult Result = pCell.ClassifyPathToCell(MotionPath);
+//
+//				if (Result.result == Cell.PATH_RESULT.EXITING_CELL) {
+//					Vector3f ClosestPoint3D = new Vector3f(
+//							Result.intersection.x, 0.0f, Result.intersection.y);
+//					pCell.MapVectorHeightToCell(ClosestPoint3D);
+//
+//					ClosestPoint3D = ClosestPoint3D.subtract(Point);
+//
+//					ThisDistance = ClosestPoint3D.length();
+//
+//					if (ThisDistance < ClosestDistance) {
+//						ClosestDistance = ThisDistance;
+//						ClosestCell = pCell;
+//					}
+//				}
+//			}
+		}
+		//return the closest below if possible, 
+		return (ClosestBelow != null ? ClosestBelow : ClosestCell);	
+	}
+
 	// : BuildNavigationPath
 	// ----------------------------------------------------------------------------------------
 	//
@@ -164,6 +231,10 @@ public class NavMesh implements Savable{
 	// -------------------------------------------------------------------------------------://
 	public boolean BuildNavigationPath(Path NavPath, Cell StartCell,
 			Vector3f StartPos, Cell EndCell, Vector3f EndPos) {
+		if(StartCell == null || EndCell == null){
+			System.out.println("-- looking for path from"+StartPos+" to "+EndPos+ " but not Cells given.");
+			return false;
+		}
 		boolean FoundPath = false;
 //System.out.println("-- looking for path from"+StartPos+" to "+EndPos);
 		// Increment our path finding session ID

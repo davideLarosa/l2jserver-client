@@ -66,6 +66,7 @@ public class PositioningSystem extends ComponentSystem {
 		if(c instanceof PositioningComponent) {
 			PositioningComponent p = (PositioningComponent)c;
 			index.put(p);
+			log.fine("Positioning Entities on Mesh after Load of NavMesh");
 			Singleton.get().getNavManager().snapToGround(p);
 			synchronized (queuedMoves) {
 				int id = Singleton.get().getEntityManager().getEntityId(c);
@@ -125,8 +126,7 @@ public class PositioningSystem extends ComponentSystem {
 			Entity ent = i.getEntity();
 			if(ent != null){
 				Vector3f v = i.getEntity().getWorldTranslation();
-				log.fine("ENTITY:"+i.getId()+" at:"+v+" -> ("+ServerValues.getServerCoord(v.x)+
-						","+ServerValues.getServerCoord(v.y)+","+ServerValues.getServerCoord(v.z)+")");
+				log.fine("ENTITY:"+i.getId()+" at:"+v+" -> ("+ServerValues.getServerString(v.x, v.y, v.z)+")");
 //System.out.println("ENTITY:"+i.getId()+" at JME:"+v+" -> L2J:("+ServerValues.getServerCoord(v.x)+
 //		","+ServerValues.getServerCoord(v.y)+","+ServerValues.getServerCoord(v.z)+")");
 				  ISpatialPointing[] obs = index.getObjectsInRange((int)v.x, (int)v.z, 100);
@@ -569,8 +569,9 @@ public class PositioningSystem extends ComponentSystem {
 		com.speed = 0f;
 		com.nextWayPoint = null;
 		com.direction = Vector3f.ZERO;
-		com.path = null;
-		com.heading = com.targetHeading;
+		com.path = null;		
+System.out.println("PosSystem.haltPosComp: heading"+com.heading+" set to "+com.targetHeading+" for ent "+Singleton.get().getEntityManager().getEntityId(com));
+//		com.heading = com.targetHeading;
 	}
 
 	public void setNewGoalForPosComponent(Vector3f tPos, PositioningComponent com) {

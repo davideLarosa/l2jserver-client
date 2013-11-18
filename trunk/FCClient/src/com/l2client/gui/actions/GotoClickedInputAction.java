@@ -95,19 +95,24 @@ public class GotoClickedInputAction extends Action {
 						} else {//FIXME click on anything, check nav, then send request
 							// this is the one
 							Vector3f location = res.getContactPoint();
-							Path p = new Path();
-							PositioningComponent pos = (PositioningComponent) sin.getEntityManager().getComponent(handler.getSelectedObjectId(), PositioningComponent.class);
-							if(Singleton.get().getNavManager().buildNavigationPath(p, pos.position, location.clone())) {
-								log.fine("new loc:" + location
-										+ " sent:"+ ServerValues.getServerCoord(location.x)
-										+ ","+ ServerValues.getServerCoord(location.y)
-										+ ","+ ServerValues.getServerCoord(location.z));
-								sin.getClientFacade().sendMoveToAction(handler.getSelectedObjectId(), pos.position.x, pos.position.y, pos.position.z, location.x, location.y,
-										location.z);
-								results.clear();
-							} else {
-								log.info("invalid loc on click:" + location);
+							if(location != null){
+								Path p = new Path();
+								PositioningComponent pos = (PositioningComponent) sin.getEntityManager().getComponent(handler.getSelectedObjectId(), PositioningComponent.class);
+								if(pos != null){
+									if(sin.getNavManager().buildNavigationPath(p, pos.position, location.clone())) {
+										log.fine("new loc:" + location
+												+ " sent:"+ ServerValues.getServerCoordX(location.x)
+												+ ","+ ServerValues.getServerCoordY(location.z)
+												+ ","+ ServerValues.getServerCoordZ(location.y));
+										sin.getClientFacade().sendMoveToAction(handler.getSelectedObjectId(), pos.position.x, pos.position.y, pos.position.z, location.x, location.y,
+												location.z);
+										results.clear();
+										return;
+									}
+								}
 							}
+							
+							log.warning("invalid loc on click:" + location);
 							return;
 						}
 					}

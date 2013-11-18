@@ -11,9 +11,9 @@ public class TeleportToLocation extends GameServerPacket {
 		log.fine("Read from Server "+this.getClass().getSimpleName());
 		int objId = readD();
 		Vector3f tPos = new Vector3f();
-		tPos.x = ServerValues.getClientCoord(readD());
-		tPos.z = ServerValues.getClientCoord(readD());
-		tPos.y = ServerValues.getClientCoord(readD());
+		tPos.x = ServerValues.getClientCoordX(readD());
+		tPos.z = ServerValues.getClientCoordZ(readD());
+		tPos.y = ServerValues.getClientCoordY(readD());
 		readD();
 		float heading = ServerValues.getClientHeading(readD());
 		//initialize at least the navmesh and the basics to be loaded

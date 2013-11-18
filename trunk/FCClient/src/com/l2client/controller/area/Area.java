@@ -5,6 +5,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
 import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
+import com.l2client.controller.SceneManager.Action;
 import com.l2client.navigation.TiledNavMesh;
 
 public class Area {
@@ -44,16 +45,16 @@ public class Area {
 		@Override
 		public void afterLoad(){
 			if(baseAsset != null && baseAsset instanceof Spatial){
-				//FIXME just for dummy tests
-				Spatial n = (Spatial)baseAsset;
-//				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
-//		        mat.setColor("Color", ColorRGBA.randomColor());
-			    Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Light/Lighting.j3md");
-			    mat.setBoolean("UseMaterialColors",true);    
-			    mat.setColor("Diffuse",ColorRGBA.randomColor());
-		        n.setMaterial(mat);
-		        n.updateModelBound();
-				Singleton.get().getSceneManager().changeTerrainNode(n,0);
+//				//FIXME just for dummy tests
+//				Spatial n = (Spatial)baseAsset;
+////				Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Misc/Unshaded.j3md");
+////		        mat.setColor("Color", ColorRGBA.randomColor());
+//			    Material mat = new Material(Singleton.get().getAssetManager().getJmeAssetMan(), "Common/MatDefs/Light/Lighting.j3md");
+//			    mat.setBoolean("UseMaterialColors",true);    
+//			    mat.setColor("Diffuse",ColorRGBA.randomColor());
+//		        n.setMaterial(mat);
+//		        n.updateModelBound();
+				Singleton.get().getSceneManager().changeTerrainNode((Spatial) baseAsset,Action.ADD);
 System.out.println("DeferredTerrainAsset afterLoad of:"+this.name);
 			}
 		}
@@ -62,7 +63,7 @@ System.out.println("DeferredTerrainAsset afterLoad of:"+this.name);
 		public void beforeUnload(){
 			if(baseAsset != null && baseAsset instanceof Spatial){
 System.out.println("DeferredTerrainAsset beforeUnload of:"+this.name);
-				Singleton.get().getSceneManager().changeTerrainNode((Spatial)baseAsset,1);
+				Singleton.get().getSceneManager().changeTerrainNode((Spatial)baseAsset,Action.REMOVE);
 				baseAsset = null;
 			}
 		}

@@ -18,10 +18,10 @@ public class CharInfo extends GameServerPacket {
 	public void handlePacket() {
 		log.fine("Read from Server "+this.getClass().getSimpleName());
 		PlayerData p = new PlayerData();
-		p.setX(ServerValues.getClientCoord(readD()));
+		p.setX(ServerValues.getClientCoordX(readD()));
 		//reverted jme uses Y as up
-		p.setZ(ServerValues.getClientCoord(readD()));
-		p.setY(ServerValues.getClientCoord(readD()));
+		p.setZ(ServerValues.getClientCoordZ(readD()));
+		p.setY(ServerValues.getClientCoordY(readD()));
 		readD();
 		p.setObjectId(readD());
 		p.setName(readS());

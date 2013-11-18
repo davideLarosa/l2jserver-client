@@ -17,12 +17,12 @@ public final class StopMove extends GameServerPacket
 	{
 		log.finer("Read from Server "+this.getClass().getSimpleName());
 		int objId = readD();
-		float tX = ServerValues.getClientCoord(readD());
-		float tZ = ServerValues.getClientCoord(readD());
-		float tY = ServerValues.getClientCoord(readD());
+		float tX = ServerValues.getClientCoordX(readD());
+		float tZ = ServerValues.getClientCoordZ(readD());
+		float tY = ServerValues.getClientCoordY(readD());
 log.info("Coords:"+tX+","+tY+","+tZ);
 		float heading = ServerValues.getClientHeading(readD());
-
+System.out.println("StopMove received heading "+heading+" for "+objId);
 		Singleton.get().getPosSystem().initStopAt(objId, tX, tY, tZ, heading);
 	}
 }

@@ -15,7 +15,6 @@ public class CharCreateOk extends GameServerPacket
 	public  void handlePacket()
 	{
 		log.fine("Read from Server "+this.getClass().getSimpleName());
-		Singleton.get().getGuiController().removeAll();
 		Singleton.get().getGameController().doCharSelection();
 		Singleton.get().getGuiController().showInfoDialog("Character created succesfully");
 	}

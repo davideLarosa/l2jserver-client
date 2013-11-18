@@ -25,6 +25,7 @@ public class AutoAttackStart extends GameServerPacket {
 
 			if(pcpos != null && npcpos != null){
 				pcpos.targetHeading = PositioningSystem.getHeading(pcpos.position, npcpos.position);
+System.out.println("AutoAttackStart: Set heading for "+whoAttacked+" to "+pcpos.targetHeading+" looking at "+tc.getCurrentTarget());				
 			}
 		}
 		//start default attack animation
