@@ -18,11 +18,12 @@ import com.jme3.scene.shape.Line;
 import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
 import com.l2client.component.PositioningSystem;
-import com.l2client.navigation.Path.WAYPOINT;
+import com.l2client.navigation.Path.InternalWayPoint;
+import com.l2client.navigation.Path.WayPoint;
 
 public class NavTestHelper {
 
-	public static Path findPath(EntityNavigationManager em, Vector3f sPos, Vector3f ePos) {
+	public static Path findPath(NavigationManager em, Vector3f sPos, Vector3f ePos) {
 
         Path pa = new Path();
         long dT =  System.currentTimeMillis();
@@ -30,8 +31,8 @@ public class NavTestHelper {
         System.out.println("path building took "+(System.currentTimeMillis()-dT)+" milli seconds");
         if(foundPath){
         	System.out.println("Found path from "+sPos+" to "+ePos);
-        	for(WAYPOINT  w : pa.m_WaypointList)
-        		System.out.println("  -"+w.Position+" cost:"+w.Cell.m_ArrivalCost+" cell:"+w.Cell);
+        	for(WayPoint  w : pa.WaypointList())
+        		System.out.println("  -"+w.position+" cell:"+w.cell);
         	return pa;
         } else {
         	System.out.println("NO PATH from "+sPos+" to "+ePos);
@@ -40,52 +41,52 @@ public class NavTestHelper {
 	}
 	
 	public static boolean arePointsInCells(Path pa){
-		for(WAYPOINT w : pa.m_WaypointList){
-			if(!w.Cell.IsPointInCellCollumn(w.Position)){
-				System.out.println("Waypoint with point not in cell !!"+w.Position+" "+w.Cell.m_CenterPoint);
-				return false;
-			}
-		}
+//		for(InternalWayPoint w : pa.m_WaypointList){
+//			if(!w.Cell.IsPointInCellCollumn(w.Position)){
+//				System.out.println("Waypoint with point not in cell !!"+w.Position+" "+w.Cell.m_CenterPoint);
+//				return false;
+//			}
+//		}
 		return true;
 	}
 	
 	public static boolean areCellsConnected(Path pa){
-		Cell last = pa.m_WaypointList.get(0).Cell;
-		Cell current = null;
-		Cell end = pa.EndPoint().Cell;
-		for(int i = 1; i<pa.m_WaypointList.size();i++){
-			current = pa.m_WaypointList.get(i).Cell;
-			if(current == end) break;
-			if(current == last) continue;
-			boolean found = false;
-			for(Cell c : last.m_Link){
-				if(c == current){ 
-					found = true;
-					break;
-				}
-			}
-			if(!found){
-				System.out.println("Waypoint Cells have no link, error in pathfinding!! last:"+last+" last.pos:"+last.m_CenterPoint+" :"+current+" current.pos:"+current.m_CenterPoint);
-//				for(WAYPOINT  w : pa.m_WaypointList){
-//	        		System.out.println("  -"+w.Position);
-//	        	}
-				return false;
-			}
-			last = current;
-		}
-		
+//		Cell last = pa.m_WaypointList.get(0).Cell;
+//		Cell current = null;
+//		Cell end = pa.internalEndPoint().Cell;
+//		for(int i = 1; i<pa.m_WaypointList.size();i++){
+//			current = pa.m_WaypointList.get(i).Cell;
+//			if(current == end) break;
+//			if(current == last) continue;
+//			boolean found = false;
+//			for(Cell c : last.m_Link){
+//				if(c == current){ 
+//					found = true;
+//					break;
+//				}
+//			}
+//			if(!found){
+//				System.out.println("Waypoint Cells have no link, error in pathfinding!! last:"+last+" last.pos:"+last.m_CenterPoint+" :"+current+" current.pos:"+current.m_CenterPoint);
+////				for(WAYPOINT  w : pa.m_WaypointList){
+////	        		System.out.println("  -"+w.Position);
+////	        	}
+//				return false;
+//			}
+//			last = current;
+//		}
+//		
 		return true;
 	}
 	
-	public static Path walkPath(EntityNavigationManager em, Vector3f sPos, Vector3f ePos, float maxSpeed) {
+	public static Path walkPath(NavigationManager em, Vector3f sPos, Vector3f ePos, float maxSpeed) {
 
         Path pa = new Path();
         boolean foundPath = em.buildNavigationPath(pa, sPos, ePos);
         if(foundPath){
         	System.out.println("Found path from "+sPos+" to "+ePos);
 
-        	for(WAYPOINT  w : pa.m_WaypointList)
-        		System.out.println("  -"+w.Position+" cost:"+w.Cell.m_ArrivalCost+" cell:"+w.Cell.hashCode());
+        	for(WayPoint  w : pa.WaypointList())
+        		System.out.println("  -"+w.position+" cell:"+w.cell);
         	
         	
 //        	WAYPOINT cur = pa.m_WaypointList.get(0);
@@ -127,7 +128,7 @@ public class NavTestHelper {
 	}
 	
 	public static void debugShowCell(AssetManager assetMan, com.jme3.scene.Node root, Cell c,
-			ColorRGBA color, boolean doLinkVis) {
+			ColorRGBA color, boolean doLinkVis) { 
 		Geometry geom = getLine(c.m_Vertex[0], c.m_Vertex[1]);	
 		Material mat = new Material(assetMan, "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", color);
@@ -173,20 +174,21 @@ public class NavTestHelper {
 	}
 	
 	public static void debugShowCost(AssetManager assetMan, com.jme3.scene.Node root, Path pa, ColorRGBA color){
-		if(pa.m_WaypointList.size() <=0)
-			return;
-    	int id = pa.m_WaypointList.get(0).Cell.m_SessionID;
-    	for(Cell c :pa.m_WaypointList.get(0).mesh.m_CellArray)
-    		if(c.m_ArrivalCost > 0f && c.m_SessionID == id) { 
-    			System.out.println("  --"+c.m_CenterPoint+" arrivalcost:"+c.m_ArrivalCost+" pathcost:"+c.PathfindingCost());
-    			//debugShowBox(assetMan, root, c.CenterPoint(), color, .1f, 4f+c.m_ArrivalCost, .1f);
-    			String s = ""+c.PathfindingCost();
-    			root.attachChild(getText(assetMan, s.length()>4?s.substring(0,4):s, c.m_CenterPoint.x, c.m_CenterPoint.y, c.m_CenterPoint.z, 0.1f));
-    		}
+//		ArrayList<WayPoint> list = pa.WaypointList();
+//		if(list.size() <=0)
+//			return;
+//    	int id = list.get(0).cell;;
+//    	for(Cell c :list.get(0).mesh.m_CellArray)
+//    		if(c.m_ArrivalCost > 0f && c.m_SessionID == id) { 
+//    			System.out.println("  --"+c.m_CenterPoint+" arrivalcost:"+c.m_ArrivalCost+" pathcost:"+c.PathfindingCost());
+//    			//debugShowBox(assetMan, root, c.CenterPoint(), color, .1f, 4f+c.m_ArrivalCost, .1f);
+//    			String s = ""+c.PathfindingCost();
+//    			root.attachChild(getText(assetMan, s.length()>4?s.substring(0,4):s, c.m_CenterPoint.x, c.m_CenterPoint.y, c.m_CenterPoint.z, 0.1f));
+//    		}
 	}
 	
 	public static void debugShowCost(AssetManager assetMan, com.jme3.scene.Node root, TiledNavMesh m, ColorRGBA color){
-    	for(Cell c : m.m_CellArray)
+    	for(Cell c : m.mCellArray)
     		if(c.m_ArrivalCost > 0f) { 
     			System.out.println("  --"+c.m_CenterPoint+" arrivalcost:"+c.m_ArrivalCost+" pathcost:"+c.PathfindingCost());
     			String s = ""+c.PathfindingCost();
@@ -196,23 +198,21 @@ public class NavTestHelper {
 
 	public static void debugShowPath(AssetManager assetMan, com.jme3.scene.Node root, Path p) {
 		float width = 0.05f;
-		ArrayList<WAYPOINT> list; 
-		if(EntityNavigationManager.USE_OPTIMZED_PATH)
-			list = p.m_OptimalWaypointList;
-		else
-			list = p.m_WaypointList;
+		ArrayList<WayPoint> list = p.WaypointList();
 		
-		NavTestHelper.debugShowBox(assetMan, root,list.get(0).Position, ColorRGBA.Green, width, .8f, width);
-		NavTestHelper.debugShowCell(assetMan, root, list.get(0).Cell, ColorRGBA.Blue, true);
+		TiledNavMesh mesh = NavigationManager.get().getNavMesh(list.get(0).mesh);
+		NavTestHelper.debugShowBox(assetMan, root,list.get(0).position, ColorRGBA.Green, width, .8f, width);
+		NavTestHelper.debugShowCell(assetMan, root, mesh.getCell(list.get(0).cell), ColorRGBA.Blue, true);
 		for(int i = 1; i< list.size()-1;i++){
 			ColorRGBA color = ColorRGBA.White.mult(((float)i/list.size()));
-			NavTestHelper.debugShowBox(assetMan, root, list.get(i).Position, color, width, .8f, width);
-			debugShowLine(assetMan, root, list.get(i-1).Position, list.get(i).Position, color);
+			NavTestHelper.debugShowBox(assetMan, root, list.get(i).position, color, width, .8f, width);
+			debugShowLine(assetMan, root, list.get(i-1).position, list.get(i).position, color);
         }
-		for(int i=1; i<p.m_WaypointList.size()-1;i++){
-			NavTestHelper.debugShowCell(assetMan, root, p.m_WaypointList.get(i).Cell, ColorRGBA.Blue, true);
+		for(int i=1; i<list.size()-1;i++){
+			mesh = NavigationManager.get().getNavMesh(list.get(i).mesh);
+			NavTestHelper.debugShowCell(assetMan, root, mesh.getCell(list.get(i).cell), ColorRGBA.Blue, true);
 		}
-		NavTestHelper.debugShowBox(assetMan, root, p.EndPoint().Position, ColorRGBA.Red, width, .8f, width);
+		NavTestHelper.debugShowBox(assetMan, root, p.internalEndPoint().Position, ColorRGBA.Red, width, .8f, width);
 //		debugShowLine(p.m_WaypointList.get(p.m_WaypointList.size()-1).Position, p.EndPoint().Position, ColorRGBA.White);
 	}
 	
@@ -228,7 +228,7 @@ public class NavTestHelper {
 	}
 	
 	public static void debugShowMesh(AssetManager assetMan, com.jme3.scene.Node root, TiledNavMesh mesh) {
-		int cnt = mesh.m_CellArray.size();
+		int cnt = mesh.mCellArray.length;
 		Material mat = new Material(assetMan, "Common/MatDefs/Misc/Unshaded.j3md");
 		mat.setColor("Color", ColorRGBA.White);
 		Cell c = null;
@@ -237,7 +237,7 @@ public class NavTestHelper {
 			
 //			if(i>2)
 //				return;
-			c = mesh.m_CellArray.get(i);
+			c = mesh.mCellArray[i];
 //			geom = getLine(c.m_Vertex[0], c.m_Vertex[1]);
 //			geom.setMaterial(mat);
 //			root.attachChild(geom);	
@@ -292,17 +292,10 @@ public class NavTestHelper {
 
 	public static void printPath(Path pa) {
 		if (pa != null) {
-			System.out.println("Found path from " + pa.StartPoint() + " to "
-					+ pa.EndPoint());
-			for (WAYPOINT w : pa.m_WaypointList)
+			ArrayList<WayPoint> list = pa.WaypointList();
+			System.out.println("Found path");
+			for (WayPoint w :list)
 				System.out.println("  -" + w.toString());
-			if(EntityNavigationManager.USE_OPTIMZED_PATH){
-				System.out.println("Optimized paths are used :");
-				for (WAYPOINT w : pa.m_OptimalWaypointList)
-					System.out.println("  -" + w.toString());
-				
-			}
-//			System.out.println("check -- \n"+pa.toString());
 		}
 	}
 }
