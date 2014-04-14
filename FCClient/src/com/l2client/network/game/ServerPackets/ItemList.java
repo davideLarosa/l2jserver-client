@@ -42,7 +42,8 @@ public class ItemList extends GameServerPacket {
 			readH();//0x00
 			readH();//0x00
 			co.addInventoryItem(inst);
-			log.finer("Item added:"+Singleton.get().getDataManager().getItemDescription(inst.itemId)+ " "+inst);
+			inst.name = Singleton.get().getDataManager().getItemDescription(inst.itemId);
+			log.finer("Item added:"+inst.name+ " "+inst);
 		}
 		int inventory = readH();
 		for(int i=0;i<inventory;i++){
