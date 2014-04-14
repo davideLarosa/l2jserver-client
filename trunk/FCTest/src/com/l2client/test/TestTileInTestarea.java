@@ -201,7 +201,7 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 			if(pc != null){
 				System.out.print("Ent 1@:"+pc.position+" path:"+pc.path);
 				if(pc.nextWayPoint != null)
-					System.out.println(" heading:"+pc.nextWayPoint.Position);
+					System.out.println(" heading:"+pc.nextWayPoint.position);
 				else
 					System.out.println(" heading: not moving");
 			
@@ -244,7 +244,7 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 			Cell c = enm.FindClosestCell(pos, false);
 			pc = new PositioningComponent();
 			if (c != null) {
-				pc.cell = c;
+				pc.cell = c.getId();
 				c.MapVectorHeightToCell(pos);
 				System.out.println("Entity placed at "+pos); 
 			} else {
@@ -308,7 +308,7 @@ public class TestTileInTestarea extends SimpleApplication implements ActionListe
 	}
 	
 	private void addNavs(Node n) {
-		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes();
 		for(TiledNavMesh t : array){
 			Geometry g = t.getDebugMesh();
 			g.setMaterial(matWireframe);

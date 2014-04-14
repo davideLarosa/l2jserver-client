@@ -7,7 +7,7 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
-import com.jme3.light.DirectionalLight;
+import com.jme3.light.Light;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -16,8 +16,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.WireBox;
 import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Line;
-import com.jme3.scene.shape.StripBox;
 import com.l2client.app.Singleton;
 import com.l2client.component.JmeUpdateSystem;
 import com.l2client.component.PositioningSystem;
@@ -105,6 +103,7 @@ testarea:
     	tm = (TileTerrainManager) sin.getTerrainManager();
     	tm.setLoadedAtOrigin(true);//models not at world coords (all models != nav)
     	sm = sin.getSceneManager();
+    	sm.setViewPort(viewPort);
     	js = JmeUpdateSystem.get();
     	ps = sin.getPosSystem();
 		tm.update(cam.getLocation());
@@ -114,24 +113,26 @@ testarea:
         matWireframe.setColor("Color", ColorRGBA.Green);
         matWireframe.getAdditionalRenderState().setWireframe(true);
 
-        DirectionalLight light = new DirectionalLight();
-        light.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
-        rootNode.addLight(light);
+//        //Sky adds one anyway
+//        DirectionalLight light = new DirectionalLight();
+//        light.setDirection((new Vector3f(-0.f, -1f, -0.5f)).normalize());
+//        light.setColor(new ColorRGBA(0.6f,0.6f,0.6f,1f));
+//        rootNode.addLight(light);
 
         AmbientLight ambLight = new AmbientLight();
-        ambLight.setColor(new ColorRGBA(0.8f, 0.8f, 0.8f, 1f));
+        ambLight.setColor(new ColorRGBA(0.3f, 0.3f, 0.3f, 1f));
         rootNode.addLight(ambLight);
     	
 //        grass_mat = assetManager.loadMaterial("/vegetation/grass/grass/grass.j3m");
     	
     	rootNode.attachChild(scene);
     	sm.setRoot(scene);
-//    	tm.addSkyDome(cam);
-    	tm.addSkyDome();
+    	printHierarchy(rootNode, "");
+//    	tm.addSkyDome();
+    	tm.addSkyDome(cam, 0);// 60*60*14);
     	
 //		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
-//		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
-//				0.32999992f, 0.6059958f);
+//		SSAOFilter ssaoFilter = new SSAOFilter();//2.940201f, 6.928635f, 0.24999992f, 0.2059958f);
 //		fpp.addFilter(ssaoFilter);
 //		viewPort.addProcessor(fpp);
 
@@ -178,7 +179,14 @@ testarea:
 
 
 	protected void printHierarchy(Spatial n, String indent) {
-		System.out.println(indent+n.getName()+":"+n.getClass()+" at "+n.getWorldTranslation()+ " bounds:"+n.getWorldBound());
+		System.out.println(indent+n.getName()+":"+n.getClass().getSimpleName()+" at "+n.getWorldTranslation()+ " bounds:"+n.getWorldBound()+" buck:"+n.getQueueBucket());
+		for(Light l :n.getLocalLightList()){
+			System.out.println(indent+"  + Light:"+l.getType()+" Color:"+l.getColor());
+		}
+		if(n instanceof Geometry){
+			Geometry g = (Geometry) n;
+			System.out.println(indent+"   - mat:"+g.getMaterial().getName()+" buck:"+g.getQueueBucket()+", blend:"+g.getMaterial().getAdditionalRenderState().getBlendMode());
+		}
 		if(n instanceof Node)
 			for(Spatial c : ((Node)n).getChildren()){
 //				if(c instanceof Geometry){
@@ -286,7 +294,7 @@ testarea:
     		navs.detachChildNamed("NavMeshes");
     	} else {
     		Node node = new Node("NavMeshes");
-    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes();;
     		for(TiledNavMesh t : array){
     			Geometry g = t.getDebugMesh();
     			g.setMaterial(matWireframe);
@@ -314,7 +322,7 @@ testarea:
     		Node node = new Node("NavBorderMeshes");
     		Material mat = matWireframe.clone();
             mat.setColor("Color", ColorRGBA.Blue);
-    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes().toArray(new TiledNavMesh[0]);
+    		TiledNavMesh[] array = Singleton.get().getNavManager().getNavMeshes();
     		for(TiledNavMesh t : array){
     			Geometry g = t.getDebugBorderMesh();
     			g.setMaterial(mat);
