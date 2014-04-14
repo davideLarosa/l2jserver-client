@@ -1,10 +1,15 @@
 package com.l2client.model.l2j;
 
+import com.jme3.math.Vector3f;
+
 public class ItemInstance {
 
 	public int objectId;
+	public int charId = -1;
 	public int itemId;
+	public String name = "undefined";
 	public int slot;
+	public boolean stackable = false;
 	public long count;
 	public int itemType;
 	public int customType1;
@@ -23,6 +28,7 @@ public class ItemInstance {
 	public int attackElementAttr4;
 	public int attackElementAttr5;
 	public int attackElementAttr6;
+	public Vector3f worldPosition;
 	
 	@Override
 	public String toString(){
