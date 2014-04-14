@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import com.l2client.app.Singleton;
 import com.l2client.component.PositioningComponent;
 import com.l2client.controller.handlers.ChatHandler;
+import com.l2client.controller.handlers.ItemHandler;
 import com.l2client.controller.handlers.NpcHandler;
 import com.l2client.controller.handlers.PlayerCharHandler;
 import com.l2client.network.game.GameHandler;
@@ -22,19 +23,21 @@ public class ClientFacade {
     
 	Logger log = Logger.getLogger(this.getClass().getName());
 	
-	private static ClientFacade inst = null;
+	private static ClientFacade singleton = null;
 	
 	private ClientFacade(){
 		
 	}
 	//TODO check this singleton code not safe
 	public static ClientFacade get(){
-		if(inst != null)
-			return inst;
-		else{
-			inst = new ClientFacade();
-			return inst;
+		if(singleton == null){
+			synchronized (ClientFacade.class) {
+				if(singleton == null){
+					singleton = new ClientFacade();
+				}
+			}
 		}
+		return singleton;
 	}
     
 	//TODO change to use getter & setters
@@ -50,6 +53,7 @@ public class ClientFacade {
     private PlayerCharHandler charHandler = new PlayerCharHandler();
 	private NpcHandler npcHandler = new NpcHandler();
 	private ChatHandler chatHandler = new ChatHandler();
+	private ItemHandler itemHandler = new ItemHandler();
 
 	private int playKey2;
 
@@ -193,5 +197,8 @@ public class ClientFacade {
 		ValidatePosition v = new ValidatePosition(com.position, com.heading);
 		Singleton.get().getClientFacade().sendGamePacket(v);
 		}
+	}
+	public  ItemHandler getItemHandler() {
+		return this.itemHandler;
 	}
 }

@@ -6,6 +6,7 @@ import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
@@ -283,6 +284,10 @@ public final class SimpleTerrainManager implements ITileManager {
 		if(sky == null)
 			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
         Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
+	}
+	
+	public void addSkyDome(Camera cam, int timeOffset){
+		addSkyDome();
 	}
 	
 	public void removeSkyDome(){

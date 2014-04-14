@@ -3,8 +3,12 @@ package com.l2client.controller.area;
 import java.util.logging.Logger;
 
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.util.TangentBinormalGenerator;
 import com.l2client.app.Singleton;
 import com.l2client.asset.Asset;
 import com.l2client.controller.SceneManager.Action;
@@ -24,6 +28,8 @@ public class Tile {
 	int hash =0;
 	
 	public Tile(int _x, int _z) {
+		if(_x <0 || _x>9999|| _z <0 || _z>9999)
+			throw new RuntimeException("Tile parameters outside 0-9999 range: ("+_x+"/"+_z+"), trying too load too small tiles?");
 		x = _x;
 		z = _z;		
 		areaPath = loadPath+x+"_"+z+"/";
@@ -37,11 +43,15 @@ public class Tile {
 		return super.equals(obj);
 	}
 
+    //HashCode build by 1 xxxx yyyy as a number, x and y should be no bigger than 9999
 	public int hashCode() {
 		if(hash != 0)
 			return hash;
 		else {
-			hash = Integer.parseInt(String.format("1%04d%04d", x, z));
+			int n = 100000000;
+			n = n + x*10000;
+			n = n + z;
+			hash = n;
 			return hash;
 		}
 	}
@@ -162,7 +172,26 @@ public class Tile {
 //		((Node) n).attachChild(c);	
 //	}
 //}
+			    //make them all shadow casters and receivers
+			    if(getLocation().endsWith("base.j3o")){
+			    	setShadowCasterReceiver(n);
+			    }
+			    
 				Singleton.get().getSceneManager().changeTerrainNode(n,Action.ADD);
+			}
+		}
+		
+		private void setShadowCasterReceiver(Spatial n) {
+			if(n instanceof Geometry) {
+				Geometry v = (Geometry)n;
+				if(n.getQueueBucket().equals(RenderQueue.Bucket.Opaque))
+					n.setShadowMode(ShadowMode.CastAndReceive);
+//					TangentBinormalGenerator.generate(n);
+			} else if (n instanceof Node){
+				Node v = (Node)n;
+				for(Spatial  child : v.getChildren()){
+					setShadowCasterReceiver(child);
+				}
 			}
 		}
 		

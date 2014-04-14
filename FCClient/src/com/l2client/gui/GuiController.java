@@ -61,7 +61,7 @@ import com.l2client.network.game.ClientPackets.RequestRestartPoint;
  */
 public final class GuiController {
 
-	private final static GuiController instance = new GuiController();
+	private static GuiController singleton;
 	
 	private JMEDesktop jmeDesktop;
 //	private Node desktopNode;
@@ -73,7 +73,14 @@ public final class GuiController {
 	}
 	
 	public static GuiController get(){
-		return instance;
+		if(singleton == null){
+			synchronized (GuiController.class) {
+				if(singleton == null){
+					singleton = new GuiController();
+				}
+			}
+		}
+		return singleton;
 	}
 	
 	/**

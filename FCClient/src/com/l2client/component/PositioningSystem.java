@@ -10,6 +10,7 @@ import com.l2client.controller.entity.ISpatialPointing;
 import com.l2client.controller.entity.SpatialPointIndex;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.navigation.Path;
+import com.l2client.navigation.Path.WayPoint;
 import com.l2client.network.game.ClientPackets.Appearing;
 
 /**
@@ -35,26 +36,27 @@ public class PositioningSystem extends ComponentSystem {
 	}
 
 	//rotate 180 deg per sec
-	private static final float ROTATION_PER_SEC = FastMath.PI;
-	private static PositioningSystem inst = null;
+	private static final float ROTATION_PER_SEC = FastMath.TWO_PI;//FastMath.PI;
+	private static PositioningSystem singleton = null;
 	private SpatialPointIndex index = null;
 	static float DEBUG_UPDATE_INTERVAL = 5f;//all 5 sec
 	float debugUpdate = 0f;
 	private HashMap<Integer, QueuedMove>queuedMoves = null;
 	
 	private PositioningSystem(){
-		inst = this;
 		index = new SpatialPointIndex(10);
 		queuedMoves = new HashMap<Integer, PositioningSystem.QueuedMove>();
 	}
 	
 	public static PositioningSystem get(){
-		if(inst != null)
-			return inst;
-		
-		new PositioningSystem();
-		
-		return inst;
+		if(singleton == null){
+			synchronized (PositioningSystem.class) {
+				if(singleton == null){
+					singleton = new PositioningSystem();
+				}
+			}
+		}
+		return singleton;
 	}
 
 	/**
@@ -273,13 +275,14 @@ public class PositioningSystem extends ComponentSystem {
 	 * @param dt
 	 * @return
 	 */
+	//FIXME rework movement on mesh an without any to obey the same rules
 	private boolean move(PositioningComponent com, float dt) {
 		if(com.teleport){
 
 			com.position.set(com.goalPos);
 			haltPosComponent(com);
-			com.cell = null;
-			com.mesh = null;
+			com.cell = -1;
+			com.mesh = -1;
 			com.teleport = false;
 			Path pa = new Path();
 			if(Singleton.get().getNavManager().buildNavigationPath(pa, com.position.add(0.01f, 0f, 0f), com.goalPos)){
@@ -298,13 +301,13 @@ public class PositioningSystem extends ComponentSystem {
 		if(com.nextWayPoint != null){
 			com.lastPosition.set(com.position);
 			//compute direction from current location to target
-			com.direction = com.nextWayPoint.Position.subtract(com.position);
+			com.direction = com.nextWayPoint.position.subtract(com.position);
 			//currently no acc/dcc only linear time
 			com.speed = com.maxSpeed*dt;
 			
 			Vector3f endPos;
 			if(com.speed*com.speed > com.direction.lengthSquared())
-				endPos = com.nextWayPoint.Position.clone();
+				endPos = com.nextWayPoint.position.clone();
 			else
 				endPos = com.position.add(com.direction.normalize().multLocal(com.speed));
 			
@@ -313,27 +316,36 @@ public class PositioningSystem extends ComponentSystem {
 			//targetheading done inside ResolveMotionOnMesh as waypoints are swithed accordingly
 				
 			com.position.set(endPos);
+
 			
 			//reached the waypoint, is it the last? stop, otherwise go to next one
-			if(com.cell == com.path.EndPoint().Cell){
-				if(endPos.distanceSquared(com.path.EndPoint().Position) < 0.000001f){
-					com.position.set(com.path.EndPoint().Position);
+			WayPoint last = com.path.WaypointList().get(com.path.WaypointList().size()-1);
+			if(com.cell == last.cell){
+				float dist = endPos.distanceSquared(last.position);
+				if(dist < 0.000001f){
+					com.position.set(last.position);
 					signalStopToEnv(com);
 					haltPosComponent(com);
 					com.path = null;
 					return true;
+				}
+				//SIGNAL EARLY FOR A STOP BEFORE GOAL IS REACHED
+				if(dist < 0.0001f){
+					//TODO check this is working
+					signalStopToEnv(com);
 				}
 			}
 
 			return true;
 		}else {
 			//the case when no waypoint is given, no cell and no mesh is given but we have a goal != pos as a fallback currently for areas with no tiles/navmeshes..
-			if (com.mesh == null && com.cell ==null && !com.position.equals(com.goalPos)) {
+			if ((com.mesh <= 0 || com.cell < 0 ) && !com.position.equals(com.goalPos)) {
 				// target reached then remove self
 				com.direction = com.goalPos.subtract(com.position);
 				float len = com.direction.lengthSquared();
 				//SIGNAL EARLY FOR A STOP BEFORE GOAL IS REACHED
 				if(len < 0.1f*com.maxSpeed*com.maxSpeed){
+					//TODO check this is working
 					signalStopToEnv(com);
 				}
 				if (len <= (dt * com.maxSpeed)) {
@@ -342,7 +354,9 @@ public class PositioningSystem extends ComponentSystem {
 					com.startPos.set(com.goalPos);
 					if(Singleton.get().getEntityManager().isPlayerComponent(com)){
 						Singleton.get().getClientFacade().sendValidatePosition(com);
-					}	
+					}
+					//TODO check this is working
+					signalStopToEnv(com);
 					return true;
 				} else {
 					// move
@@ -441,14 +455,14 @@ public class PositioningSystem extends ComponentSystem {
 					}
 					pos.goalPos.set(tX,tY,tZ);
 					//FIXME this just shifts the position, not good... rework
-					pos.position.set(pos.startPos);	
+//					pos.position.set(pos.startPos);	
 					Path pa = new Path();
 					if(Singleton.get().getNavManager().buildNavigationPath(pa, pos.position, pos.goalPos)){
 						pos.initByWayPoint(pa);
 					} else {
 						log.severe("Failed to place entity start:"+pos.position+" goal:"+pos.goalPos);
 					}
-					if(pos.position.distanceSquared(pos.goalPos) > 0.00001f)//only do this if the two are different, otherwise we get odd results
+					if(pos.position.distanceSquared(pos.goalPos) > 0.0001f)//only do this if the two are different, otherwise we get odd results
 						pos.targetHeading = PositioningSystem.getHeading(pos.position, pos.goalPos);
 					pos.maxSpeed = pos.running ? pos.runSpeed : pos.walkSpeed;
 			}

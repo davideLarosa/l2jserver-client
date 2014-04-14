@@ -1,0 +1,1172 @@
+Index: src/desktop/com/jme3/input/awt/AwtMouseInput.java
+===================================================================
+--- src/desktop/com/jme3/input/awt/AwtMouseInput.java	(revision 10912)
++++ src/desktop/com/jme3/input/awt/AwtMouseInput.java	(working copy)
+@@ -36,8 +36,6 @@
+ import com.jme3.input.RawInputListener;
+ import com.jme3.input.event.MouseButtonEvent;
+ import com.jme3.input.event.MouseMotionEvent;
+-import com.jme3.system.JmeSystem;
+-import com.jme3.system.Platform;
+ import java.awt.*;
+ import java.awt.event.*;
+ import java.awt.image.BufferedImage;
+@@ -143,10 +141,6 @@
+     }
+ 
+     public void setCursorVisible(boolean visible) {
+-//        if(JmeSystem.getPlatform() != Platform.MacOSX32 &&
+-//                JmeSystem.getPlatform() != Platform.MacOSX64 &&
+-//                JmeSystem.getPlatform() != Platform.MacOSX_PPC32 &&
+-//                JmeSystem.getPlatform() != Platform.MacOSX_PPC64){
+         if (this.visible != visible) {
+             lastKnownLocation.x = lastKnownLocation.y = 0;
+ 
+@@ -160,7 +154,6 @@
+                     }
+                 }
+             });
+-//        }
+         }
+     }
+ 
+@@ -228,7 +221,8 @@
+ 
+     public void mousePressed(MouseEvent awtEvt) {
+         MouseButtonEvent evt = new MouseButtonEvent(getJMEButtonIndex(awtEvt), true, awtEvt.getX(), awtEvt.getY());
+-        evt.setTime(awtEvt.getWhen());
++//        evt.setTime(awtEvt.getWhen());
++        evt.setTime(getInputTimeNanos());
+         synchronized (eventQueue) {
+             eventQueue.add(evt);
+         }
+@@ -236,7 +230,8 @@
+ 
+     public void mouseReleased(MouseEvent awtEvt) {
+         MouseButtonEvent evt = new MouseButtonEvent(getJMEButtonIndex(awtEvt), false, awtEvt.getX(), awtEvt.getY());
+-        evt.setTime(awtEvt.getWhen());
++//        evt.setTime(awtEvt.getWhen());
++        evt.setTime(getInputTimeNanos());
+         synchronized (eventQueue) {
+             eventQueue.add(evt);
+         }
+Index: src/test/jme3test/model/anim/TestHWSkinning.java
+===================================================================
+--- src/test/jme3test/model/anim/TestHWSkinning.java	(revision 10912)
++++ src/test/jme3test/model/anim/TestHWSkinning.java	(working copy)
+@@ -41,15 +41,18 @@
+ import com.jme3.math.ColorRGBA;
+ import com.jme3.math.Quaternion;
+ import com.jme3.math.Vector3f;
++import com.jme3.scene.Node;
+ import com.jme3.scene.Spatial;
+ import java.util.ArrayList;
+ import java.util.List;
+ 
++import jme3tools.optimize.GeometryBatchFactory;
++
+ public class TestHWSkinning extends SimpleApplication implements ActionListener{
+ 
+     private AnimChannel channel;
+     private AnimControl control;
+-    private String[] animNames = {"Dodge", "Walk", "pull", "push"};
++    private String[] animNames = {"dodge", "walk", "pull", "push"};
+     private final static int SIZE = 10;
+     private boolean hwSkinningEnable = true;
+     private List<SkeletonControl> skControls = new ArrayList<SkeletonControl>();
+@@ -77,6 +80,7 @@
+                 Spatial model = (Spatial) assetManager.loadModel("Models/Oto/Oto.mesh.xml");
+                 model.setLocalScale(0.1f);
+                 model.setLocalTranslation(i - SIZE / 2, 0, j - SIZE / 2);
++                GeometryBatchFactory.optimize((Node) model);
+                 control = model.getControl(AnimControl.class);
+ 
+                 channel = control.createChannel();
+Index: src/test/jme3test/model/anim/TestOgreAnim.java
+===================================================================
+--- src/test/jme3test/model/anim/TestOgreAnim.java	(revision 10912)
++++ src/test/jme3test/model/anim/TestOgreAnim.java	(working copy)
+@@ -92,8 +92,8 @@
+ 
+         rootNode.attachChild(model);
+ 
+-        inputManager.addListener(this, "Attack");
+-        inputManager.addMapping("Attack", new KeyTrigger(KeyInput.KEY_SPACE));
++        inputManager.addListener(this, "attack");
++        inputManager.addMapping("attack", new KeyTrigger(KeyInput.KEY_SPACE));
+     }
+ 
+     @Override
+@@ -105,7 +105,7 @@
+     
+ 
+     public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+-        if (animName.equals("Dodge")){
++        if (animName.equals("dodge")){
+             channel.setAnim("stand", 0.50f);
+             channel.setLoopMode(LoopMode.DontLoop);
+             channel.setSpeed(1f);
+@@ -116,9 +116,9 @@
+     }
+ 
+     public void onAction(String binding, boolean value, float tpf) {
+-        if (binding.equals("Attack") && value){
+-            if (!channel.getAnimationName().equals("Dodge")){
+-                channel.setAnim("Dodge", 0.50f);
++        if (binding.equals("attack") && value){
++            if (!channel.getAnimationName().equals("dodge")){
++                channel.setAnim("dodge", 0.50f);
+                 channel.setLoopMode(LoopMode.Cycle);
+                 channel.setSpeed(0.10f);
+             }
+Index: src/core-data/Common/MatDefs/Misc/Unshaded.vert
+===================================================================
+--- src/core-data/Common/MatDefs/Misc/Unshaded.vert	(revision 11061)
++++ src/core-data/Common/MatDefs/Misc/Unshaded.vert	(working copy)
+@@ -1,4 +1,5 @@
+ #import "Common/ShaderLib/Skinning.glsllib"
++#import "Common/ShaderLib/Skinning.glsllib"
+ 
+ uniform mat4 g_WorldViewProjectionMatrix;
+ attribute vec3 inPosition;
+@@ -29,6 +30,14 @@
+         vertColor = inColor;
+     #endif
+ 
++   #ifdef NUM_BONES
++      vec4 pos = vec4(inPosition, 1.0);
++	  Skinning_Compute(pos);
++	  gl_Position = g_WorldViewProjectionMatrix * pos;
++   #else
++      gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
++   #endif
++
+     vec4 modelSpacePos = vec4(inPosition, 1.0);
+     #ifdef NUM_BONES
+         Skinning_Compute(modelSpacePos);
+Index: src/core-data/Common/MatDefs/Light/Lighting.frag
+===================================================================
+--- src/core-data/Common/MatDefs/Light/Lighting.frag	(revision 11061)
++++ src/core-data/Common/MatDefs/Light/Lighting.frag	(working copy)
+@@ -72,6 +72,10 @@
+     uniform ENVMAP m_EnvMap;
+ #endif
+ 
++#ifdef RIM_LIGHTING
++    uniform vec4 m_RimLighting;
++#endif
++
+ float tangDot(in vec3 v1, in vec3 v2){
+     float d = dot(v1,v2);
+     #ifdef V_TANGENT
+@@ -282,4 +286,19 @@
+                            SpecularSum2.rgb * specularColor.rgb * vec3(light.y);
+     #endif
+     gl_FragColor.a = alpha;
++    
++
++    #ifdef RIM_LIGHTING
++          #if __VERSION__ >= 110
++              if(m_RimLighting.w > 0.0){
++                  vec4 rim = pow( 1.0 - dot( normal, vViewDir.xyz ), 1.5 ) * m_RimLighting * m_RimLighting.w;
++       	          rim.a = 0.0;
++                  gl_FragColor += rim*diffuseColor;
++              }
++          #else 
++              vec4 rim = pow( 1.0 - dot( normal, vViewDir.xyz ), 1.5 ) * m_RimLighting * m_RimLighting.w;
++       	      rim.a = 0.0;
++              gl_FragColor += rim*diffuseColor;
++          #endif
++   #endif
+ }
+Index: src/core-data/Common/MatDefs/Light/Lighting.j3md
+===================================================================
+--- src/core-data/Common/MatDefs/Light/Lighting.j3md	(revision 11061)
++++ src/core-data/Common/MatDefs/Light/Lighting.j3md	(working copy)
+@@ -124,7 +124,6 @@
+         Matrix4 LightViewProjectionMatrix4
+         Matrix4 LightViewProjectionMatrix5   
+         Vector3 LightPos
+-        Vector3 LightDir
+ 
+         Float PCFEdge
+         Float ShadowMapSize
+@@ -132,6 +131,13 @@
+         // For hardware skinning
+         Int NumberOfBones
+         Matrix4Array BoneMatrices
++        
++        //Rimlight
++		Color RimLighting;
++		
++		//Texture animation
++		//defines how far and to which direction the texture is moved in one second
++		 Vector2 MoveUV
+     }
+ 
+     Technique {
+@@ -148,6 +154,7 @@
+             ViewMatrix
+             CameraPosition
+             WorldMatrix
++            Time
+         }
+ 
+         Defines {
+@@ -177,6 +184,10 @@
+             SPHERE_MAP : SphereMap  
+ 
+             NUM_BONES : NumberOfBones
++
++			RIM_LIGHTING : RimLighting
++			
++			ANIMATE_TEXTURE : MoveUV
+         }
+     }
+ 
+@@ -194,6 +205,7 @@
+             COLOR_MAP : ColorMap
+             DISCARD_ALPHA : AlphaDiscardThreshold
+             NUM_BONES : NumberOfBones
++            RIM_LIGHTING : RimLighting
+         }
+ 
+         ForcedRenderState {
+@@ -227,6 +239,7 @@
+             PSSM : Splits
+             POINTLIGHT : LightViewProjectionMatrix5
+             NUM_BONES : NumberOfBones
++            RIM_LIGHTING : RimLighting
+         }
+ 
+         ForcedRenderState {
+@@ -256,6 +269,7 @@
+             PSSM : Splits
+             POINTLIGHT : LightViewProjectionMatrix5
+             NUM_BONES : NumberOfBones
++            RIM_LIGHTING : RimLighting
+         }
+ 
+         ForcedRenderState {
+@@ -279,6 +293,7 @@
+         Defines {
+             DIFFUSEMAP_ALPHA : DiffuseMap
+             NUM_BONES : NumberOfBones
++            RIM_LIGHTING : RimLighting
+         }
+ 
+     }
+@@ -347,6 +362,7 @@
+             HAS_GLOWCOLOR : GlowColor
+ 
+             NUM_BONES : NumberOfBones
++            RIM_LIGHTING : RimLighting
+         }
+     }
+ 
+Index: src/core-data/Common/MatDefs/Light/Lighting.vert
+===================================================================
+--- src/core-data/Common/MatDefs/Light/Lighting.vert	(revision 11061)
++++ src/core-data/Common/MatDefs/Light/Lighting.vert	(working copy)
+@@ -7,6 +7,7 @@
+ uniform mat4 g_WorldViewMatrix;
+ uniform mat3 g_NormalMatrix;
+ uniform mat4 g_ViewMatrix;
++uniform float g_Time;
+ 
+ uniform vec4 m_Ambient;
+ uniform vec4 m_Diffuse;
+@@ -23,6 +24,10 @@
+   attribute vec2 inTexCoord2;
+ #endif
+ 
++#ifdef ANIMATE_TEXTURE
++uniform vec2 m_MoveUV;
++#endif
++
+ varying vec3 AmbientSum;
+ varying vec4 DiffuseSum;
+ varying vec3 SpecularSum;
+@@ -220,4 +225,8 @@
+     #ifdef USE_REFLECTION
+         computeRef(modelSpacePos);
+     #endif 
++    
++    #ifdef ANIMATE_TEXTURE
++        texCoord = texCoord + g_Time * m_MoveUV;
++    #endif
+ }
+\ No newline at end of file
+Index: src/blender/com/jme3/scene/plugins/blender/BlenderModelLoader.java
+===================================================================
+--- src/blender/com/jme3/scene/plugins/blender/BlenderModelLoader.java	(revision 11061)
++++ src/blender/com/jme3/scene/plugins/blender/BlenderModelLoader.java	(working copy)
+@@ -69,18 +69,23 @@
+             BlenderKey blenderKey = blenderContext.getBlenderKey();
+             List<Node> rootObjects = new ArrayList<Node>();
+             for (FileBlockHeader block : blocks) {
+-                if (block.getCode() == FileBlockHeader.BLOCK_OB00) {
+-                    ObjectHelper objectHelper = blenderContext.getHelper(ObjectHelper.class);
+-                    Object object = objectHelper.toObject(block.getStructure(blenderContext), blenderContext);
+-                    if (object instanceof LightNode && (blenderKey.getFeaturesToLoad() & FeaturesToLoad.LIGHTS) != 0) {
+-                        rootObjects.add((LightNode) object);
+-                    } else if (object instanceof Node && (blenderKey.getFeaturesToLoad() & FeaturesToLoad.OBJECTS) != 0) {
+-                        LOGGER.log(Level.FINE, "{0}: {1}--> {2}", new Object[] { ((Node) object).getName(), ((Node) object).getLocalTranslation().toString(), ((Node) object).getParent() == null ? "null" : ((Node) object).getParent().getName() });
+-                        if (((Node) object).getParent() == null) {
+-                            rootObjects.add((Node) object);
+-                        }
+-                    }
+-                }
++            	try{
++	                if (block.getCode() == FileBlockHeader.BLOCK_OB00) {
++	                    ObjectHelper objectHelper = blenderContext.getHelper(ObjectHelper.class);
++	                    Object object = objectHelper.toObject(block.getStructure(blenderContext), blenderContext);
++	                    if (object instanceof LightNode && (blenderKey.getFeaturesToLoad() & FeaturesToLoad.LIGHTS) != 0) {
++	                        rootObjects.add((LightNode) object);
++	                    } else if (object instanceof Node && (blenderKey.getFeaturesToLoad() & FeaturesToLoad.OBJECTS) != 0) {
++	                        LOGGER.log(Level.FINE, "{0}: {1}--> {2}", new Object[] { ((Node) object).getName(), ((Node) object).getLocalTranslation().toString(), ((Node) object).getParent() == null ? "null" : ((Node) object).getParent().getName() });
++	                        if (((Node) object).getParent() == null) {
++	                            rootObjects.add((Node) object);
++	                        }
++	                    }
++	                }
++	            } catch(Exception e) {
++					//Added try catch because the miserable loader will just return something failed :-(
++					LOGGER.log(Level.SEVERE," failed to load block "+block, e);
++	            }                
+             }
+ 
+             // bake constraints after everything is loaded
+Index: src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java
+===================================================================
+--- src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java	(revision 10912)
++++ src/ogre/com/jme3/scene/plugins/ogre/MeshLoader.java	(working copy)
+@@ -225,6 +225,21 @@
+         } else {
+             if (materialList != null) {
+                 mat = materialList.get(matName);
++            } else if(matName != null && matName.length()>0){
++				//TR load it from submesh material name
++                try {
++                    
++                    	materialList = (MaterialList) assetManager
++							.loadAsset(new OgreMaterialKey(folderName
++									+ matName + ".material"));
++                    	mat = materialList.get(matName);
++                    	if(mat != null) {
++                    		mat.setName(matName);
++                    		logger.log(Level.WARNING, "Using material {0} from submesh for model {1}", new Object[]{matName, key});
++                    	}
++                    } catch (AssetNotFoundException ex){
++                    //intentionally left blank        	
++                }
+             }
+         }
+ 
+@@ -765,7 +780,7 @@
+     }
+ 
+     private Node compileModel() {
+-        Node model = new Node(meshName + "-ogremesh");
++        Node model = new Node(meshName);// + "-ogremesh");
+ 
+         for (int i = 0; i < geoms.size(); i++) {
+             Geometry g = geoms.get(i);
+@@ -831,6 +846,11 @@
+             if (folderName != null && folderName.length() > 0) {
+                 meshName = meshName.substring(folderName.length());
+             }
++            //TR Hack for Windows names not properly done in AssetKey
++            int last = meshName.lastIndexOf("\\");
++            if(last != -1)
++            	meshName = (meshName.substring(last+1));
++            
+             assetManager = info.getManager();
+ 
+             if (key instanceof OgreMeshKey) {
+Index: src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java
+===================================================================
+--- src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java	(revision 10912)
++++ src/ogre/com/jme3/scene/plugins/ogre/SkeletonLoader.java	(working copy)
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2009-2012 jMonkeyEngine
++ * Copyright (c) 2009-2010 jMonkeyEngine
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -101,8 +101,12 @@
+             assert elementStack.peek().equals("tracks");
+             String boneName = SAXUtil.parseString(attribs.getValue("bone"));
+             Bone bone = nameToBone.get(boneName);
+-            int index = skeleton.getBoneIndex(bone);
+-            track = new BoneTrack(index);
++            //TR FIX for anim only loading
++            if(skeleton != null){
++	            int index = skeleton.getBoneIndex(bone);
++	            track = new BoneTrack(index);
++            }else
++            	track = new BoneTrack(boneName);
+         } else if (qName.equals("boneparent")) {
+             assert elementStack.peek().equals("bonehierarchy");
+             String boneName = attribs.getValue("bone");
+@@ -125,7 +129,8 @@
+             assert elementStack.peek().equals("animations");
+             String name = SAXUtil.parseString(attribs.getValue("name"));
+             float length = SAXUtil.parseFloat(attribs.getValue("length"));
+-            animation = new Animation(name, length);
++            //TR HACK, otherwise names in anim and boneanim do not match, FIX YOUR ASSETS and remove this !
++            animation = new Animation(name.toLowerCase(), length);
+         } else if (qName.equals("bonehierarchy")) {
+             assert elementStack.peek().equals("skeleton");
+         } else if (qName.equals("animations")) {
+@@ -165,6 +170,9 @@
+             indexToBone.clear();
+             skeleton = new Skeleton(bones);
+         } else if (qName.equals("animation")) {
++        	//TR FIX for only anim loading without skeleton
++        	if(animations == null)
++        		animations = new ArrayList<Animation>();
+             animations.add(animation);
+             animation = null;
+         } else if (qName.equals("track")) {
+Index: src/tools/jme3tools/optimize/LodGenerator.java
+===================================================================
+--- src/tools/jme3tools/optimize/LodGenerator.java	(revision 10912)
++++ src/tools/jme3tools/optimize/LodGenerator.java	(working copy)
+@@ -264,6 +264,16 @@
+         build();
+     }
+     
++    /**
++     * Construct a LodGenerator for the given geometry
++     *
++     * @param geom the geometry to consider to generate de Lods.
++     */
++    public LodGenerator(Mesh mesh) {
++        this.mesh = mesh;
++        build();
++    }
++    
+     private void build() {
+         BoundingSphere bs = new BoundingSphere();
+         bs.computeFromPoints(mesh.getFloatBuffer(VertexBuffer.Type.Position));
+Index: src/tools/jme3tools/optimize/GeometryBatchFactory.java
+===================================================================
+--- src/tools/jme3tools/optimize/GeometryBatchFactory.java	(revision 10912)
++++ src/tools/jme3tools/optimize/GeometryBatchFactory.java	(working copy)
+@@ -385,14 +385,17 @@
+         gatherGeoms(scene, geoms);
+ 
+         List<Geometry> batchedGeoms = makeBatches(geoms, useLods);
++        if(batchedGeoms.size() > 0) {
++        	scene.detachAllChildren();
++        }
+         for (Geometry geom : batchedGeoms) {
+             scene.attachChild(geom);
+         }
+-
+-        for (Iterator<Geometry> it = geoms.iterator(); it.hasNext();) {
+-            Geometry geometry = it.next();
+-            geometry.removeFromParent();
+-        }
++        //TR: this leaves Nodes without Geoms below the scene
++//        for (Iterator<Geometry> it = geoms.iterator(); it.hasNext();) {
++//            Geometry geometry = it.next();
++//            geometry.removeFromParent();
++//        }
+ 
+         // Since the scene is returned unaltered the transform must be reset
+         scene.setLocalTransform(Transform.IDENTITY);
+Index: src/lwjgl/com/jme3/input/lwjgl/LwjglMouseInput.java
+===================================================================
+--- src/lwjgl/com/jme3/input/lwjgl/LwjglMouseInput.java	(revision 10912)
++++ src/lwjgl/com/jme3/input/lwjgl/LwjglMouseInput.java	(working copy)
+@@ -115,13 +115,15 @@
+ 
+             if (xDelta != 0 || yDelta != 0 || wheelDelta != 0){
+                 MouseMotionEvent evt = new MouseMotionEvent(x, y, xDelta, yDelta, curWheel, wheelDelta);
+-                evt.setTime(Mouse.getEventNanoseconds());
++//                evt.setTime(Mouse.getEventNanoseconds());
++                evt.setTime(System.nanoTime());
+                 listener.onMouseMotionEvent(evt);
+             }
+             if (btn != -1){
+                 MouseButtonEvent evt = new MouseButtonEvent(btn,
+                                                             Mouse.getEventButtonState(), x, y);
+-                evt.setTime(Mouse.getEventNanoseconds());
++//                evt.setTime(Mouse.getEventNanoseconds());
++                evt.setTime(System.nanoTime());
+                 listener.onMouseButtonEvent(evt);
+             }
+         }
+Index: src/core/com/jme3/light/LightList.java
+===================================================================
+--- src/core/com/jme3/light/LightList.java	(revision 10912)
++++ src/core/com/jme3/light/LightList.java	(working copy)
+@@ -135,6 +135,7 @@
+             list[i] = list[i+1];
+         }
+         list[listSize] = null;
++
+     }
+ 
+     /**
+Index: src/core/com/jme3/collision/bih/BIHTree.java
+===================================================================
+--- src/core/com/jme3/collision/bih/BIHTree.java	(revision 10912)
++++ src/core/com/jme3/collision/bih/BIHTree.java	(working copy)
+@@ -113,7 +113,6 @@
+         }
+ 
+         bihSwapTmp = new float[9];
+-
+         FloatBuffer vb = (FloatBuffer) mesh.getBuffer(Type.Position).getData();
+         IndexBuffer ib = mesh.getIndexBuffer();
+         if (ib == null) {
+Index: src/core/com/jme3/material/Material.java
+===================================================================
+--- src/core/com/jme3/material/Material.java	(revision 11061)
++++ src/core/com/jme3/material/Material.java	(working copy)
+@@ -1136,6 +1136,7 @@
+ 
+     public void write(JmeExporter ex) throws IOException {
+         OutputCapsule oc = ex.getCapsule(this);
++        oc.write(name, "name", null);
+         oc.write(def.getAssetName(), "material_def", null);
+         oc.write(additionalState, "render_state", null);
+         oc.write(transparent, "is_transparent", false);
+@@ -1145,6 +1146,7 @@
+     public void read(JmeImporter im) throws IOException {
+         InputCapsule ic = im.getCapsule(this);
+ 
++        name = ic.readString("name", null);
+         additionalState = (RenderState) ic.readSavable("render_state", null);
+         transparent = ic.readBoolean("is_transparent", false);
+ 
+Index: src/core/com/jme3/asset/DesktopAssetManager.java
+===================================================================
+--- src/core/com/jme3/asset/DesktopAssetManager.java	(revision 10912)
++++ src/core/com/jme3/asset/DesktopAssetManager.java	(working copy)
+@@ -286,7 +286,7 @@
+             try {
+                 handler.establishParentKey(key);
+                 obj = loader.load(info);
+-            } catch (IOException ex) {
++            } catch (Exception ex) {
+                 throw new AssetLoadException("An exception has occured while loading asset: " + key, ex);
+             } finally {
+                 handler.releaseParentKey(key);
+@@ -319,11 +319,12 @@
+         // create an instance for user
+         T clone = (T) obj;
+         if (clone instanceof CloneableSmartAsset){
+-            if (proc == null){
+-                throw new IllegalStateException("Asset implements "
+-                        + "CloneableSmartAsset but doesn't "
+-                        + "have processor to handle cloning");
+-            }else{
++            if (proc != null){
++//            if (proc == null){
++//                throw new IllegalStateException("Asset implements "
++//                        + "CloneableSmartAsset but doesn't "
++//                        + "have processor to handle cloning");
++//            }else{
+                 clone = (T) proc.createClone(obj);
+                 if (cache != null && clone != obj){
+                     cache.registerAssetClone(key, clone);
+Index: src/core/com/jme3/scene/Geometry.java
+===================================================================
+--- src/core/com/jme3/scene/Geometry.java	(revision 11061)
++++ src/core/com/jme3/scene/Geometry.java	(working copy)
+@@ -400,8 +400,29 @@
+         computeWorldMatrix();
+ 
+         assert (refreshFlags & (RF_BOUND | RF_TRANSFORM)) == 0;
++        
++        if(mesh.getBuffer(Type.Position) == null) {
++System.out.println("Mesh without a position buffer, what's this? "+getName()+" "+this);
++		return 0;
++        }
+ 
+         if (mesh != null) {
++        	//TR CODE
++        	//just check vs bounding box on animated mesh
++        	if(mesh.getBuffer(Type.BoneWeight) != null){
++        		//how many bound contacts
++        		int res =  worldBound.collideWith(other, results);
++
++        		if(res> 0){
++        			//for the n last added results set us as geometry, even though we cannot guarantee it really DID tough an animated mesh
++        			for(int i = results.size()-1;i>results.size()-res;i--){
++        				if(i > 0)
++        					results.getCollisionDirect(i).setGeometry(this);
++        			}
++        		}
++        	} else {
++        	//TR CODE END
++        		
+             // NOTE: BIHTree in mesh already checks collision with the
+             // mesh's bound
+             int prevSize = results.size();
+@@ -411,6 +432,7 @@
+                 results.getCollisionDirect(i).setGeometry(this);
+             }
+             return added;
++        	}
+         }
+         return 0;
+     }
+Index: src/core/com/jme3/animation/AnimControl.java
+===================================================================
+--- src/core/com/jme3/animation/AnimControl.java	(revision 11061)
++++ src/core/com/jme3/animation/AnimControl.java	(working copy)
+@@ -43,7 +43,6 @@
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.HashMap;
+-import java.util.Map.Entry;
+ 
+ /**
+  * <code>AnimControl</code> is a Spatial control that allows manipulation
+@@ -75,9 +74,10 @@
+     @Deprecated
+     private SkeletonControl skeletonControl;
+     /**
+-     * List of animations
++     * An Animationprovider
+      */
+-    HashMap<String, Animation> animationMap = new HashMap<String, Animation>();
++    private AnimationProvider animationProvider = new HashMapAnimationProvider();
++
+     /**
+      * Animation channels
+      */
+@@ -104,6 +104,10 @@
+      */
+     public AnimControl() {
+     }
++    
++    public void setAnimationProvider(AnimationProvider pro){
++    	this.animationProvider = pro;
++    }
+ 
+     /**
+      * Internal use only.
+@@ -118,12 +122,9 @@
+             if (skeleton != null) {
+                 clone.skeleton = new Skeleton(skeleton);
+             }
+-
+-            // animationMap is cloned, but only ClonableTracks will be cloned as they need a reference to a cloned spatial
+-            for (Entry<String, Animation> animEntry : animationMap.entrySet()) {
+-                clone.animationMap.put(animEntry.getKey(), animEntry.getValue().cloneForSpatial(spatial));
+-            }
+             
++            clone.animationProvider = animationProvider;
++
+             return clone;
+         } catch (CloneNotSupportedException ex) {
+             throw new AssertionError();
+@@ -136,7 +137,7 @@
+      * with the skeleton given in the constructor.
+      */
+     public void setAnimations(HashMap<String, Animation> animations) {
+-        animationMap = animations;
++    	animationProvider.setAnimations(animations);
+     }
+ 
+     /**
+@@ -146,7 +147,7 @@
+      * such named animation exists.
+      */
+     public Animation getAnim(String name) {
+-        return animationMap.get(name);
++        return animationProvider.getAnimation(name, this);
+     }
+ 
+     /**
+@@ -155,7 +156,7 @@
+      * @param anim The animation to add.
+      */
+     public void addAnim(Animation anim) {
+-        animationMap.put(anim.getName(), anim);
++       animationProvider.addAnimation(anim);
+     }
+ 
+     /**
+@@ -163,12 +164,7 @@
+      * @param anim The animation to remove.
+      */
+     public void removeAnim(Animation anim) {
+-        if (!animationMap.containsKey(anim.getName())) {
+-            throw new IllegalArgumentException("Given animation does not exist "
+-                    + "in this AnimControl");
+-        }
+-
+-        animationMap.remove(anim.getName());
++        animationProvider.removeAnimation(anim.getName());
+     }
+ 
+     /**
+@@ -300,7 +296,7 @@
+      * can play.
+      */
+     public Collection<String> getAnimationNames() {
+-        return animationMap.keySet();
++        return animationProvider.getAnimationNames();
+     }
+ 
+     /**
+@@ -309,13 +305,7 @@
+      * @return The length of time, in seconds, of the named animation.
+      */
+     public float getAnimationLength(String name) {
+-        Animation a = animationMap.get(name);
+-        if (a == null) {
+-            throw new IllegalArgumentException("The animation " + name
+-                    + " does not exist in this AnimControl");
+-        }
+-
+-        return a.getLength();
++        return animationProvider.getAnimationLength(name);
+     }
+ 
+     /**
+@@ -350,7 +340,7 @@
+         super.write(ex);
+         OutputCapsule oc = ex.getCapsule(this);
+         oc.write(skeleton, "skeleton", null);
+-        oc.writeStringSavableMap(animationMap, "animations", null);
++        oc.write(animationProvider, "animationProvider", null);
+     }
+ 
+     @Override
+@@ -358,10 +348,7 @@
+         super.read(im);
+         InputCapsule in = im.getCapsule(this);
+         skeleton = (Skeleton) in.readSavable("skeleton", null);
+-        HashMap<String, Animation> loadedAnimationMap = (HashMap<String, Animation>) in.readStringSavableMap("animations", null);
+-        if (loadedAnimationMap != null) {
+-            animationMap = loadedAnimationMap;
+-        }
++        animationProvider = (AnimationProvider) in.readSavable("animationProvider", null);
+ 
+         if (im.getFormatVersion() == 0) {
+             // Changed for backward compatibility with j3o files generated 
+Index: src/core/com/jme3/animation/HashMapAnimationProvider.java
+===================================================================
+--- src/core/com/jme3/animation/HashMapAnimationProvider.java	(revision 0)
++++ src/core/com/jme3/animation/HashMapAnimationProvider.java	(revision 0)
+@@ -0,0 +1,86 @@
++package com.jme3.animation;
++
++import java.io.IOException;
++import java.util.Collection;
++import java.util.HashMap;
++
++import com.jme3.export.InputCapsule;
++import com.jme3.export.JmeExporter;
++import com.jme3.export.JmeImporter;
++import com.jme3.export.OutputCapsule;
++
++/**
++ * An AnimationProvider based on a hashmap of animations
++ * 
++ */
++public class HashMapAnimationProvider extends AnimationProvider {
++
++	/**
++	 * List of animations
++	 */
++	protected HashMap<String, Animation> animationMap = new HashMap<String, Animation>();
++
++	/**
++	 * Sets the animations to the provided map of animation names to boneanimations
++	 */
++	public void setAnimations(HashMap<String, Animation> animations) {
++		this.animationMap = animations;
++	}
++
++	/**
++	 * Returns the animation requested by name or null if the animation does not exist
++	 */
++	public Animation getAnimation(String name, AnimControl control) {
++		return this.animationMap.get(name);
++	}
++
++	/**
++	 * Removes the specified animation specified by name or throws an IllegalStateException if the animation does not exisit in this provider
++	 */
++	public void removeAnimation(String name) {
++		if (!animationMap.containsKey(name)) {
++			throw new IllegalArgumentException(
++					"Given animation does not exist " + "in this AnimControl");
++		}
++
++		animationMap.remove(name);
++	}
++
++	/**
++	 * Adds an animation to the hash map
++	 */
++	public void addAnimation(Animation anim) {
++		animationMap.put(anim.getName(), anim);
++	}
++
++	/**
++	 * Returns a collection of the currently present animationnames
++	 */
++	public Collection<String> getAnimationNames() {
++		return animationMap.keySet();
++	}
++
++	/**
++	 * Returns the length of the given animation identified by name or throws an IllegalStateException if that animation is not present
++	 */
++	public float getAnimationLength(String name) {
++		Animation a = animationMap.get(name);
++		if (a == null) {
++			throw new IllegalArgumentException("The animation " + name
++					+ " does not exist in this AnimControl");
++		}
++
++		return a.getLength();
++	}
++
++	public void write(JmeExporter ex) throws IOException {
++		OutputCapsule oc = ex.getCapsule(this);
++		oc.writeStringSavableMap(animationMap, "animations", null);
++	}
++
++	public void read(JmeImporter im) throws IOException {
++		InputCapsule in = im.getCapsule(this);
++		animationMap = (HashMap<String, Animation>) in
++				.readStringSavableMap("animations", null);
++	}
++}
+Index: src/core/com/jme3/animation/AnimationProvider.java
+===================================================================
+--- src/core/com/jme3/animation/AnimationProvider.java	(revision 0)
++++ src/core/com/jme3/animation/AnimationProvider.java	(revision 0)
+@@ -0,0 +1,32 @@
++package com.jme3.animation;
++
++import java.io.IOException;
++import java.util.Collection;
++import java.util.HashMap;
++
++import com.jme3.export.JmeExporter;
++import com.jme3.export.JmeImporter;
++import com.jme3.export.Savable;
++
++public abstract class AnimationProvider implements Savable {
++
++	public AnimationProvider() {
++	}
++
++	public abstract void setAnimations(HashMap<String, Animation> animations);
++
++	public abstract Animation getAnimation(String name, AnimControl animControl);
++	
++	public abstract float getAnimationLength(String name);
++
++	public abstract void removeAnimation(String name);
++
++	public abstract void addAnimation(Animation anim);
++
++	public abstract Collection<String> getAnimationNames();
++
++	public abstract void write(JmeExporter ex) throws IOException;
++	
++	public abstract void read(JmeImporter im) throws IOException;
++
++}
+\ No newline at end of file
+Index: src/core/com/jme3/animation/BoneTrack.java
+===================================================================
+--- src/core/com/jme3/animation/BoneTrack.java	(revision 11061)
++++ src/core/com/jme3/animation/BoneTrack.java	(working copy)
+@@ -48,8 +48,11 @@
+     /**
+      * Bone index in the skeleton which this track effects.
+      */
+-    private int targetBoneIndex;
+-    
++    private int targetBoneIndex = -1;
++    /**
++     * Bone name in the skeleton which this track affects.
++     */
++    private String targetBoneName;
+     /**
+      * Transforms and times for track.
+      */
+@@ -97,6 +100,21 @@
+         this.targetBoneIndex = targetBoneIndex;
+     }
+ 
++    public BoneTrack(String boneName) {
++		this.targetBoneName = boneName;
++	}
++    
++    /**
++     * @return Target bone for this bonetrack
++     */
++    public String getTargetBoneName() {
++		return targetBoneName;
++	}
++    	
++	public void setTargetBoneIndex(int index) {
++        targetBoneIndex = index;
++    }
++
+     /**
+      * @return the bone index of this bone track.
+      */
+@@ -286,7 +304,8 @@
+     @Override
+     public void write(JmeExporter ex) throws IOException {
+         OutputCapsule oc = ex.getCapsule(this);
+-        oc.write(targetBoneIndex, "boneIndex", 0);
++        oc.write(targetBoneIndex, "boneIndex", -1);
++        oc.write(targetBoneName, "boneName", null);
+         oc.write(translations, "translations", null);
+         oc.write(rotations, "rotations", null);
+         oc.write(times, "times", null);
+@@ -296,7 +315,8 @@
+     @Override
+     public void read(JmeImporter im) throws IOException {
+         InputCapsule ic = im.getCapsule(this);
+-        targetBoneIndex = ic.readInt("boneIndex", 0);
++        targetBoneIndex = ic.readInt("boneIndex", -1);
++        targetBoneName = ic.readString("boneName", null);
+ 
+         translations = (CompactVector3Array) ic.readSavable("translations", null);
+         rotations = (CompactQuaternionArray) ic.readSavable("rotations", null);
+Index: src/core/com/jme3/animation/AnimChannel.java
+===================================================================
+--- src/core/com/jme3/animation/AnimChannel.java	(revision 11065)
++++ src/core/com/jme3/animation/AnimChannel.java	(working copy)
+@@ -189,7 +189,7 @@
+         if (blendTime < 0f)
+             throw new IllegalArgumentException("blendTime cannot be less than zero");
+ 
+-        Animation anim = control.animationMap.get(name);
++        Animation anim = control.getAnim(name);
+         if (anim == null)
+             throw new IllegalArgumentException("Cannot find animation named: '"+name+"'");
+ 
+Index: src/core/com/jme3/animation/Animation.java
+===================================================================
+--- src/core/com/jme3/animation/Animation.java	(revision 11061)
++++ src/core/com/jme3/animation/Animation.java	(working copy)
+@@ -221,4 +221,26 @@
+             }
+         }
+     }
++    
++    
++    /**
++     * BoneTracks without a bone index but a bone name can be
++     * bound to the specified bone index. This can be used for
++     * loading animation tracks only and being able to play them
++     * on any bone or any skeleton, as long as the bone name does
++     * match
++     */
++    public void rewireBoneTracks(Skeleton skeleton) {
++		if(tracks != null){
++			for(Track tr : tracks){
++				if(tr instanceof BoneTrack){
++					BoneTrack bt = (BoneTrack) tr;
++				if(bt.getTargetBoneIndex() < 0)
++					bt.setTargetBoneIndex(skeleton.getBoneIndex(bt.getTargetBoneName()));
++				else
++					return;
++				}
++			}
++		}
++	}
+ }
+Index: src/core/com/jme3/util/TangentBinormalGenerator.java
+===================================================================
+--- src/core/com/jme3/util/TangentBinormalGenerator.java	(revision 11061)
++++ src/core/com/jme3/util/TangentBinormalGenerator.java	(working copy)
+@@ -40,6 +40,7 @@
+ import com.jme3.scene.VertexBuffer.Type;
+ import com.jme3.scene.VertexBuffer.Usage;
+ import com.jme3.scene.mesh.IndexBuffer;
++
+ import static com.jme3.util.BufferUtils.*;
+ import java.nio.Buffer;
+ import java.nio.ByteBuffer;
+@@ -990,4 +991,156 @@
+         //lineMesh.setInterleaved();
+         return lineMesh;
+     }
++    
++    
++    //TR CODE
++    
++    private static interface IndexWrapper {
++        public int get(int i);
++        public short getShort(int i);
++        public int size();
++    }
++    
++    private static IndexWrapper getIndexWrapper(final Buffer buff) {
++        if (buff instanceof ShortBuffer) {
++            return new IndexWrapper() {
++                private ShortBuffer buf = (ShortBuffer) buff;
++                public int get(int i) {
++                    return ((int) buf.get(i))&(0x0000FFFF);
++                }
++                public short getShort(int i){return buf.get(i);}
++                public int size() {
++                    return buf.capacity();
++                }
++            };
++        }
++        else if (buff instanceof IntBuffer) {
++            return new IndexWrapper() {
++                private IntBuffer buf = (IntBuffer) buff;
++                public int get(int i) {
++                    return buf.get(i);
++                }
++                public int size() {
++                    return buf.capacity();
++                }
++				@Override
++				public short getShort(int i) {
++					return 0;
++				}
++            };
++        } else {
++            throw new IllegalArgumentException();
++        }
++    }
++    public static boolean generateFaceNormalsAndTangents(Mesh mesh){
++
++    	if(mesh.getMode() != Mesh.Mode.Triangles)
++    		return false;
++    	
++        IndexWrapper indexBuffer =  getIndexWrapper(mesh.getBuffer(Type.Index).getData());
++        FloatBuffer vertexBuffer = (FloatBuffer) mesh.getBuffer(Type.Position).getData();
++        if (mesh.getBuffer(Type.TexCoord) == null)
++            throw new IllegalArgumentException("Can only generate tangents for "
++                                             + "meshes with texture coordinates");
++        
++        FloatBuffer textureBuffer = (FloatBuffer) mesh.getBuffer(Type.TexCoord).getData();
++        FloatBuffer tangents = BufferUtils.createFloatBuffer(vertexBuffer.capacity());
++        FloatBuffer normals = BufferUtils.createFloatBuffer(vertexBuffer.capacity());
++
++        Vector3f v1 = new Vector3f();
++        Vector3f v2 = new Vector3f();
++        Vector3f v3 = new Vector3f();
++        Vector2f t1 = new Vector2f();
++        Vector2f t2 = new Vector2f();
++        Vector2f t3 = new Vector2f();
++        for (int i = 0; i < indexBuffer.size(); i+=3) {
++            	int i1 = indexBuffer.get(i);
++                populateFromBuffer(v1, vertexBuffer, i1);
++                populateFromBuffer(t1, textureBuffer, i1);
++            	int i2 = indexBuffer.get(i+1);
++                populateFromBuffer(v2, vertexBuffer, i2);
++                populateFromBuffer(t2, textureBuffer, i2);
++            	int i3 = indexBuffer.get(i+2);
++                populateFromBuffer(v3, vertexBuffer, i3);
++                populateFromBuffer(t3, textureBuffer, i3);
++                
++                Vector3f v21 = v2.subtract(v1);
++                Vector3f v31 = v3.subtract(v1);
++                Vector2f t21 = t2.subtract(t1);
++                Vector2f t31 = t3.subtract(t1);
++                
++                Vector3f fNormal = v21.cross(v31);
++                fNormal.normalizeLocal();
++                Vector3f fTangent;
++                if(t21.y<0.000001f && t21.y>-0.000001f){
++                	if(t31.y<0.000001f && t31.y>-0.000001f){
++                		fTangent = Vector3f.UNIT_XYZ.clone();
++                    } else {
++                    	fTangent = v31.divide(t31.y);
++                    }
++                } else {
++                	fTangent = v21.divide(t21.y);
++                }
++                fTangent.normalizeLocal();
++                tangents.put(i1*3, fTangent.x);
++                tangents.put(i1*3+1, fTangent.y);
++                tangents.put(i1*3+2, fTangent.z);
++                tangents.put(i2*3, fTangent.x);
++                tangents.put(i2*3+1, fTangent.y);
++                tangents.put(i2*3+2, fTangent.z);
++                tangents.put(i3*3, fTangent.x);
++                tangents.put(i3*3+1, fTangent.y);
++                tangents.put(i3*3+2, fTangent.z);
++                normals.put(i1*3, fTangent.x);
++                normals.put(i1*3+1, fTangent.y);
++                normals.put(i1*3+2, fTangent.z);
++                normals.put(i2*3, fTangent.x);
++                normals.put(i2*3+1, fTangent.y);
++                normals.put(i2*3+2, fTangent.z);
++                normals.put(i3*3, fTangent.x);
++                normals.put(i3*3+1, fTangent.y);
++                normals.put(i3*3+2, fTangent.z);
++        }
++        mesh.clearBuffer(Type.Normal);
++        mesh.clearBuffer(Type.Tangent);
++        mesh.setBuffer(Type.Normal, 3, normals);
++        mesh.setBuffer(Type.Tangent, 3, tangents);
++        return true;
++    }
++    
++    /**
++     * Fix the normals of vertices lying on the edge of a tile to face a direction ON the edge. The result will be
++     * that two tiles corrected by this way will do not have seams on adjecant vertices.
++     * The algorithm works by moving the normal x and z values to 0 if the vertex is on the corresponding border.
++     * @param mesh				The mesh, normals should be fixed
++     * @param borderDistance	The distance from the center to one border, asuming all 4 borders at same distance
++     * @param borderTolerance	The positive tolerance value for checks if a vertex is on the border. Anything vertex within that distance to a border will be fixed.
++     */
++    public static void fixTileNormals(Mesh mesh, float borderDistance, float borderTolerance){
++        FloatBuffer vertexBuffer = (FloatBuffer) mesh.getBuffer(Type.Position).getData();
++        FloatBuffer normalBuffer = (FloatBuffer) mesh.getBuffer(Type.Normal).getData();
++        FloatBuffer normals = BufferUtils.createFloatBuffer(vertexBuffer.capacity());
++        Vector3f v = new Vector3f();
++        Vector3f n = new Vector3f();
++        //just loop over all values, whatever type it is, a vertex has its normal at the corresponding index
++        for (int i = 0; i < vertexBuffer.capacity()/3; i++) {
++                populateFromBuffer(v, vertexBuffer, i);
++                populateFromBuffer(n, normalBuffer, i);
++                
++                //on left or right border, the set x comp of normal to 0
++                if(FastMath.abs(v.x+borderDistance) <=borderTolerance) n.x = 0f;
++                else if(FastMath.abs(-v.x+borderDistance) <=borderTolerance) n.x = 0f;
++                //on top or bottom border, the set z comp of normal to 0
++                if(FastMath.abs(v.z+borderDistance) <=borderTolerance) n.z = 0f;
++                else if(FastMath.abs(-v.z+borderDistance) <=borderTolerance) n.z = 0f;
++                
++                n.normalizeLocal();
++                normals.put(n.x);
++                normals.put(n.y);
++                normals.put(n.z);
++        }
++        mesh.clearBuffer(Type.Normal);
++        mesh.setBuffer(Type.Normal, 3, normals);
++    }
++    //TR CODE END
+ }
+Index: src/core/com/jme3/shader/Uniform.java
+===================================================================
+--- src/core/com/jme3/shader/Uniform.java	(revision 11061)
++++ src/core/com/jme3/shader/Uniform.java	(working copy)
+@@ -127,6 +127,9 @@
+     }
+     
+     public void clearValue(){
++        if (location == LOC_NOT_DEFINED) {
++            return;
++        }
+         updateNeeded = true;
+ 
+         if (multiData != null){           

@@ -53,11 +53,17 @@ public class EntityData  {
 	 * Raw Server based value of the height used to returning move requests
 	 */
 	private int _serverZ;
+	private int gameTime;
+	private boolean _lastUsed;
 
 
 
     public EntityData()
     {
+    }
+    
+    public String toString(){
+    	return _name+":"+_objectId+":"+_charId;
     }
 
     public int getObjectId()
@@ -385,4 +391,29 @@ public class EntityData  {
 	public boolean isGM() {
 		return _GM;
 	}
+
+	public void setGameTime(int time) {
+		gameTime = time;
+	}
+	
+	public int getGameTime() {
+		return gameTime;
+	}
+
+	public void setLastUsed(boolean b) {
+		this._lastUsed = true;
+	}
+
+	public boolean isLastUsed() {
+		return _lastUsed;
+	}
+
+	/**
+	 * @param _lastUsed the _lastUsed to set
+	 */
+	public void set_lastUsed(boolean _lastUsed) {
+		this._lastUsed = _lastUsed;
+	}
+	
+	
 }

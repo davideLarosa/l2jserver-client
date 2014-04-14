@@ -1,12 +1,11 @@
 package com.l2client.component;
 
+import java.util.ArrayList;
+
 import com.jme3.math.Vector3f;
 import com.l2client.controller.entity.ISpatialPointing;
-import com.l2client.navigation.Cell;
-import com.l2client.navigation.EntityNavigationManager;
 import com.l2client.navigation.Path;
-import com.l2client.navigation.Path.WAYPOINT;
-import com.l2client.navigation.TiledNavMesh;
+import com.l2client.navigation.Path.WayPoint;
 
 /**
  * Full blown positioning component based on nav mesh and waypoints
@@ -50,29 +49,40 @@ public class PositioningComponent implements Component, ISpatialPointing{
 	//the current path followed
 	public Path path;
 	//the next waypoint
-	public Path.WAYPOINT nextWayPoint;
+	public Path.WayPoint nextWayPoint;
 	//current NavMesh
-	public TiledNavMesh mesh;
+	public int mesh = -1;
 	//current Cell
-	public Cell cell;
+	public int cell = -1;
 	//are we in a teleport, then our goalPos is the new teleport location
 	public boolean teleport;
+	
+	
+	public String toString(){
+		StringBuilder build = new StringBuilder();
+		build.append(this.getClass().getSimpleName()).append(" ")
+		.append("pos:").append(position)
+		.append(" goal:").append(goalPos)
+		.append(" heading:").append(heading)
+		.append(" theading:").append(targetHeading)
+		.append(" cell:").append(cell)
+		.append(" size:").append(size)
+		.append(" heihtoffset:").append(heightOffset);
+		return build.toString();
+	}
 
 	
 	
 	public void initByWayPoint(Path p){
-		WAYPOINT start = p.StartPoint();
+		ArrayList<WayPoint> wpl = p.WaypointList();
+		WayPoint wp = wpl.get(0);
 		path = p;
-		mesh = (TiledNavMesh) start.mesh;
-		cell = start.Cell;
-		position.set(start.Position);
-		if(p.m_WaypointList.size()>1){
-			if(EntityNavigationManager.USE_OPTIMZED_PATH)
-				nextWayPoint = p.m_OptimalWaypointList.get(1);
-			else
-				nextWayPoint = p.m_WaypointList.get(1);
-			
-			goalPos.set(nextWayPoint.Position);
+		mesh = wp.mesh;
+		cell = wp.cell;
+		position.set(wp.position);
+		if(wpl.size()>1){
+			nextWayPoint = wpl.get(1);
+			goalPos.set(nextWayPoint.position);
 		}	
 	}
 

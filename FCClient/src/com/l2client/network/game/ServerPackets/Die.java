@@ -2,7 +2,10 @@ package com.l2client.network.game.ServerPackets;
 
 import com.l2client.animsystem.jme.actions.CallActions;
 import com.l2client.app.Singleton;
+import com.l2client.component.Component;
+import com.l2client.component.EnvironmentComponent;
 import com.l2client.component.L2JComponent;
+import com.l2client.component.TargetComponent;
 import com.l2client.controller.entity.EntityManager;
 
 public class Die extends GameServerPacket {
@@ -35,8 +38,19 @@ public class Die extends GameServerPacket {
     	L2JComponent com = (L2JComponent) ent.getComponent(id, L2JComponent.class);
     	com.l2jEntity.setCurrentHp(0);
     	
-        if(id == _client.getCharHandler().getSelectedObjectId()) {
+    	//player died
+    	int playerId = _client.getCharHandler().getSelectedObjectId();
+        if(id == playerId) {
 	        Singleton.get().getGuiController().displayReviveJPanel(whereTo, null);
+        } else { //target died?
+        	TargetComponent tgt = (TargetComponent) ent.getComponent(playerId, TargetComponent.class);
+        	if(tgt.getCurrentTarget() == id){
+        		//remove it and signla env change
+        		tgt.setNoTarget();
+        		EnvironmentComponent env = (EnvironmentComponent) ent.getComponent(playerId, EnvironmentComponent.class);
+        		env.changed = true;
+        		
+        	}
         }
 	}
 

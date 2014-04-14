@@ -3,7 +3,7 @@ package com.l2client.util;
 import java.io.IOException;
 import java.util.Calendar;
 
-import tonegod.skydome.FogFilter;
+//import tonegod.skydome.FogFilter;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.export.InputCapsule;
@@ -33,7 +33,7 @@ import com.jme3.texture.Texture.WrapMode;
  *
  * @author t0neg0d
  */
-//FIXME used at all? why here, for extending?
+//FIXME used at all? check fog, check sun/moon not showing
 public class SkyDome implements Control {
 	private ViewPort viewPort;
 	private Spatial spatial;
@@ -41,7 +41,7 @@ public class SkyDome implements Control {
 	private Node skyNight;
 	private Camera cam;
     private boolean enabled = true;
-	private FogFilter fog = null;
+//	private FogFilter fog = null;
 	private DirectionalLight sun = null;
 	private ColorRGBA sunDayLight  = new ColorRGBA(.92f, .92f, .92f, 1f);
 	private ColorRGBA sunNightLight  = new ColorRGBA(.15f, .15f, .15f, .25f);
@@ -254,16 +254,16 @@ public class SkyDome implements Control {
 		this.cycleN2D = true;
 	}
 	
-	// Fog
-	/**
-	 * Sets a pointer to the fog filter used by the JME application that initialized the SkyDome control
-	 * @param fog  The FogFilter to adjust during transitions
-	 * @param viewPort  The default ViewPort for background color manipulation used for fog blending
-	 */
-	public void setFogFilter(FogFilter fog, ViewPort viewPort) {
-		this.fog = fog;
-		this.viewPort = viewPort;
-	}
+//	// Fog
+//	/**
+//	 * Sets a pointer to the fog filter used by the JME application that initialized the SkyDome control
+//	 * @param fog  The FogFilter to adjust during transitions
+//	 * @param viewPort  The default ViewPort for background color manipulation used for fog blending
+//	 */
+//	public void setFogFilter(FogFilter fog, ViewPort viewPort) {
+//		this.fog = fog;
+//		this.viewPort = viewPort;
+//	}
 	/**
      * Sets the day time fog color to use
      * @param fogColor  Default value is 0.7f, 0.7f, 0.7f, 0.6f
@@ -604,10 +604,13 @@ public class SkyDome implements Control {
 		if (moonMap != null) {
 			this.mat_Sky.setFloat("SunMoonSpeed", sunMoonSpeed);
 		}
-		if (getHour(getTime()) >= 6 && getHour(getTime()) < 18)
+		if (getHour(getTime()) >= 6 && getHour(getTime()) < 18) {
 			sunDay = true;
-		else
+			if (controlSun) sun.setColor(sunDayLight);
+		} else {
 			sunDay = false;
+			if (controlSun) sun.setColor(sunNightLight);
+		}
 		mat_Sky.setBoolean("IsDay", sunDay);
 		mat_Sky.setFloat("SunMoonOffsetX", sunOffsetX);
 	}
@@ -664,8 +667,15 @@ public class SkyDome implements Control {
 		return this.useCalendar;
 	}
 	
+	//FIXME this should be a setStartTime not an offset
 	public void setTimeOffset(long dt){
-		this.timeOffset = dt;
+		if(useCalendar){
+			Calendar cal = Calendar.getInstance();
+			timeOffset = dt-cal.getTimeInMillis();
+		} else {
+			timeOffset = dt- System.currentTimeMillis()/1000;
+		}
+		checkDayNight();
 	}
 	private long getTime() {
 		if(useCalendar){
@@ -732,6 +742,7 @@ public class SkyDome implements Control {
 		return (int)(hRem/secondsPerMinute);
 	}
 	
+	static long hour =0;
 	@Override
 	public void update(float tpf) {
 		if (spatial != null && enabled) {
@@ -740,14 +751,7 @@ public class SkyDome implements Control {
 			spatial.setLocalTranslation(camLF[0], camLF[1]+.25f, camLF[2]);
 			
 //			if (getUseCalendar()) {
-				if (getHour(getTime()) == 6) {
-					cycleN2D = true; cycleD2N = false; sunDay = true; //horizonAlpha = 1.0f;
-					mat_Sky.setBoolean("IsDay", sunDay);
-				}
-				if (getHour(getTime()) == 18) {
-					cycleN2D = false; cycleD2N = true; sunDay = false; //horizonAlpha = 0.0f;
-					mat_Sky.setBoolean("IsDay", sunDay);
-				}
+				checkDayNight();
 				
 				if (sunDay) {
 					sunRotation += tpf*this.sunSpeed;
@@ -774,20 +778,20 @@ public class SkyDome implements Control {
 					horizonAlpha = 1.0f - dayAlpha;
 					mat_Sky.setFloat("Alpha", dayAlpha);
 					mat_Sky.setFloat("HorizonAlpha", horizonAlpha);
-					if (fog != null && controlFog) { 
-						viewPort.setBackgroundColor(mix(fogNightColor,fogColor,dayAlpha));
-						fog.setFogColor(mix(fogNightColor,fogColor,dayAlpha));
-					}
+//					if (fog != null && controlFog) { 
+//						viewPort.setBackgroundColor(mix(fogNightColor,fogColor,dayAlpha));
+//						fog.setFogColor(mix(fogNightColor,fogColor,dayAlpha));
+//					}
 					if (controlSun) sun.setColor(mix(sunNightLight,sunDayLight,dayAlpha));
 				} else {
 					dayAlpha = 1.0f;
 					horizonAlpha = 0.0f;
 					mat_Sky.setFloat("Alpha", dayAlpha);
 					mat_Sky.setFloat("HorizonAlpha", horizonAlpha);
-					if (fog != null && controlFog) { 
-						viewPort.setBackgroundColor(fogColor);
-						fog.setFogColor(fogColor);
-					}
+//					if (fog != null && controlFog) { 
+//						viewPort.setBackgroundColor(fogColor);
+//						fog.setFogColor(fogColor);
+//					}
 					if (controlSun) sun.setColor(sunDayLight);
 					cycleN2D = false;
 				}
@@ -797,20 +801,20 @@ public class SkyDome implements Control {
 					horizonAlpha = 1.0f - dayAlpha;
 					mat_Sky.setFloat("Alpha", dayAlpha);
 					mat_Sky.setFloat("HorizonAlpha", horizonAlpha);
-					if (fog != null && controlFog) { 
-						viewPort.setBackgroundColor(mix(fogNightColor,fogColor,dayAlpha));
-						fog.setFogColor(mix(fogNightColor,fogColor,dayAlpha));
-					}
+//					if (fog != null && controlFog) { 
+//						viewPort.setBackgroundColor(mix(fogNightColor,fogColor,dayAlpha));
+//						fog.setFogColor(mix(fogNightColor,fogColor,dayAlpha));
+//					}
 					if (controlSun) sun.setColor(mix(sunNightLight,sunDayLight,dayAlpha));
 				} else {
 					dayAlpha = 0.0f;
 					horizonAlpha = 1.0f;
 					mat_Sky.setFloat("Alpha", dayAlpha);
 					mat_Sky.setFloat("HorizonAlpha", horizonAlpha);
-					if (fog != null && controlFog) { 
-						viewPort.setBackgroundColor(fogNightColor);
-						fog.setFogColor(fogNightColor);
-					}
+//					if (fog != null && controlFog) { 
+//						viewPort.setBackgroundColor(fogNightColor);
+//						fog.setFogColor(fogNightColor);
+//					}
 					if (controlSun) sun.setColor(sunNightLight);
 					cycleD2N = false;
 				}
@@ -836,6 +840,26 @@ public class SkyDome implements Control {
 					cycleCO = false;
 				}
 			}
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void checkDayNight() {
+//		long h  = getHour(getTime());
+//		if(h != hour){
+//			hour = h;
+//			System.out.println("hour:"+hour+" color:"+sun.getColor());
+//		}
+		long hour  = getHour(getTime());
+		if ( hour == 6 ) {
+			cycleN2D = true; cycleD2N = false; sunDay = true; //horizonAlpha = 1.0f;
+			mat_Sky.setBoolean("IsDay", sunDay);
+		}
+		if( hour == 18) {
+			cycleN2D = false; cycleD2N = true; sunDay = false; //horizonAlpha = 0.0f;
+			mat_Sky.setBoolean("IsDay", sunDay);
 		}
 	}
 	@Override

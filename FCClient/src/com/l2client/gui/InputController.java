@@ -5,6 +5,7 @@ import java.util.Stack;
 
 import com.jme3.input.InputManager;
 import com.l2client.gui.actions.BaseUsable;
+import com.l2client.model.network.ClientFacade;
 
 /**
  * Input controller for pushing and popping input handlers so each gui can have its own
@@ -12,7 +13,7 @@ import com.l2client.gui.actions.BaseUsable;
  */
 public final class InputController {
 
-	private final static InputController instance = new InputController();
+	private static InputController singleton;
 	private InputManager inputManager = null;
 	private Stack<ArrayList<BaseUsable>> actions = null;
 	
@@ -21,7 +22,14 @@ public final class InputController {
 	}
 	
 	public static InputController get(){
-		return instance;
+		if(singleton == null){
+			synchronized (InputController.class) {
+				if(singleton == null){
+					singleton = new InputController();
+				}
+			}
+		}
+		return singleton;
 	}
 	
 	/**

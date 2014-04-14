@@ -27,6 +27,16 @@ public class TargetComponent implements Component {
 	 */
 	public ColorRGBA color;
 	
+	public String toString(){
+		StringBuilder build = new StringBuilder();
+		build.append(this.getClass().getSimpleName()).append(" ")
+		.append("currenttgt:").append(currentTargetID)
+		.append(" lasttgt:").append(lastTargetID)
+		.append(" pos:").append(pos)
+		.append(" color:").append(color);
+		return build.toString();
+	}
+	
 	public boolean hasTarget(){
 		return currentTargetID != NO_TARGET;
 	}

@@ -81,7 +81,7 @@ public class EntityManager {
 		return new ArrayList<Component>();
 	}
 	
-
+//FIXME well make this templated, see below
 	public Component getComponent(int entityId, Class<? extends Component> type) {
 		HashMap<Class<? extends Component>, Component> set = entityComponents
 				.get(entityId);
@@ -90,6 +90,14 @@ public class EntityManager {
 		else
 			return null;
 	}
+	
+//	public <T> T getComponent(int entityId, Class<T> clazz){
+//		HashMap<Class<T>, T> set = entityComponents.get(entityId);
+//		if (set != null)
+//			return set.get(clazz);
+//		else
+//			return null;
+//	}
 
 	public void addComponent(int entityId, Component com) {
 		log.finer("Adding component "+com+" to "+entityId);

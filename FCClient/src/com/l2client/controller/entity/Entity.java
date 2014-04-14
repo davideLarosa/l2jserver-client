@@ -1,5 +1,6 @@
 package com.l2client.controller.entity;
 
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.l2client.component.ComponentSystem;
 
@@ -21,6 +22,7 @@ public class Entity extends Node {
 	Entity(int id){
 		super("Entity: "+id);
 		this.id = id;
+		this.setShadowMode(ShadowMode.Inherit);
 	}
 	
 	public int getId(){

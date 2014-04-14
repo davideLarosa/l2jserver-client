@@ -26,6 +26,6 @@ public class IdentityComponent implements Component {
 	}
 	
 	public String toString(){
-		return "id:"+id+" entity:"+entity;
+		return getClass().getSimpleName()+" id:"+id+" entity:"+entity;
 	}
 }

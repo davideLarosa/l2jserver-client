@@ -1,6 +1,7 @@
 package com.l2client.controller.area;
 
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 
 public interface ITileManager {
 
@@ -16,6 +17,9 @@ public interface ITileManager {
 	 */
 	public abstract void update(Vector3f worldPosition);
 
+	/**
+	 * Adds a sky node to the char
+	 */
 	public abstract void addSkyDome();
 
 	public abstract void removeSkyDome();
@@ -25,5 +29,12 @@ public interface ITileManager {
 	 * @param worldPosition	a position on the tile in world coordinates
 	 */
 	public abstract void prepareTeleport(Vector3f worldPosition);
+
+	/**
+	 * adds a skydome to the char node
+	 * @param cam			camera used for sky rendering
+	 * @param timeOffset	timeoffset for starting time
+	 */
+	public abstract void addSkyDome(Camera cam, int timeOffset);
 
 }

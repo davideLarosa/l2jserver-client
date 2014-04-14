@@ -9,6 +9,7 @@ import com.jme3.animation.AnimControl;
 import com.jme3.animation.Skeleton;
 import com.jme3.animation.SkeletonControl;
 import com.jme3.material.Material;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -132,6 +133,7 @@ public class Assembler {
             BoundsUpdateControl bc = new BoundsUpdateControl();
             bc.setSkeleton(skel);
             model.addControl(bc);
+            model.setShadowMode(ShadowMode.CastAndReceive);
             
         }
         return model;

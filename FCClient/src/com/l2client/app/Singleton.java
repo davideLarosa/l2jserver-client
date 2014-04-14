@@ -16,6 +16,7 @@ import com.l2client.gui.GuiController;
 import com.l2client.gui.InputController;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.navigation.EntityNavigationManager;
+import com.l2client.navigation.NavigationManager;
 import com.l2client.util.AnimationManager;
 import com.l2client.util.PartSetManager;
 import com.l2client.util.SkeletonManger;
@@ -43,15 +44,20 @@ public class Singleton {
 	private ActionManager actionManager;
 	private ClientFacade client;
 	
+	private static Singleton singleton;
+	
 	private Singleton(){
 	}
-	
-	private static class SingletonHolder {
-		public static final Singleton instance = new Singleton();
-	}
-	
+
 	public static Singleton get(){
-		return SingletonHolder.instance;
+		if(singleton == null){
+			synchronized (Singleton.class) {
+				if(singleton == null){
+					singleton = new Singleton();
+				}
+			}
+		}
+		return singleton;
 	}
 	
 	public void init(ITileManager tm){
@@ -70,7 +76,7 @@ public class Singleton {
 			terrainManager.initialize();
 		animManager = AnimationManager.get();
 		
-    	navManager = EntityNavigationManager.get();
+    	navManager = (EntityNavigationManager) EntityNavigationManager.get();
     	entityManager = EntityManager.get();
     	jmeSystem = JmeUpdateSystem.get();
     	posSystem = PositioningSystem.get();

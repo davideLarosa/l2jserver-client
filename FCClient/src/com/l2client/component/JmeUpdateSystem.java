@@ -5,6 +5,7 @@ import com.jme3.math.Vector3f;
 import com.l2client.app.Singleton;
 import com.l2client.controller.entity.Entity;
 import com.l2client.controller.entity.EntityManager;
+import com.l2client.gui.InputController;
 import com.l2client.model.jme.VisibleModel;
 
 /**
@@ -18,19 +19,20 @@ public class JmeUpdateSystem extends ComponentSystem {
 	
 //	public static float MAX_TARGETING_DISTANCE = 30f;
 
-	private static JmeUpdateSystem inst = null;
+	private static JmeUpdateSystem singleton = null;
 	
 	private JmeUpdateSystem(){
-		inst = this;
 	}
 	
 	public static JmeUpdateSystem get(){
-		if(inst != null)
-			return inst;
-		
-		new JmeUpdateSystem();
-		
-		return inst;
+		if(singleton == null){
+			synchronized (JmeUpdateSystem.class) {
+				if(singleton == null){
+					singleton = new JmeUpdateSystem();
+				}
+			}
+		}
+		return singleton;
 	}
 
 	@Override
