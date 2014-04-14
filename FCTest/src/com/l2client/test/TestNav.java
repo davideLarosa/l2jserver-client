@@ -70,9 +70,9 @@ public class TestNav extends SimpleApplication {
 		    		Path p = new Path();
 					p = NavTestHelper.findPath(em, new Vector3f(1.1f,0,1f), new Vector3f(3.1f,0,3f));
 					if(p != null){
-					int s = p.m_WaypointList.size();
+					int s = p.WaypointList().size();
 					for(int i =s-1;i>run;i--)
-						p.m_WaypointList.remove(i);
+						p.WaypointList().remove(i);
 					NavTestHelper.debugShowCost(assetManager, debugNodes, p, ColorRGBA.Cyan);
 					NavTestHelper.debugShowPath(assetManager, debugNodes, p);
 					NavTestHelper.areCellsConnected(p);

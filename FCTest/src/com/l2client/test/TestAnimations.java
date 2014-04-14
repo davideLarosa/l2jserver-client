@@ -28,7 +28,7 @@ public class TestAnimations extends ExtendedApplication {
 
 	int MAX_NODES = 10;
 	
-	PartSetManager man = Singleton.get().getPartManager();
+	PartSetManager man;
 	
 	Node[] nodes = new Node[MAX_NODES];
 	
@@ -41,6 +41,8 @@ public class TestAnimations extends ExtendedApplication {
 
     public void simpleInitApp() {
     	
+    	Singleton.get().init(null);
+    	man = Singleton.get().getPartManager();
     	man.loadParts("megaset.csv");
          
         //move cam a bit closer
@@ -86,7 +88,7 @@ public class TestAnimations extends ExtendedApplication {
     private void setupScene() {
 
     	//TODO could use getTemplates to switch through models..
-    	Node n = Assembler2.getModel3("dwarfwarrior"); //"pelffwarrior");//humanhalberd"); //goblin");
+    	Node n = Assembler2.getModel3("DwarfWarriorM"); //"pelffwarrior");//humanhalberd"); //goblin");
 
     	if(n != null){
     		rootNode.attachChild(n);

@@ -135,7 +135,7 @@ if(pc != null){
 	
 		System.out.print("Ent 1@:"+pc.position+" path:"+pc.path);
 		if(pc.nextWayPoint != null)
-			System.out.println(" heading:"+pc.nextWayPoint.Position);
+			System.out.println(" heading:"+pc.nextWayPoint.position);
 		else
 			System.out.println(" heading: not moving");
 		
@@ -199,7 +199,7 @@ if(pc != null){
 			Cell c = Singleton.get().getNavManager().FindClosestCell(pos, false);
 			pc = new PositioningComponent();
 			if (c != null) {
-				pc.cell = c;
+				pc.cell = c.getId();
 				c.MapVectorHeightToCell(pos);
 			}
 			pc.position.set(pos);
