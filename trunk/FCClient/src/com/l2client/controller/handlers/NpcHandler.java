@@ -27,7 +27,6 @@ import com.l2client.model.network.NpcData;
  * other players are npcs too.
  * 
  */
-//TODO implement removal of npcs (DeleteObject message from server ??) and cache clearing
 //TODO do we really need this, or is it sufficient to have a npc factory as everything else is in entitymanager?
 public class NpcHandler {
 	

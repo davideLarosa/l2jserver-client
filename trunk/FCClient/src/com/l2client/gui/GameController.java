@@ -10,19 +10,26 @@ import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.Light;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 import com.l2client.app.Singleton;
 import com.l2client.controller.SceneManager.Action;
@@ -31,7 +38,9 @@ import com.l2client.gui.dialogs.CharCreateJPanel;
 import com.l2client.gui.dialogs.ChatPanel;
 import com.l2client.gui.dialogs.GameServerJPanel;
 import com.l2client.gui.dialogs.TransparentLoginPanel;
+import com.l2client.model.jme.NPCModel;
 import com.l2client.model.jme.NewCharacterModel;
+import com.l2client.model.jme.VisibleModel;
 import com.l2client.model.network.ClientFacade;
 import com.l2client.model.network.GameServerInfo;
 import com.l2client.network.game.ClientPackets.CharacterCreate;
@@ -50,11 +59,12 @@ import com.l2client.network.login.LoginHandler;
 public final class GameController {
 
 	private static final String SCENES_CREATE = "scenes/create/create.j3o";
+	private static final String SCENES_SELECT = "scenes/select/select.j3o";
 
 	private static final Logger logger = Logger.getLogger(GameController.class
             .getName());
 	
-	private final static GameController instance = new GameController();
+	private static GameController singleton;
 	
 //	private boolean finished = false;
 	
@@ -81,7 +91,14 @@ public final class GameController {
 	}
 	
 	public static GameController get(){
-		return instance;
+		if(singleton == null){
+			synchronized (GameController.class) {
+				if(singleton == null){
+					singleton = new GameController();
+				}
+			}
+		}
+		return singleton;
 	}	
 	
 	public void initialize(Camera cam, AppSettings settings /*, ViewPort viewPort*/){
@@ -114,12 +131,14 @@ public final class GameController {
 //		//startup of asset loading for area around char
 //		sceneRoot.updateModelBound();
 //		sceneRoot.updateGeometricState();
-		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
-		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
-				0.32999992f, 0.6059958f);
-		fpp.addFilter(ssaoFilter);
-		logger.severe("Adding SSAO");
-		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
+		
+		//does not look good
+//		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
+//		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
+//				0.32999992f, 0.6059958f);
+//		fpp.addFilter(ssaoFilter);
+//		logger.severe("Adding SSAO");
+//		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
 	}
 	
 	private void setupGameGUI() {
@@ -169,11 +188,12 @@ public final class GameController {
 		Singleton.get().getSceneManager().removeAll();
 		Singleton.get().getGuiController().removeAll();
 
-		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
-		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
-				0.32999992f, 0.6059958f);
-		fpp.addFilter(ssaoFilter);
-		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
+		//does not look good
+//		FilterPostProcessor fpp = new FilterPostProcessor(Singleton.get().getAssetManager().getJmeAssetMan());
+//		SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f,
+//				0.32999992f, 0.6059958f);
+//		fpp.addFilter(ssaoFilter);
+//		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
 
 		//display available chars + gui for creation of new one
 		//if none present go directly for creation of new char
@@ -189,19 +209,36 @@ public final class GameController {
 		Singleton.get().getSceneManager().removeAll();
 		
 		try{
-			Spatial n = Singleton.get().getAssetManager().getJmeAssetMan()
+			Node n = (Node) Singleton.get().getAssetManager().getJmeAssetMan()
 					.loadModel(SCENES_CREATE);
 			Singleton.get().getSceneManager().changeTerrainNode(n, Action.ADD);
 			
-			//this is needed as the ssao pass will other wise only render 
-			//the shadow of our attached chars as they are on a different 
-			//root (nice for a ghost effect or so)
+//			//this is needed as the ssao pass will other wise only render 
+//			//the shadow of our attached chars as they are on a different 
+//			//root (nice for a ghost effect or so)
+//			for(Light l : n.getLocalLightList()){
+//				if(l instanceof AmbientLight){
+//					n.removeLight(l);
+//					l.setColor(new ColorRGBA(0.6f,0.6f,0.8f,1.0f));
+//					Singleton.get().getSceneManager().changeRootLight(l, Action.ADD);
+//				}
+//			}
+			
+			//ARGH !! the troll in the sdk is a standard jme anim troll,
+			//it does not work without being loaded by the standard animation package using animationproviders
+			//so relaping it here
+			Spatial troll = n.getChild("troll");	
+			if(troll != null){
+				n.detachChild(troll);
+				VisibleModel newtroll = new VisibleModel(null);
+				newtroll.attachVisuals();
+				newtroll.setLocalTranslation(troll.getLocalTranslation());
+				n.attachChild(newtroll);
+			}
+			//this is needed as the chars are on a different node and would not be rendered
+			//just add, do not remove here..
 			for(Light l : n.getLocalLightList()){
-				if(l instanceof AmbientLight){
-					n.removeLight(l);
-					l.setColor(new ColorRGBA(0.6f,0.6f,0.8f,1.0f));
 					Singleton.get().getSceneManager().changeRootLight(l, Action.ADD);
-				}
 			}
 				
 		} catch (Exception e1) {
@@ -243,8 +280,6 @@ public final class GameController {
 						// this gets executed in jme thread
 						// do 3d system calls in jme thread only!
 
-						//FIXME check first what changed, only the label, the race (basemodel), the hair/face (components)
-
 						Singleton.get().getSceneManager().removeChar();
 						
 						//FIXME reevaluate model composition
@@ -278,12 +313,12 @@ public final class GameController {
 		//purge root
 		Singleton.get().getSceneManager().removeAll();
 		
-		//FIXME for testcase use first one, remove later
-		{
-			clientInfo.getCharHandler().setSelected(0);
-			clientInfo.getCharHandler().onCharSelected();
-			if(true)return;
-		}
+//		//FIXME for testcase use first one, remove later
+//		{
+//			clientInfo.getCharHandler().setSelected(0);
+//			clientInfo.getCharHandler().onCharSelected();
+//			if(true)return;
+//		}
 		
 		//TODO load the hall
 		//load the x representations of the characters into the hall
@@ -291,29 +326,87 @@ public final class GameController {
 		//add gui buttons for enter world, exit, options
 		//on enter world start game with the chosen, on exit cleanup, on options show options pane
 
-		AmbientLight al = new AmbientLight();
-	    al.setColor(new ColorRGBA(.8f, .8f, .8f, 1.0f));
-		Singleton.get().getSceneManager().changeRootLight(al,Action.ADD);
-
-		//setup camera	
-		camera.setLocation(new Vector3f(3f,0f,4f));
-		camera.lookAtDirection(Vector3f.UNIT_Z.mult(-1f), Vector3f.UNIT_Y);
+		Node scene = null;
+		Vector3f pos = null;
+		try{
+			scene = (Node) Singleton.get().getAssetManager().getJmeAssetMan()
+					.loadAsset(SCENES_SELECT);		
+			if(scene != null){
+				
+				//this is needed as the chars are on a different node and would not be rendered
+				//just add, do not remove here..
+				for(Light l : scene.getLocalLightList()){
+						Singleton.get().getSceneManager().changeRootLight(l, Action.ADD);
+				}
 		
-		for (int i = clientInfo.getCharHandler().getCharCount()-1; i >= 0; i--) {
-			NewCharacterModel v = new NewCharacterModel(clientInfo.getCharHandler().getCharSummary(i));
-			v.attachVisuals();
-			v.setLocalTranslation(i*1.25f, -1f, -4f);
-			Singleton.get().getSceneManager().changeCharNode(v,Action.ADD);
+				
+				Singleton.get().getSceneManager().changeTerrainNode(scene, Action.ADD);
+				
+				//BEWARE !! do not use world pos at that time the node is not attached, and world pos was not computed
+				pos = scene.getChild("target").getLocalTranslation().clone();
+				camera.setLocation(pos); 
+				//default, changed to last selected
+				camera.lookAt(scene.getChild("pos1").getLocalTranslation(), Vector3f.UNIT_Y);
+				int chars = clientInfo.getCharHandler().getCharCount();
+				if(chars > 12){
+					logger.log(Level.SEVERE, "More than 12 characters present for selection! Check server settings! We can only display 12 chars for selection");
+					chars = 12;
+				}
+				
+				for (int i = 0; i < chars; i++) {
+					if(clientInfo.getCharHandler().getSelectedChar().isLastUsed()){
+						clientInfo.getCharHandler().setSelected(i);
+						camera.lookAt(scene.getChild("pos"+(i+1)).getLocalTranslation(), Vector3f.UNIT_Y);
+						CameraNode cn;
+						
+					}
+					NewCharacterModel v = new NewCharacterModel(clientInfo.getCharHandler().getCharSummary(i));
+					v.attachVisuals();
+					pos = scene.getChild("pos"+(i+1)).getLocalTranslation().clone();
+					pos.y -= 1.0f;
+					v.setLocalTranslation(pos);
+					v.setLocalRotation(new Quaternion().fromAngleNormalAxis((float) Math.PI, Vector3f.UNIT_Y.negate()));
+					Singleton.get().getSceneManager().changeCharNode(v,Action.ADD);
+				}				
+			}
+		} catch (Exception e1) {
+			logger.log(Level.SEVERE, "Failed to load select scene file "+SCENES_SELECT, e1);
 		}
     	
+		final Node refScene = scene;
+		
 		SwingUtilities.invokeLater(new Runnable() {
 
 			public void run() {
-				final JButton b = Singleton.get().getGuiController().displayButton("select", 80, 30, (settings.getWidth()/2)-140, settings.getHeight()-50);
-				final JButton bb = Singleton.get().getGuiController().displayButton("create", 80, 30, (settings.getWidth()/2)+60, settings.getHeight()-50);
-				
+				final JButton left = Singleton.get().getGuiController().displayButton("<", 40, 30, (settings.getWidth()/2)-100, settings.getHeight()-50);
+				final JButton b = Singleton.get().getGuiController().displayButton("select", 80, 30, (settings.getWidth()/2)-40, settings.getHeight()-50);
+				final JButton bb = Singleton.get().getGuiController().displayButton("create", 80, 30, (settings.getWidth()/2)-40, settings.getHeight()-10);
+				final JButton right = Singleton.get().getGuiController().displayButton(">", 40, 30, (settings.getWidth()/2)+70, settings.getHeight()-50);
+				left.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						int sel = clientInfo.getCharHandler().getSelectedIndex();
+						if(sel < 1)
+							return;
+						
+						sel--;
+						clientInfo.getCharHandler().setSelected(sel);
+						camera.lookAt(refScene.getChild("pos"+(sel+1)).getLocalTranslation(), Vector3f.UNIT_Y);
+					}
+				});
+				right.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						int sel = clientInfo.getCharHandler().getSelectedIndex();
+						if(sel+1 >= clientInfo.getCharHandler().getCharCount())
+							return;
+						
+						sel++;
+						clientInfo.getCharHandler().setSelected(sel);
+						camera.lookAt(refScene.getChild("pos"+(sel+1)).getLocalTranslation(), Vector3f.UNIT_Y);
+					}
+				});
 				b.addActionListener(new ActionListener() {
-					
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						// FIXME choose char and not select first, remove
@@ -338,10 +431,10 @@ public final class GameController {
 
 	public void doLogin(){
 		
-//		FIXME for testcase use first one, remove later
-		if(!initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "127.0.0.1:2106"))
-			throw new RuntimeException("Failed to init Network");
-		if(true) return;
+////		FIXME for testcase use first one, remove later
+//		if(!initNetwork("ghoust", new char[]{'g','h','o','u','s','t'}, "127.0.0.1:2106"))
+//			throw new RuntimeException("Failed to init Network");
+//		if(true) return;
 		
 		
 	    camera.setLocation(new Vector3f(0,0,0));  
@@ -494,29 +587,6 @@ public final class GameController {
         
         loginHandler.setLoginInfo(user,pwd);
         return true;
-	}
-//
-//	public final boolean isFinished() {
-//		return finished;
-//	}
-
-//	/**
-//	 * Top root of complete scene, including, statics, dynamics, player, etc.
-//	 * @return
-//	 */
-//	public SceneRoot getSceneRoot() {
-//		if(sceneRoot != null)
-//			return sceneRoot;
-//		else {
-//			//FIXME better use dummy gamecontroller triggered by injection
-//			logger.warning("SceneRoot requested but none set so far, please initialize first, creating DUMMY root");
-//			sceneRoot = new SceneRoot("Sceneroot");
-//			return sceneRoot;
-//		}
-//	}
-
-	public Camera getCamera() {
-		return camera;
 	}
 	
 	public void finish(){

@@ -28,7 +28,7 @@ public final class SceneManager {
 
 	private static SceneManager singleton = null;
 	
-	private boolean onlyOneChangePerFrame = true;
+	private boolean onlyOneChangePerFrame = false;
 	
 	public enum Action {
 		ADD,
@@ -61,6 +61,7 @@ public final class SceneManager {
 	private volatile Node chars = new Node("players");
 	private volatile Node terrain = new Node("terrains");
 	private volatile Node walker = new Node("npcs");
+	private volatile Node items = new Node("items");
 
 	private ConcurrentLinkedQueue<Tuple> queue = new ConcurrentLinkedQueue<Tuple>();
 
@@ -73,6 +74,8 @@ public final class SceneManager {
 	private boolean removeLights = false;
 
 	private boolean removePostProcessors;
+
+	private boolean removeItems;
 
 	/**
 	 * Internal constructor which also creates the terrain root, but does not
@@ -109,6 +112,7 @@ public final class SceneManager {
 		queue.add(new Tuple(root,chars,Type.NODE,Action.ADD));
 		queue.add(new Tuple(root,terrain,Type.NODE,Action.ADD));
 		queue.add(new Tuple(root,walker,Type.NODE,Action.ADD));
+		queue.add(new Tuple(root,items,Type.NODE,Action.ADD));
 	}
 	
 	public Node getRoot(){
@@ -117,11 +121,12 @@ public final class SceneManager {
 	
 	public void update(float tpf){
 		if(root != null){
+			lightUpdate();
+			postProcessorUpdate();
 			charUpdate();
 			terrainUpdate();
 			walkerUpdate();
-			lightUpdate();
-			postProcessorUpdate();
+			itemUpdate();
 			queueUpdate();
 		}
 		
@@ -130,9 +135,7 @@ public final class SceneManager {
 	private void postProcessorUpdate(){
 		if(removePostProcessors){
 			log.fine("REMOVING ALL POSTPOROCESSORS");
-			SceneProcessor[] list = viewPort.getProcessors().toArray(new SceneProcessor[0]);
-			for(SceneProcessor p: list)
-				viewPort.removeProcessor(p);
+			viewPort.getProcessors().clear();
 			removePostProcessors = false;
 		}
 	}
@@ -145,11 +148,8 @@ public final class SceneManager {
 	}
 	
 	private void lightUpdate(){
-		if(removeLights){
-			for(Light l :root.getLocalLightList())
-				root.removeLight(l);
-			
-			removeLights = false;
+		if(removeLights){	
+			root.getLocalLightList().clear();
 		}
 	}
 	
@@ -164,6 +164,13 @@ public final class SceneManager {
 		if(removeWalkers){
 			walker.detachAllChildren();
 			removeWalkers = false;
+		}
+	}
+	
+	private void itemUpdate(){
+		if(removeItems){
+			items.detachAllChildren();
+			removeItems = false;
 		}
 	}
 	
@@ -196,10 +203,12 @@ public final class SceneManager {
 					controls++;
 					break;
 				case LIGHT:// light
-					if (t.act != Action.REMOVE)
-						((Node) t.target).addLight((Light) t.element);
-					else
+					if (t.act != Action.REMOVE) {
+						((Node) t.target).addLight((Light) t.element);					
+					}
+					else {
 						((Node) t.target).removeLight((Light) t.element);
+					}
 					lights++;
 					break;
 				case POSTPROCESSOR:// postprocessor
@@ -268,6 +277,11 @@ public final class SceneManager {
 		queue.add(t);
 	}
 	
+	public void changeItemNode(Spatial n, Action action) {
+		Tuple t = new Tuple(items,n,Type.NODE, action);
+		queue.add(t);
+	}
+	
 	public void changeRootLight(Light pLight, Action action){
 		Tuple t = new Tuple(root,pLight,Type.LIGHT,action);
 		queue.add(t);
@@ -290,7 +304,11 @@ public final class SceneManager {
 	}
 	
 	public void removeLights(){
-		this.removeLights = true;
+		this.removeLights = true;		
+	}
+	
+	public void removeItems(){
+		this.removeItems = true;		
 	}
 
 	public void removeAll() {
@@ -298,6 +316,7 @@ public final class SceneManager {
 		removeChar();
 		removeTerrains();
 		removeLights();
+		removeItems();
 		removePostProcessors();
 	}
 
@@ -305,7 +324,7 @@ public final class SceneManager {
 		this.removePostProcessors = true;
 	}
 	
-	public void changePostProcessor(FilterPostProcessor fpp, Action action){
+	public void changePostProcessor(SceneProcessor fpp, Action action){
 		Tuple t = new Tuple(viewPort,fpp,Type.POSTPROCESSOR,action);
 		queue.add(t);
 	}

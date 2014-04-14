@@ -26,6 +26,7 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.l2client.app.Singleton;
+import com.l2client.controller.SceneManager;
 import com.l2client.controller.SceneManager.Action;
 import com.l2client.model.network.NewCharSummary;
 
@@ -85,6 +86,7 @@ public class VisibleModel extends Node {
 		} else {
 			name = "Entity_troll_null";
 		}
+		this.setShadowMode(ShadowMode.Inherit);
 	}
 
 	/**
@@ -139,6 +141,43 @@ public class VisibleModel extends Node {
 	        label.attachChild(txt);
 			attachChild(label);
 		}
+	}
+	
+	public void addMessageLabel(String msg, ColorRGBA color, float ttl, float speed){
+		
+        BitmapFont fnt = Singleton.get().getAssetManager().getJmeAssetMan().loadFont("Interface/Fonts/Default.fnt");
+        BitmapText txt = new BitmapText(fnt, false);
+        txt.setSize( 0.4f );
+        txt.setText(msg);
+        txt.setColor(color);
+        float w = txt.getLineWidth()+20f;
+        float off = w*0.5f;
+        txt.setBox(new Rectangle(-off, 0f, w, txt.getHeight()));
+        txt.setAlignment(Align.Center);
+        txt.setQueueBucket(Bucket.Transparent);
+        txt.addControl(new MessagesBillboardControl(ttl,speed));
+		
+        Node node = new Node("Message");
+        if(label != null){
+        	node.setLocalTranslation(0f,label.getLocalTranslation().y+0.5f, 0f);
+        } else {
+	        if(vis.getWorldBound() instanceof BoundingBox){
+	        	BoundingBox bbox = (BoundingBox)vis.getWorldBound();
+	        	node.setLocalTranslation(0f, bbox.getYExtent()+bbox.getYExtent()+0.5f, 0f);
+	        	logger.finest("Message by BBox "+msg+" @ "+node.getLocalTranslation());
+	        }
+	        else if(vis.getWorldBound() instanceof BoundingSphere){
+	        	BoundingSphere bound = (BoundingSphere)vis.getWorldBound();
+	        	node.setLocalTranslation(0f, bound.getRadius()+bound.getRadius()+0.5f, 0f);
+	        	logger.finest("Message by BSphere "+msg+" @ "+node.getLocalTranslation());
+	        }
+	        else {
+	        	node.setLocalTranslation(0f, 2.5f+0.5f, 0f);
+	        	logger.finest("Message by Code "+msg+" @ "+node.getLocalTranslation());
+	        }
+        }
+        node.attachChild(txt);
+		Singleton.get().getSceneManager().changeAnyNode(this, node, Action.ADD);
 	}
 	
 	public void addSelectionMarker(ColorRGBA color){
@@ -217,7 +256,7 @@ public class VisibleModel extends Node {
 	    mat.getAdditionalRenderState().setDepthWrite(false);
 	    selectionMarker.setMaterial(mat);
 	    selectionMarker.setQueueBucket(Bucket.Transparent);
-	    selectionMarker.setShadowMode(ShadowMode.Receive);
+	    selectionMarker.setShadowMode(ShadowMode.Off);
 	    
 	    return selectionMarker;	
 	}
@@ -276,7 +315,7 @@ public class VisibleModel extends Node {
 	//FIXME move to a builder, whcih should know what assets to load for which visual (stored in the DB)
 	protected Node createVisuals() {
 
-		if (charSelection != null) {
+//		if (charSelection != null) {
 			if (baseNode == null) {	
 //				Asset a = new Asset("troll2/troll.xml.mesh.xml","troll");
 //				com.l2client.asset.Singleton.get().getAssetManager().loadAsset(a,true);
@@ -295,7 +334,7 @@ public class VisibleModel extends Node {
 //				baseNode.updateModelBound();
 //				baseNode.updateGeometricState();
 				vis = baseNode.clone(false);
-				baseNode.setName(name);
+				vis.setName(name);
 				
 				AnimControl animControl = vis.getControl(AnimControl.class);
 				AnimChannel chan;
@@ -313,7 +352,7 @@ public class VisibleModel extends Node {
 					logger.severe("Vis animations are missing for troll");
 				}
 			}
-		}
+//		}
 
 		return vis;
 	}

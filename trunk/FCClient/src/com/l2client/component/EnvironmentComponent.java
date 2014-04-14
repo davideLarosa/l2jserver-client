@@ -36,4 +36,13 @@ public class EnvironmentComponent implements Component {
 	 */
 	public int movement = -1; 
 	
+	public String toString(){
+		StringBuilder build = new StringBuilder();
+		build.append(this.getClass().getSimpleName()).append(" ")
+		.append("changed:").append(changed)
+		.append(" movement:").append(movement)
+		.append(" damagereceived:").append(damageReceived);
+		return build.toString();
+	}
+	
 }

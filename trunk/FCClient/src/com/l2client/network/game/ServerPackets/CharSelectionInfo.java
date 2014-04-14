@@ -15,13 +15,15 @@ public class CharSelectionInfo extends GameServerPacket {
 	@Override
 	public void handlePacket() {
 		log.fine("Read from Server "+this.getClass().getSimpleName());
+		//this sends each time the whole set so clear it first
+		_client.getCharHandler().clearChars();
+		
 		// Number of characters available
 		int size = readD();// writeD(size);
 
 		// if 0 no new chars may be created
 		readD();
 		readC();
-
 		// for each char read on
 		for (int i = 0; i < size; i++) {
 			EntityData ch = new EntityData();
@@ -108,7 +110,7 @@ public class CharSelectionInfo extends GameServerPacket {
 			readD();
 
 			// FIXME active
-			readD();//last used char?
+			ch.setLastUsed(readD()>0?true:false);//last used char?
 			readC();
 			readH();
 			readH();

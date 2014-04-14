@@ -18,6 +18,7 @@ import com.l2client.network.game.ServerPackets.CharSelectionInfo;
 import com.l2client.network.game.ServerPackets.CreatureSay;
 import com.l2client.network.game.ServerPackets.DeleteObject;
 import com.l2client.network.game.ServerPackets.Die;
+import com.l2client.network.game.ServerPackets.DropItem;
 import com.l2client.network.game.ServerPackets.ExBrExtraUserInfo;
 import com.l2client.network.game.ServerPackets.GameServerPacket;
 import com.l2client.network.game.ServerPackets.ItemList;
@@ -31,6 +32,7 @@ import com.l2client.network.game.ServerPackets.ServerClose;
 import com.l2client.network.game.ServerPackets.ShortCutInit;
 import com.l2client.network.game.ServerPackets.SkillList;
 import com.l2client.network.game.ServerPackets.SocialAction;
+import com.l2client.network.game.ServerPackets.SpawnItem;
 import com.l2client.network.game.ServerPackets.StartRotation;
 import com.l2client.network.game.ServerPackets.StatusUpdate;
 import com.l2client.network.game.ServerPackets.StopMove;
@@ -107,7 +109,7 @@ public class GameHandler extends BaseGameHandler {
 				pa = new Revive();
 				break;
 			case 0x05:
-//				pa = new SpawnItem();
+				pa = new SpawnItem();
 				break;
 			case 0x06:
 //				pa = new SellList();
@@ -146,7 +148,7 @@ public class GameHandler extends BaseGameHandler {
 //				pa = new TradeStart();
 				break;
 			case 0x16:
-//				pa = new DropItem();
+				pa = new DropItem();
 				break;
 			case 0x17:
 //				pa = new GetItem();

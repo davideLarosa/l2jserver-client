@@ -97,8 +97,8 @@ public class PlayerCharHandler {
 	 * @param c
 	 */
 	public void addChar(EntityData c){
-		synchronized(charSelections){
-		charSelections.add(c);
+		synchronized(charSelections){		
+			charSelections.add(c);
 		}
 	}
 	/**
@@ -106,10 +106,9 @@ public class PlayerCharHandler {
 	 */
 	public void clearChars(){
 		synchronized(charSelections){
-		charSelections.clear();
-		selected = 0;
-		selectedObjectId =-1;
-		
+			charSelections.clear();
+			selected = 0;
+			selectedObjectId =-1;
 		}
 	}
 	/**

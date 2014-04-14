@@ -3,13 +3,19 @@ package com.l2client.controller.area;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import tonegod.skydome.SkyDome;
-
+import com.jme3.asset.AssetManager;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.util.SkyFactory;
 import com.l2client.app.Singleton;
 import com.l2client.controller.SceneManager.Action;
@@ -47,6 +53,8 @@ public final class TileTerrainManager implements ITileManager {
 	private Material material = null;
 
 	private Spatial sky;
+	
+	private DirectionalLight skyLight;
 
 	/**
 	 * internal singleton constructor, initializes dummy textures for the simple demo
@@ -224,22 +232,84 @@ public final class TileTerrainManager implements ITileManager {
 
 
 	public void addSkyDome(){
+		AssetManager assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
+		
 		if(sky == null)
 			sky = SkyFactory.createSky(Singleton.get().getAssetManager().getJmeAssetMan(),"models/textures/sky_povray1.jpg", true);
         Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
+        
+        skyLight = new DirectionalLight();
+        skyLight.setColor(new ColorRGBA(0.8f, 0.75f, 0.8f, 1f));
+		Singleton.get().getSceneManager().changeRootLight(skyLight, Action.ADD);
+		
+//		//TODO should be not here
+//        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 2048, 3);
+//        dlsf.setLight(dl);
+//        dlsf.setLambda(0.65f);
+//        dlsf.setShadowIntensity(0.8f);
+//        dlsf.setEdgeFilteringMode(EdgeFilteringMode.Dither);
+//
+//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//        fpp.addFilter(dlsf);
+//		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
+        DirectionalLightShadowRenderer dlsf = new DirectionalLightShadowRenderer(assetManager, 2048, 3);
+        dlsf.setLight(skyLight);
+        dlsf.setLambda(0.65f);
+        dlsf.setShadowIntensity(0.8f);
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.Dither);
+
+		Singleton.get().getSceneManager().changePostProcessor(dlsf, Action.ADD);	
+		
 	}
 	
-	public void addSkyDome(Camera cam ){
+	public void addSkyDome(Camera cam, int timeOffset){
 		if(sky == null)
 			sky = new Node("Sky");
-			SkyDome skyControl = new SkyDome(Singleton.get().getAssetManager().getJmeAssetMan(), cam);
-			sky.addControl(skyControl);
-			Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
+		
+		skyLight = new DirectionalLight();
+		skyLight.setColor(new ColorRGBA(1f, 1f, 1f, 1f));
+		Singleton.get().getSceneManager().changeRootLight(skyLight, Action.ADD);
+		
+		AssetManager assetManager = Singleton.get().getAssetManager().getJmeAssetMan();
+		com.l2client.util.SkyDome skyControl = new com.l2client.util.SkyDome(assetManager, cam);
+		skyControl.setUseCalendar(false);
+		skyControl.setSun(skyLight);
+		skyControl.setControlSun(true);
+		skyControl.setTimeOffset(timeOffset);
+		skyControl.setDaySkyColor(new ColorRGBA(0.75f, 0.75f, 1f, 1f));
+		skyControl.setSkyNightColor(new ColorRGBA(0.2f, 0.15f, 0.25f, 1f));
+		skyControl.setSunDayLight(new ColorRGBA(0.7f, 0.7f, 0.7f, 1f));
+		skyControl.setSunNightLight(new ColorRGBA(0.05f, 0.05f, 0.1f, 1f));
+		skyControl.initializeCalendar(1, 1, 24, 7, 4, 24);
+		sky.addControl(skyControl);
+		sky.setQueueBucket(Bucket.Sky);
+		Singleton.get().getSceneManager().changeCharNode(sky,Action.ADD);
+		//TODO should be not here
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 2048, 3);
+        dlsf.setLight(skyLight);
+        dlsf.setLambda(0.65f);
+        dlsf.setShadowIntensity(0.8f);
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.Dither);
+        dlsf.setEnabled(true);
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        fpp.addFilter(dlsf);
+		Singleton.get().getSceneManager().changePostProcessor(fpp, Action.ADD);
+		
+//        DirectionalLightShadowRenderer dlsf = new DirectionalLightShadowRenderer(assetManager, 2048, 3);
+//        dlsf.setLight(dl);
+//        dlsf.setLambda(0.65f);
+//        dlsf.setShadowIntensity(0.8f);
+//        dlsf.setEdgeFilteringMode(EdgeFilteringMode.Dither);
+//
+//		Singleton.get().getSceneManager().changePostProcessor(dlsf, Action.ADD);		
 	}
 	
 	public void removeSkyDome(){
 		if(sky != null)
 			Singleton.get().getSceneManager().changeCharNode(sky,Action.REMOVE);
+		if(skyLight != null){
+			Singleton.get().getSceneManager().changeRootLight(skyLight, Action.REMOVE);
+		}
 	}
 	
 	/**

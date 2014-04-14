@@ -1,5 +1,6 @@
 package com.l2client.component;
 
+import com.l2client.model.l2j.ItemInstance;
 import com.l2client.model.network.EntityData;
 
 /**
@@ -9,5 +10,6 @@ import com.l2client.model.network.EntityData;
 public class L2JComponent implements Component {
 
 	public EntityData l2jEntity = null;
+	public ItemInstance l2jItem = null;
 	public boolean isPlayer = false;
 }

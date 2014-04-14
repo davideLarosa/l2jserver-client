@@ -33,7 +33,7 @@ import com.l2client.network.game.ClientPackets.RequestBypassToServer;
 public final class CharacterController {
 
 	private static final Logger logger = Logger.getLogger(CharacterController.class.getName());
-	private final static CharacterController instance = new CharacterController();
+	private static CharacterController singleton;
 	private ChaseCamera chaser;
 	private PointLight pl;
 	private EntityData data = null;
@@ -46,7 +46,14 @@ public final class CharacterController {
 	}
 
 	public static CharacterController get() {
-		return instance;
+		if(singleton == null){
+			synchronized (CharacterController.class) {
+				if(singleton == null){
+					singleton = new CharacterController();
+				}
+			}
+		}
+		return singleton;
 	}
 	
 	//FIXME test and check if other actions are also disabled!
@@ -82,8 +89,8 @@ public final class CharacterController {
 		
 		Singleton.get().getSceneManager().removeChar();
 		Singleton.get().getSceneManager().changeCharNode(visible, Action.ADD);
-		Singleton.get().getTerrainManager().addSkyDome();
-
+		//TODO this should eb set by jme3 network package
+		Singleton.get().getTerrainManager().addSkyDome(cam, data.getGameTime());
 	}
 
 //	//TODO reentrant safe, gamecontroller needed at all?
@@ -98,7 +105,9 @@ public final class CharacterController {
 		Vector3f targetOffset = new Vector3f();
 //		float ex = ((BoundingBox) n.getWorldBound()).getYExtent();
 		targetOffset.y = 2.2f;
-//		cam.setAxes(Vector3f.UNIT_X, Vector3f.UNIT_Z, Vector3f.UNIT_Y.mult(-1f));
+		//reset cam
+		cam.setLocation(Vector3f.ZERO);
+		cam.lookAtDirection(Vector3f.UNIT_Z, Vector3f.UNIT_Y);
 		chaser = new ChaseCamera(cam, n, Singleton.get().getInputController().getInputManager());
 //		chaser.setUpVector(Vector3f.UNIT_Z);
 //		  Comment this to disable smooth camera motion

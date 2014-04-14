@@ -1,5 +1,6 @@
 package com.l2client.component;
 
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.l2client.animsystem.InputProvider;
 import com.l2client.animsystem.jme.JMEAnimationController;
@@ -46,30 +47,49 @@ public class AnimationSystem extends ComponentSystem {
 					// e.getEntity().setLocalTranslation(com.position.x,
 					// com.position.y+com.heightOffset, com.position.z);
 					Entity ent = e.getEntity();
+					checkForDamageMessages(ent, en);
 					// FIXME damn ugly Ent -> NPCModel -> Vis -> Controller WILL BLOW ON PURE VISMODEL
-					JMEAnimationController con = null;
-					if(ent.getChildren().size() > 0 && ((Node)ent.getChild(0)) != null && ((Node)ent.getChild(0)).getChildren().size() > 0)
-						con = ((Node) ent.getChild(0)).getChild(0).getControl(JMEAnimationController.class);
-					if (con != null) {
-						InputProvider in = getInputFrom(en, ent);
-						con.setInput(in);
+					try {
+						JMEAnimationController con = null;
+						if(ent.getChildren().size() > 0 && ((Node)ent.getChild(0)) != null && ((Node)ent.getChild(0)).getChildren().size() > 0)
+							con = ((Node) ent.getChild(0)).getChild(0).getControl(JMEAnimationController.class);
+						if (con != null) {
+							InputProvider in = getInputFrom(en, ent);
+							con.setInput(in);
 //FIXME OEHAM twice done, see Attack sever packet
 //						if(en.damageDealt > 0)
 //							con.callAction(CallActions.DefaultAttack.toString(), in);
 //						if(en.damageReceived > 0)
 //							con.callAction(CallActions.Wounded.toString(), in);
-					} 
+						} 
 //					else
-						//TODO No JMEAnimationController this is the case on the troll model
+							//TODO No JMEAnimationController this is the case on the troll model
 //						System.out
 //								.println("No JMEAnimationController below entity"
 //										+ ent.getId());
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+						System.out.println("ent:"+ent);
+					}
 				}
 				en.changed = false;
 			}
 		}
 	}
 	
+	private void checkForDamageMessages(Entity ent, EnvironmentComponent en) {
+//		System.out.println("Check called for "+ent.getId());
+//		if(en.damageReceived > 0){
+//			System.out.println("checkFor called damage received, will now add message label");
+//			VisualComponent comp = (VisualComponent) Singleton.get().getEntityManager().getComponent(ent.getId(), VisualComponent.class);
+//			ColorRGBA color = ColorRGBA.Red;
+//			//color = ColorRGBA.Orange;
+//			//color = ColorRGBA.White;
+//			comp.vis.addMessageLabel(Integer.toString(-en.damageReceived), color, 2, 1.5f);
+//		} 
+	}
+
 	/**
 	 * Call an action directly
 	 * @param a
@@ -142,6 +162,7 @@ public class AnimationSystem extends ComponentSystem {
 			}
 			//TODO who is the one to decide on resetting this? this should go into an EnvSystem!!
 			en.damageReceived = 0;
+			en.damageReceivedType = 0;
 		} else {
 			p.setInput(Hurt.None);
 			p.setInput(HurtVector.None);
@@ -156,6 +177,7 @@ public class AnimationSystem extends ComponentSystem {
 			p.setInput(AttackVector.Mid_Front);
 			//TODO who is the one to decide on resetting this? this should go into an EnvSystem!!
 			en.damageDealt = -1;
+			en.damageDealtType = 0;
 		} else {
 			p.setInput(AttackResult.None);
 		}

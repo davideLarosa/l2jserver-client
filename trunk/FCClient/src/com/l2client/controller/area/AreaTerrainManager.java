@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 import com.jme3.util.SkyFactory;
 import com.l2client.app.Singleton;
@@ -213,7 +214,10 @@ System.out.println("AreaTerrainManager checkLoad found "+x+","+z);
 		return ret;
 	}
 
-
+	public void addSkyDome(Camera cam, int timeOffset){
+		addSkyDome();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.l2client.controller.area.ITileManager#addSkyDome()
 	 */

@@ -108,6 +108,8 @@ public class GotoClickedInputAction extends Action {
 												location.z);
 										results.clear();
 										return;
+									} else {
+										log.fine("Unable to build path from "+pos.position+" to "+location);
 									}
 								}
 							}

@@ -1,5 +1,6 @@
 package com.l2client.network.game.ServerPackets;
 
+import com.l2client.app.Singleton;
 import com.l2client.model.l2j.ServerValues;
 import com.l2client.model.network.EntityData;
 import com.l2client.network.game.ClientPackets.EnterWorld;
@@ -37,15 +38,24 @@ public class CharSelected extends GameServerPacket {
 		ch.setY(ServerValues.getClientCoordY(z));
 		ch.setZ(ServerValues.getClientCoordZ(y));
 
-		readD();
-		readD();
+		readF();
+		readF();
 		readD();
 		readQ();
 		readD();
 		readD();
 		readD();
-		// rest ignored
+		readD();
+		readD();
+		readD();
+		readD();
+		readD();
+		readD();
 		
+		ch.setGameTime(readD());//time
+		
+		//..
+		// rest ignored
 		//TODO RequestManorList, RequestAllFortressInfo, RequestKeyMapping
 		_client.sendGamePacket(new EnterWorld());
 	}
